@@ -1,0 +1,2661 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="zh-TW" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+<meta name="description" content="公車運輸 QR CODE 雲端看板" />
+<meta name="keywords" content="CANVAS,公車,客運,巴士,接軌時刻" />
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<title>公車運輸 QR CODE 雲端看板</title>
+<style type="text/css">
+@charset "utf-8";
+
+body {
+	font-family: "Arial", "Microsoft JhengHei";
+	font-size: large;
+	margin: 0px;
+	background-color: rgb(192, 244, 247);
+}
+
+/* Common CSS Area Start*/
+.textA {
+	font-size: 20px;
+	color: #111;
+}
+.textB {
+	font-size: 16px;
+	color: #8c10a9;
+}
+.textR1 {
+	font-size: 20px;
+	color: #EF2020;
+}
+.floatLeft, .floatLeftInnerDiv > div{
+	float: left;
+}
+
+.frame1 {
+	margin: 10px;
+	padding: 10px;
+	width: calc(100% - 40px);
+	max-width: 1000px;
+	border: 4px solid #93a1f1;
+	display: inline-block;
+}
+
+.btn1, .btn5{
+	display: inline-block;
+	height: 40px;
+	line-height: 40px;
+	margin: 8px 10px;
+	padding: 0 10px;
+	border: 2px solid rgb(33, 186, 247);
+	border-radius: 20px;
+	font-size: Large;
+	color: #17041f;
+	background-color: rgb(174, 228, 238);
+	text-align: center;
+	cursor: pointer;
+	overflow: hidden;
+}
+.btn1.btnNoSupport{
+	color: #920D39;
+}
+.btn1.selected{
+	color: #fcfcfc;
+	background-color: #550857;
+}
+
+.btn5{
+	font-size: 16px;
+	margin: 8px 10px;
+	padding: 5px 10px;
+	border: 2px solid #de21f7;
+	color: #17041f;
+	background-color: #f5e3f5;
+}
+
+.btnStep{
+	display: inline-block;
+	height: 40px;
+	line-height: 40px;
+	margin: 8px 10px;
+	padding: 0 10px;
+	border: 2px solid rgb(109, 110, 110);
+	border-radius: 6px;
+	font-size: 18px;
+	color: #403f41;
+	background-color: rgb(201, 204, 204);
+	text-align: center;
+	cursor: pointer;
+	overflow: hidden;
+}
+.btnStep.disabled{
+	opacity: 0.6;
+}
+.stepControlArea{
+	padding: 0px 5px;
+	width: calc(100% - 20px);
+	display: inline-block;
+	position: fixed;
+	z-index: 4;
+	bottom: 0px;
+	left: 0px;
+	border-top: 1px solid #BAE;
+	background-color: rgb(192, 244, 247);
+}
+.textA, .textB, .textR1, .btn1, .btnStep, .bookmarkOut,
+.bs_no_select{
+   -o-user-select:none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   -webkit-user-select: none;
+   user-select: none;
+}
+
+.divTable{ display:table; }
+.divTableRowGroup{ display:table-row-group; }
+.divTableRow{ display:table-row; }
+.divTableCell{ display:table-cell; }
+
+.divDPIB {display:inline-block;}
+
+.quesTip{
+	color: #FEFEFE;
+	background-color: #22E;
+	border-radius: 50px;
+	display: inline-block;
+	text-align: center;
+	cursor: pointer;
+}
+
+/* Common CSS Area End*/
+
+#main {
+	width: 100%;
+	position: relative;
+}
+
+#menuBar {
+	min-height: 50px;
+	padding: 5px 0;
+	display: inline-block;
+}
+.menuBtn1 {
+	display: inline-block;
+	height: 40px;
+	line-height: 40px;
+	max-width: calc(32vw - 44px);
+	width: calc(31vw - 44px);
+	margin: 2px 10px;
+	padding: 0 10px;
+	border: 2px solid #8D21C0;
+	border-radius: 5px;
+	font-size: Large;
+	color: #5e5e5e;
+	background-color: #ECF8BE;
+	text-align: center;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+#makeArea{
+	padding: 10px;
+}
+
+#makeArea .makeContent{
+	width: 100%;
+	margin-bottom: 105px;
+}
+#makeArea .aloneLineRouteLinkA > a{
+	display: inline-block;
+	margin: 10px;
+}
+#makeArea .aloneLineRouteLinkA > a > .btn1{
+	margin: 0;
+}
+
+#makeArea .busCityCodeButton{
+	position: relative;
+}
+#makeArea .busCityCodeButton.isEn{
+	font-size: 12px;
+}
+#makeArea .busCityCodeButton .smallText{
+	position: absolute;
+	bottom: 2px;
+	height: 12px;
+	line-height: 12px;
+	font-size: 12px;
+}
+#makeArea .busFindRouteCSSInput{
+	width: 500px;
+	max-width: 85%;
+	height: 30px;
+	font-size: 24px;
+	padding: 2px 10px;
+}
+#makeArea .busFindRouteFrame .clearFrame{
+	display: inline-block;
+	margin: 10px 0 0;
+	width: 100%;
+}
+#makeArea .busFindRouteFrame .clearFrame > div, #makeArea .busFindRouteFrame .keyboardFrame .keyboardGroup > div{
+	display: inline-block;
+	float: left;
+	min-width: 30px;
+	height: 40px;
+	line-height: 40px;
+	padding: 0 5px;
+	text-align: center;
+	margin: 8px;
+	cursor: pointer;
+	border-radius: 9px;
+	overflow: hidden;
+}
+#makeArea .busFindRouteFrame .clearFrame > div{
+	border: 2px solid rgb(241, 32, 84);
+	color: #821;
+	padding: 0 12px;
+	font-size: 24px;
+}
+#makeArea .busFindRouteFrame .keyboardFrame{
+	width: 670px;
+	max-width: 100%;
+	display: inline-block;
+}
+#makeArea .busFindRouteFrame .keyboardFrame .keyboardGroup{
+	display: inline-block;
+	width: 260px;
+	font-size: 24px;
+}
+#makeArea .busFindRouteFrame .keyboardFrame .keyboardGroup > div{
+	border: 2px solid #209AF1;
+}
+
+#makeArea .busFindResultListBox{
+	border: 1px solid #46BCC0;
+	width: calc(100% - 50px);
+	display: inline-block;
+	margin-bottom: 10px;
+}
+#makeArea .busFindResultListBox .head{
+	font-size: 18px;
+	display: inline-block;
+	color: #2c1010;
+	padding: 10px;
+	margin: 5px;
+	width: calc(100% - 40px);
+	cursor: pointer;
+	background-color: rgba(255,255,255,0.4);
+	border: 1px solid transparent;
+	border-radius: 20px;
+}
+#makeArea .busFindResultListBox .busNO{
+	padding-right: 30px;
+}
+#makeArea .busFindResultListBox .fromTo{
+	color: #105217;
+	padding: 0 10px;
+}
+#makeArea .busFindResultListBox .dash1{
+	padding: 0 10px;
+}
+#makeArea .busFindResultListBox .dir{
+	padding: 0 10px;
+}
+#makeArea .busFindResultListBox .manageBy, #makeArea .busFindResultListBox .slinText{
+	font-size: 14px;
+	color: #9c33bd;
+}
+#makeArea .busFindResultListBox .manageBy{
+	padding: 0 0 0 20px;
+}
+#makeArea .busFindResultListBox .stop{
+	display: inline-block;
+	width: calc(100% - 6px);
+	min-height: 50px;
+	line-height: 50px;
+	margin: 2px 3px;
+}
+#makeArea .busFindResultListBox .stop:nth-child(odd){
+	background-color: #b4edef;
+}
+#makeArea .busFindResultListBox .stop .stopIndex{
+	padding: 0 10px 0 0;
+	min-width: 40px;
+	color: #29A;
+	text-align: right;
+}
+#makeArea .busFindResultListBox .stop .stopName{
+	padding: 0 12px;
+	min-width: 30%;
+	max-width: calc(100% - 150px);
+	cursor: pointer;
+}
+#makeArea .busFindResultListBox .stop .stopName.onSelect{
+	background-color: rgb(68, 17, 26);
+	color: #FCEC89;
+}
+#makeArea .busFindResultListBox .stop .stopName.overSelect{
+	background-color: rgb(8, 58, 50);
+	color: #FCEC89;
+}
+#makeArea .busFindResultListBox .stop .StopUID, #makeArea .busFindResultListBox .stop .StationID{
+	padding: 0 10px;
+   -o-user-select:text; -moz-user-select: text; -ms-user-select: text; -webkit-user-select: text; user-select: text;
+}
+#makeArea .busFindResultListBox .stopOpenMap{
+	float: right;
+	padding: 0 10px;
+	height: 100%;
+}
+#makeArea .busFindResultListBox .stopOpenMap .stopMap{
+	color: #E7EE8E;
+	border: 1px solid transparent;
+	padding: 0 5px;
+	border-radius: 10px;
+	display: inline-block;
+	background-color: #b30707;
+	height: 36px;
+	line-height: 36px;
+}
+#makeArea .busFindResultListBox .stopOK{
+	height: 36px;
+	line-height: 36px;
+	margin: 5px 10px;
+	border: 2px solid rgb(51, 212, 26);
+	background-color: rgb(195, 248, 223);
+	color: #17041f;
+	border-radius: 20px;
+	padding: 0 10px;
+	cursor: pointer;
+	overflow: hidden;
+	text-align: center;
+	float: right;
+}
+#makeArea .busFindResultListBox .stopOK.disable{
+	opacity: 0.4;
+}
+#makeArea #busArriveTime .StopNameFrame{
+	margin: 10px 0;
+	display: inline-block;
+	width: 100%;
+}
+#makeArea #busArriveTime .StopNameFrame > div.item{
+	padding-right: 5px;
+	line-height: 46px;
+	height: 46px;
+	display: inline;
+}
+#makeArea #busArriveTime .StopNameFrame > div.item, #makeArea #busArriveTime .StopNameFrame > div.item > select, #makeArea #busArriveTime .StopNameFrame > div.item > select > option{
+	font-size: 24px;
+}
+#makeArea .busArriveTimeFrame{
+	width: auto;
+}
+#makeArea .busArriveTimeFrame .name, #makeArea .busArriveTimeFrame .info, #makeArea .busArriveTimeFrame .stopUID{
+	padding: 5px calc(1vw + 4px);
+	border-bottom: 1px solid #99e;
+	word-wrap: break-word;
+	word-break: break-all;
+}
+
+.bookmark {
+	font-size: 16px;
+}
+.bookmark .divTableRow{
+	height: 28px;
+	line-height: 28px;
+}
+.bookmark .bookmarkList .idx{
+	width: 30px;
+	text-align: right;
+}
+.bookmark .bookmarkList .name{
+	max-width: 50%;
+	padding:0 10px;
+	color: #229;
+	text-decoration: underline;
+}
+.bookmark .bookmarkList .name > span{
+	cursor: pointer;
+}
+.bookmark .bookmarkList .func{
+	padding: 0 3px;
+	color: #24e;
+	cursor: pointer;
+	min-width: 50px;
+}
+
+
+#showArea .stationDisplayTitle{
+	background-color: #217;
+	position: relative;
+}
+#showArea .stationDisplayMore{
+	display: inline-block;
+	width: 28px;
+	height: 28px;
+	background-color: #ABE;
+	position: absolute;
+	z-index: 3;
+	cursor: pointer;
+	top: 2px;
+	left: 2px;
+	border-radius: 14px;
+}
+#showArea .stationDisplayName{
+	font-size:24px;
+	text-align:center;
+	color: #99F0ba;
+	height:32px; line-height:32px;
+	display: inline-block;
+	width: calc(100% - 30px);
+	padding-left: 30px;
+}
+#showArea .allIn .list{
+	padding:8px;
+	margin-bottom: 12px;
+	border: 2px solid #217;
+	border-top: none;
+}
+#showArea .allIn .list .item{
+	padding-right: 3vw;
+	line-height: 32px;
+	font-size: 20px;
+	max-width: 48%;
+	border-bottom: 1px solid #8CE;
+}
+#showArea .allIn .list .item:last-child{
+	padding-right: 0;
+}
+#showArea .allIn .list .item.number{ color:#217;}
+#showArea .allIn .list .item.number .str{
+	position:relative;
+	padding-right: 22px;
+	display: inline-block;
+}
+#showArea .allIn .list .item.number .str .dir{
+	display: inline-block;
+	font-size: 12px;
+	height: 14px; line-height: 14px;
+	padding-left: 5px;
+	max-width: 100px;
+}
+.busRouteDir0Color, #showArea .allIn .list .item.number .str .dir0{ color:green; }
+.busRouteDir1Color, #showArea .allIn .list .item.number .str .dir1{ color:red; }
+#showArea .allIn .list .item.timeState { min-width: 100px; }
+
+.busDisplayArriveMinute{
+	color: #1020EF;
+}
+.busDisplayMayArrive{
+	background-color:#DB0F20; color:#EEE; padding: 2px 5px;
+}
+.busDusplayOtherStatus{
+	color:#cc9a0f;
+}
+
+
+
+@media screen and (max-width: 679px) {
+	body {
+		font-size: 14px;
+	}
+	.textB.fz12mobile{font-size:12px;}
+    .menuBtn1, .btn1 , .btn5{
+		font-size: 14px;
+	}
+	.menuBtn1{
+		margin: 2px 5px;
+		padding: 0 5px;
+		max-width: calc(31vw - 20px);
+		width: calc(31vw - 20px);
+	}
+	#makeArea{ font-size: 14px; }
+	#makeArea .busFindResultListBox, #makeArea .busFindResultListBox .head{
+		width: calc(100% - 20px);
+		padding: 5px;
+	}
+	#makeArea .busFindResultListBox .busNO{ padding-right: 2vw;}
+	#makeArea .busFindResultListBox .stop .stopIndex{
+		min-width: 20px;
+		padding: 0 5px 0 0;
+	}
+	#makeArea .busFindResultListBox .stop .stopName{
+		padding: 0;
+	}
+	#makeArea .busFindResultListBox .stop .StopUID, #makeArea .busFindResultListBox .stop .StationID{
+		display: none;
+	}
+	#makeArea .busFindResultListBox .stop .stopOK{
+		margin: 5px 3px 5px 5px;
+	}
+	
+	#makeArea #busArriveTime .StopNameFrame > div.item input{
+		width: 100%;
+	}
+	#makeArea .busArriveTimeFrame .name, #makeArea .busArriveTimeFrame .info{
+		min-width: 38vw;
+	}
+	#makeArea .busArriveTimeFrame .stopUID{display:none;}
+	#showArea .allIn .list{
+		width: calc(100% - 24px);
+	}
+}
+@media screen and (min-width: 680px) and (max-width: 909px) {
+	body {
+		font-size: 16px;
+	}
+    .menuBtn1, .btn1 {
+		font-size: 16px;
+	}
+}
+
+.mask{
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background-color: rgba(210,210,210,0.6);
+    text-align: center;
+    z-index: 105;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+.mask .text{
+    position: relative;
+    font-size: 24px;
+    color: #EF7879;
+}
+.mask.show{
+    display: -webkit-flex;
+    display: flex;
+}
+
+.pop{
+	width: 100vw; height: 100vh;
+	position: fixed;
+	top: 0px; left: 0px;
+	background-color: #EEE;
+    z-index: 103;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+.pop.show{
+    display: block;
+}
+#showBusRoutePop{
+	position: absolute;
+	height: auto;
+	min-height: 100%;
+	width: 100%;
+}
+#showBusRoutePop .guideBar{padding: 1px 5px 6px; border-bottom: 1px solid #aa9;}
+#showBusRoutePop .guideBarFlex{
+	display: inline-flex;
+	width: 100%;
+}
+#showBusRoutePop .guideBarFlex .btnItem{
+	flex: 1;
+	height: 22px; line-height: 22px;
+	padding: 8px;
+	margin: 3px;
+	border: 2px solid #867;
+	cursor: pointer;
+	text-align: center;
+	font-size:20px;
+}
+#showBusRoutePop .guideBar .info{
+	height: 130px;
+	overflow: auto;
+	font-size: 16px;
+}
+#showBusRoutePop .guideBar .info .panel{
+	padding: 5px 10px;
+}
+#showBusRoutePop .guideBar .info .panel > div{
+	padding:3px 0;
+	line-height: 18px;
+}
+#showBusRoutePop .guideBarFlex .btnItem.open{
+	background-color: #79C;
+}
+#showBusRoutePop .content .row {
+	font-size: 20px;
+	height: 26px;
+	line-height: 26px;
+}
+#showBusRoutePop .content .row .index{
+	font-size: 12px;
+	padding: 0 10px 0 5px;
+	text-align: right;
+}
+#showBusRoutePop .content .row.link .stop > span{
+	color: #229;
+	text-decoration: underline;
+	cursor: pointer;
+}
+#showBusRoutePop .content .row.ever .stop,  #showBusRoutePop .content .row.ever .index{
+	opacity: 0.7;
+}
+#showBusRoutePop .content .row.now {
+	background-color: #2cd;
+}
+#showBusRoutePop .content .row.over {
+	background-color: #bff0ee;
+}
+#showBusRoutePop .content .row.target {
+	background-color: #d2b7f0;
+}
+#showBusRoutePop .content .row .status{
+	font-size: 12px;
+	display: inline;
+}
+#showBusRoutePop .content .row .status .carp{
+	background-color: #388D13;
+	color: #F3F3F3;
+	display: inline-block;
+	padding: 1px 3px;
+	height: 14px; line-height: 14px;
+	margin-left: 5px;
+}
+#showBusRoutePop .content .row .status .busDisplayArriveMinute, #showBusRoutePop .content .row .status .busDusplayOtherStatus{
+	padding-left: 5px;
+}
+@media screen and (max-width: 679px) {
+	#showBusRoutePop .content .row .index{
+		font-size: 10px;
+		padding: 0 3px 0 1px;
+	}
+	#showBusRoutePop .content .row .status{
+		font-size: 12px;
+		display: block;
+		min-width: 70px;
+	}
+}
+
+/* Vue CSS Start */
+.fade-leave-active {
+	display: none;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .6s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+
+.expandBox-leave-active, .expandBox-enter{
+	height: 0px !important;
+}
+.expandBox-enter-active, .expandBox-leave-active {
+	transition: all .6s ease;
+}
+.expandBox-enter-active, .expandBox-leave{
+	/* Just give target height and do not set height here */
+}
+/* Vue CSS End */
+
+</style>
+
+<!--
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue-router@2.7.0/dist/vue-router.js"></script>
+-->
+
+<script type="text/javascript" src="../../railtime/libs/vue.js"></script>
+<script type="text/javascript" src="../../railtime/libs/vue-router.js"></script>
+<script type="text/javascript" src="../../railtime/libs/vue-duoguo.js"></script>
+<script type="text/javascript" src="../../railtime/libs/QRious.js"></script>
+
+<script type="text/javascript" src="../../railtime/ttlib/defined.js"></script>
+<script type="text/javascript" src="../../railtime/ttlib/data.js"></script>
+<script type="text/javascript" src="../dist/ptx.js"></script>
+<script type="text/javascript">
+/*
+	ptx 過濾模式
+	StationID eq '2737'，同座標站牌會有一個 StationID 值相同，跨縣市通用
+
+	製作的五步驟
+	1.選擇縣市公車，輸入公車編號，透過 PTX 找出對應的公車路線，由使用者選擇其中一條
+	2.選擇該公車的其中一個站位，存 StopUID 及Bearing 後透過 PTX 取得該站 StationID 後找出指定縣市相同 StationID 的所有通過路線公車站牌
+	3.查詢公路客運，尋找座標相似且 Bearing 相同的站位，將站牌也加入
+	4.將所有 StopUID 合併成一個站牌串，產生查詢 URL 並產生 QR CODE
+	5.製作列印頁 CANVAS 可輸入名稱及 StationID 合併成圖片下載
+
+	
+	網頁 Get 參數內容
+	a: 模式，make 預設找站牌、組合站牌，show 顯示公車到站時間
+	stops: 存放站牌 UID 陣列，TPE30001,NWT10353,KEE10
+	pos: [CityCode, StationID eq '2737']
+*/
+//Vue.config.productionTip = false;
+
+var TT = $trainTaiwanLib;
+TT.ptx.AppID = atob('M2FhNWNkN2RmMTQwNGU1ZmJhYzA2N2JmMDAzODg3Yjc=');
+TT.ptx.AppKey = atob("TFprbHRGcjhvSkxGenFpUmU1RmdCeUgxYUFZ");
+
+var languagePakc = {
+	"Zh": {
+			CM01: '、',
+			CM_OK: '確定',
+			CM_CANCEL: '取消',
+			CM_REMOVE: '刪除',
+			CM_TITLE: '公車運輸 QR CODE 雲端看板',
+			CM_APP_USE_P: '<p>' +
+				'本程式可協助您查詢或製作公車站牌的公車動態查詢 QR CODE 碼，並且您可選擇過濾所有從 A 站牌開到 B 站牌的才顯示其餘不顯示（例如過濾汐止後火車站到南港展覽館的公車不會顯示直達公館的 907）。' +
+				'列印雲端站牌的 QR CODE 碼可貼在實際站牌上，方便尚未安裝智慧型公車動態顯示器的站牌候車者可直接使用智慧型手機掃瞄後查詢公車動態。' +
+			'</p><p>' +
+				'在民間應用上，由於其可過濾公車路線以及組合不同站牌於一支 QR CODE 內，因此可以自行依據需求製作公車站牌的 QR CODE 並印於廣告、文宣、喜帖、邀請函之類的地方。' +
+				'例如舉行婚禮的地方沒有捷運火車只有公車時，大眾運輸資訊除了印刷公車路線外，還可印上主要車站、市中心抵達婚禮會場的公車動態 QR CODE，賓客掃瞄後即可知道要轉乘之公車站牌和公車路線動態。' +
+			'</p><p>' +
+				'在商業應用上，因為本程式可組成群組站牌，當附近有多支公車站牌例如台北101 週邊有三處站牌分別有不同路線可到松山車站，可合併為一個雲端站牌 QR CODE，並印刷在商場內的地圖上。' +
+				'遊客在商場內看地圖的同時，知道附近不同的站牌位置，可立即掃描 QR CODE 掌握最快前往松山車站的公車以及站牌位置，方便繼續前往五分埔及饒河夜市觀光。' +
+			'</p>',
+			STR001: '功能',
+			STR002: '關於',
+			STR003: '由經過路線製作公車站牌雲端看板',
+			STR004: '請選擇此站位停靠的公車所有可能隸屬的主管機關縣市。',
+			STR005: '例如林口的站牌可能同時有新北市公車及桃園市公車，則勾選 [台北市、新北市公車] 和 [桃園市公車]。',
+			STR006: '您選擇的站牌公車業者主管機關包含：',
+			STR007: '上一步',
+			STR008: '下一步',
+			STR009: '放棄',
+			STR010: '請至少選擇一個縣市唷！',
+			STR011: '請輸入目標站牌上的任一個公車路線編號，將從前一步指定的縣市中尋找。',
+			STR012: '正在尋找公車路線中...',
+			STR013: '請輸入公車路線編號',
+			STR014: '請從下方選擇一個公車路線並從中找到您要製作的站牌',
+			STR015: '相同路線編號可能分為站名相同的去回程，請確實找到目前這支站牌所處的行車方向。',
+			STR016: '往程',
+			STR017: '返程',
+			STR018: '公車',
+			STR019: '確認要製作的站牌後按右邊的[確定]進行下一步，可用[地圖]開地圖視窗確認位置，<span style="color:red;">也可點選起迄站名來過濾只有經過這兩站的路線</span>。',
+			STR020: '地圖',
+			STR021: '新巴士',
+			STR022: '正在尋找這個站牌的公車路線...',
+			STR023: '抱歉，此路線的主管機關未提供站牌 StationID，無法繼續執行。',
+			STR024: '目前所知仍有部分縣市（紅字按鈕）未提供 StationID 資料無法執行，您可嘗試但不保證在主管機關更新資料前能夠成功製作出雲端公車站牌。',
+			STR025: '抱歉，找不到任何路線。',
+			STR026: '清除',
+			STR027: '修正',
+			STR028: '正常',
+			STR029: '未發車',
+			STR030: '交管不停靠',
+			STR031: '末班車已過',
+			STR032: '今日未營運',
+			STR033: '即將抵達',
+			STR034: '沒有資訊',
+			STR035: '分鐘',
+			STR036: '將為此站路線製作雲端看板站牌，你可輸入或選用一個站名。',
+			STR037: '建議：',
+			STR038: '請輸入站牌名稱',
+			STR039: '現在您可以分享此站牌的雲端看板',
+			STR040: '您亦可加入收藏夾，之後合併多支站牌於一個雲端看板內顯示',
+			STR041: '載入中...',
+			STR042: '可點選 QR Code 圖片將之匯出',
+			STR043: '加入站牌收藏夾 (暫存在瀏覽器內)',
+			STR044: '加入收藏夾失敗',
+			STR045: '成功加入收藏夾',
+			STR046: '管理站牌收藏夾',
+			STR047: '刪除',
+			STR048: '分享',
+			STR049: '歡迎使用{title}系統，您現在可以點選{btnA}進行新站牌的製作，或者從中管理過去製作的站牌。',
+			STR050: '合併為群組站牌',
+			STR051: '群組站牌會將勾選的站牌合併為一個查詢連結，產生一個 QR CODE 後可以一次檢視多支站牌的動態資訊。請注意，會依據您勾選的順序顯示站牌。',
+			STR052: '產生 QR CODE',
+			STR053: '請輸入群組名稱',
+			STR054: '已產生於下方',
+			STR055: '去',
+			STR056: '返',
+			STR057: '未出現資訊可能是公車動態資訊伺服器無回應，請稍後再使用。',
+			STR058: '管理群組站牌收藏夾',
+			STR059: '加入群組收藏夾',
+			STR060: '已成功加入群組收藏夾',
+			STR061: '直接查詢站牌動態',
+			STR062: '資訊',
+			STR063: '公車站牌雲端看板連結',
+			STR064: '全程站牌',
+			STR065: '單程站牌',
+			STR066: '範例：查詢台北 101 週圍各站牌至松山的公車路線',
+			zxx: 'Zh'
+	},
+	"En": {
+			CM01: ', ',
+			CM_OK: 'OK',
+			CM_CANCEL: 'Cancel',
+			CM_REMOVE: 'Remove',
+			CM_TITLE: 'QR CODE Smart Bus Stop',
+			CM_APP_USE_P: '<p>' + 'Make any bus stop dynamic status with a share link and gen QR CODE, than paste on any document or card or mail to your friend let take bus easily.' + '</p>',
+			STR001: 'Function',
+			STR002: 'About',
+			STR003: 'Make bus stop smart link by bus route',
+			STR004: 'Please choose any city goverment maybe manage this stop.',
+			STR005: 'Ex. Bus on Keelung maybe manage by New Taipei or Keelung, so you need choose Keelung and New Taipei. ',
+			STR006: 'Manage by: ',
+			STR007: 'Previous',
+			STR008: 'Next',
+			STR009: 'Cancel',
+			STR010: 'Please choose one or more city',
+			STR011: 'Please key-in a bus route of this stop, it must include by the cities.',
+			STR012: 'Searching...',
+			STR013: 'Please input bus number',
+			STR014: 'Please choose a bus route and find the stop',
+			STR015: 'A bus route maybe with go and back subroute, make sure the direction is correctly.',
+			STR016: 'go',
+			STR017: 'back',
+			STR018: 'Bus',
+			STR019: 'Find the stop than click OK, you can confirm it by map, <span style="color:red;">sure you can select two stops between start and target</span>.',
+			STR020: 'Map',
+			STR021: 'New BUS',
+			STR022: 'Finding bus route...',
+			STR023: 'Sorry, this city no give StationID, so we can not continue.',
+			STR024: 'Some cities (red string) without StationID data so it can not works.',
+			STR025: 'Sorry! No any bus route.',
+			STR026: 'Clear',
+			STR027: 'Del',
+			STR028: 'Normal',
+			STR029: 'No Bus',
+			STR030: 'No Stop',
+			STR031: 'Last Passed',
+			STR032: 'No Service',
+			STR033: 'Coming',
+			STR034: 'No Info',
+			STR035: 'min',
+			STR036: 'Input or choose a bus stop name.',
+			STR037: 'tip: ',
+			STR038: 'Please input bus stop name',
+			STR039: 'Now you can share the bus stop smart link. ',
+			STR040: 'Sure you can save to bookmark than create group stop by multi bus stops.',
+			STR041: 'Loading...',
+			STR042: 'Click QR Code and expor it',
+			STR043: 'Add to bookmark (In browser storage)',
+			STR044: 'Fail of add to bookmark',
+			STR045: 'Succeess added to bookmark',
+			STR046: 'Manage bookmark',
+			STR047: 'Delete',
+			STR048: 'Share',
+			STR049: 'Welcome to {title}，Now you can press {btnA} to make new smart stop or manage stops.',
+			STR050: 'Make group stop',
+			STR051: 'Group stop will join multi stops to a smart stop, create a QR CODE than you can see many stops dynamic status at once.',
+			STR052: 'Gen QR CODE',
+			STR053: 'Please input group name',
+			STR054: 'Created',
+			STR055: 'Go',
+			STR056: 'Back',
+			STR057: 'No response, please try again later.',
+			STR058: 'Manage group stop bookmark',
+			STR059: 'Add to group stop bookmark',
+			STR060: 'Success added to group stop bookmark',
+			STR061: 'Search stop status',
+			STR062: 'Info',
+			STR063: 'Share link of smart stop',
+			STR064: 'Full route',
+			STR065: 'Single way',
+			STR066: 'Example : All bus from Taipei 101 to SongShan Station',
+			zxx: 'En'
+	}
+}
+var _LANG;
+VueDuoGuo.setConfig({
+	//baseLang: 'Zh',
+	//component: "_LANG",
+	autoload: true,
+	lang: 'Zh',
+	localStorage: 'busp_lang',
+	path: languagePakc,
+	global: "_LANG"
+})
+
+var BB = (function(TT){
+	var _DEFINE_PARAM_BUS_STATION = 'busStation';
+	var define_cityArea = [
+		{area:'KEE', name:'基隆市公車', ename:'Keelung', aryCityCode: ['KEE'], noStationID: true},
+		{area:'TPE', name:'台北市、新北市公車', ename:'Taipei area', aryCityCode: ['TPE','NWT']},
+		{area:'TAO', name:'桃園市公車', ename:'Taoyuan', aryCityCode: ['TAO'], noStationID: true},
+		{area:'HSZ', name:'新竹縣市公車', ename:'Hsinchu area', aryCityCode: ['HSZ','HSQ']},
+		{area:'MIA', name:'苗栗縣公車', ename:'Maioli', aryCityCode: ['MIA']},
+		{area:'TXG', name:'臺中市公車', ename:'Taichung', aryCityCode: ['TXG'], noStationID: true},
+		{area:'CHA', name:'彰化縣公車', ename:'Changhua', aryCityCode: ['CHA']},
+		{area:'NAN', name:'南投縣公車', ename:'Nantou', aryCityCode: ['NAN']},
+		{area:'YUN', name:'雲林縣公車', ename:'Yunlin', aryCityCode: ['YUN']},
+		{area:'CYQ', name:'嘉義縣市公車', ename:'Chiayi area', aryCityCode: ['CYQ','CYI']},
+		{area:'TNN', name:'臺南市公車', ename:'Tainan', aryCityCode: ['TNN'], noStationID: true},
+		{area:'KHH', name:'高雄市公車', ename:'Kaohsiung', aryCityCode: ['KHH']},
+		{area:'PIF', name:'屏東縣公車', ename:'Pingtung', aryCityCode: ['PIF']},
+		{area:'ILA', name:'宜蘭縣公車', ename:'Yilan', aryCityCode: ['ILA']},
+		{area:'HUA', name:'花蓮縣公車', ename:'Hualian', aryCityCode: ['HUA']},
+		{area:'TTT', name:'臺東縣公車', ename:'Taitung', aryCityCode: ['TTT']},
+		{area:'PEN', name:'澎湖縣公車', ename:'Penghu', aryCityCode: ['PEN']},
+		//{area:'THB', name:'公路客運', ename:'Intercity', aryCityCode: ['THB']},
+		{area:'KIN', name:'金門縣公車', ename:'Kinmen', aryCityCode: ['KIN'], noStationID: true},
+		{area:'LIE', name:'連江縣公車', ename:'Lienchiang', aryCityCode: ['LIE'], noStationID: true}
+	]
+
+	var bookmark = (function(){
+		var BUSP_DIM = 'busp_busSaveStation';
+		var BUSP_GROUP_DIM = 'busp_busGroupSaveStation';
+		var bmAry = [], bgAry = [];
+		function fnRead(){
+			var tmpA = localStorage.getItem(BUSP_DIM);
+			if(tmpA){
+				bmAry = JSON.parse(tmpA);
+			}
+			return bmAry;
+		}
+		function fnWrite(){
+			localStorage.setItem(BUSP_DIM, JSON.stringify(bmAry));
+		}
+		function fnAdd(name, StationID, cities, StationTargetID){
+			if(!name && !StationID && !cities){
+				return false;
+			}
+			fnRead();
+			var objD = {name:name, StationID:StationID, cities:cities, id: new Date().getTime()};
+			if(StationTargetID) objD.StationTargetID = StationTargetID;
+			bmAry.push(objD);
+			fnWrite();
+			return true;
+		}
+		function fnRemove(id){
+			fnRead();
+			if(!id) return false;
+			bmAry = bmAry.filter(function(c){
+				return (c.id==id) ? false : true;
+			})
+			fnWrite();
+			return fnRead();
+		}
+		//  Control Group
+		function fnGroupRead(){
+			var tmpA = localStorage.getItem(BUSP_GROUP_DIM);
+			if(tmpA) bgAry = JSON.parse(tmpA);
+			return bgAry;
+		}
+		function fnGroupWrite(){
+			localStorage.setItem(BUSP_GROUP_DIM, JSON.stringify(bgAry));
+		}
+		function fnGroupAdd(name, StationArray){
+			if(!name || !StationArray || StationArray.length==0){
+				return false;
+			}
+			fnGroupRead();
+			var objD = {name:name, StationArray:StationArray, id: new Date().getTime()};
+			bgAry.push(objD);
+			fnGroupWrite();
+			return true;
+		}
+		function fnGroupRemove(id){
+			fnGroupRead();
+			if(!id) return false;
+			bgAry = bgAry.filter(function(c){
+				return (c.id==id) ? false : true;
+			})
+			fnGroupWrite();
+			return fnGroupRead();
+		}
+		return {
+			add: fnAdd,
+			read: fnRead,
+			remove: fnRemove,
+			groupAdd: fnGroupAdd,
+			groupRead: fnGroupRead,
+			groupRemove: fnGroupRemove
+		}
+	})();
+	function genQR(url){
+        return "http://chart.apis.google.com/chart?cht=qr&chl="+ encodeURIComponent(url) +"&chs=240x240";
+	}
+	function genStationQRByGoogle(url, name, cbFn){
+		var pw = 300, ph = 300;
+		name = name || 'QR Code BUS Stop Information';
+		var canvas = document.createElement('canvas');
+		var ctx = canvas.getContext('2d'),
+			image = new Image();
+		image.crossOrigin = "anonymous";
+		
+		image.onload = function(){
+			canvas.width = pw;
+    		canvas.height = ph;
+			ctx.font="20px Arial";
+    		ctx.drawImage(this, 30, 0, 240, 240);
+			var txWidth = ctx.measureText(name).width;
+			var txX = (txWidth > pw) ? 0 : Math.ceil((pw-txWidth)/2);
+    		ctx.fillText(name, txX, 270);
+			cbFn(canvas);
+		}
+		image.src = genQR(url);
+	}
+	function genStationQR(url, name, cbFn){
+		var pw = 300, ph = 300;
+		name = name || 'QR Code BUS Stop Information';
+		var canvas = document.createElement('canvas');
+		var ctx = canvas.getContext('2d'),
+			qrcDrawDOM = document.createElement('canvas');
+
+		var qr = new QRious({element:qrcDrawDOM, value:url, size:240});
+		canvas.width = pw;
+		canvas.height = ph;
+		ctx.font="20px Arial";
+		ctx.drawImage(qrcDrawDOM, 30, 0, 240, 240);
+		var txWidth = ctx.measureText(name).width;
+		var txX = (txWidth > pw) ? 0 : Math.ceil((pw-txWidth)/2);
+		ctx.fillText(name, txX, 270);
+		cbFn(canvas);
+	}
+	function getCityAreaData(val, byField){
+		byField = byField || 'area';
+		if(byField=='area' || byField=='name'){
+			for(var i=0; i<define_cityArea.length; i++){
+				if(define_cityArea[i][byField] == val) return define_cityArea[i];
+			}
+		}else if(byField=='aryCityCode'){
+			for(var i=0; i<define_cityArea.length; i++){
+				if(define_cityArea[i][aryCityCode].indexOf(val) != -1) return define_cityArea[i];
+			}
+		}
+	}
+	function getBusDisplayString(objA){
+		return (_LANG.zxx=='En') ? objA.RouteName.En : objA.RouteName.Zh_tw;
+	}
+	function getDirString(dir){
+		return (dir==1) ? _LANG.STR017 : _LANG.STR016;
+	}
+	function getStopDisplayName(objA, flagWithMultiLang){
+		var nameObj = objA.StopName || objA.StationName;
+		var rt = nameObj.Zh_tw;
+		if(_LANG.zxx=='En' && !flagWithMultiLang) rt = nameObj.En;
+		var en = '';
+		if(/^Zh|^En/i.test(flagWithMultiLang)){
+			switch(flagWithMultiLang){
+				case 'Zh':
+					rt = nameObj.Zh_tw;
+				break;
+				case 'En':
+					rt = nameObj.En;
+				break;
+			}
+		}else if(flagWithMultiLang){
+			en = nameObj.En;
+			en = (en) ? ' [ ' + en + ' ]' : '';
+		}
+		if(!rt && !en) return false;
+		return rt + en;
+	}
+	function getStopDisplayInfo(stop){
+		var rt = _LANG.STR034;
+		//STR028: '正常', STR029: '尚未發車', STR030: '交管不停靠', STR031: '末班車已過', STR032: '今日未營運',
+		var aryStopStatusStr = [_LANG.STR028,_LANG.STR029,_LANG.STR030,_LANG.STR031,_LANG.STR032];
+		var needSec = stop.EstimateTime || -1;
+		if(stop.EstimateTime>=0){//有秒數者優先顯示抵達時間多久
+			var min = Math.floor(stop.EstimateTime/60);
+			rt = (min>0) ? '<span class="busDisplayArriveMinute">' + min + '</span> ' + _LANG.STR035 : '<span class="busDisplayMayArrive">' + _LANG.STR033 + '</span>';
+		}else if(stop.StopStatus>=0){
+			if(aryStopStatusStr[stop.StopStatus]) rt = '<span class="busDusplayOtherStatus">' + aryStopStatusStr[stop.StopStatus] + '</span>';
+		}
+		return rt;
+	}
+	function makeShowURL(ary, id, cities){
+		if(typeof(ary)=='string' && typeof(id)=='string') ary = [{name: ary, id: id, cities: cities}];
+		var url = location.href.toString().replace(location.search,'').replace(location.hash,'');
+		var jstr = JSON.stringify(ary);
+		url += '?' + _DEFINE_PARAM_BUS_STATION + '=' + encodeURIComponent(jstr) + '#/show';
+		return url;
+	}
+	function procCityWithStation(ary, returnType){
+		var rt = {};
+		ary.forEach(function(c){
+			if(!rt[c.CityCode]) rt[c.CityCode] = [];
+			rt[c.CityCode].push(c.StopUID);
+		});
+		if(/ary|array/gi.test(returnType)){
+			return (function(){
+				var nrt = [];
+				for(var k in rt){
+					nrt.push({CityCode: k, StopUID: rt[k]})
+				}
+				return nrt;
+			})();
+		}
+		return rt;
+	}
+	function scrollToTop(){
+					if(document.documentElement.scrollTop) document.documentElement.scrollTop = 0;
+					if(document.body.scrollTop) document.body.scrollTop = 0;
+	}
+	var BB = {
+		mode: (TT.defined.GetP && TT.defined.GetP.a) ? TT.defined.GetP.a : 'make',//make , show , 
+		cityArea: define_cityArea,
+		reloadInterval: 20000,
+		now: {
+			busCitySelArea: [],
+			busFindRouteInput: ''
+		},
+		ver: 0.4
+	};
+	BB.programAbout = {
+            "程式名稱": "公車運輸 QR CODE 雲端看板",
+            "作者": "Melix Yen (melixyen@gmail.com)",//修改後請將自己的名稱以 , 分隔加在前人後面，可帶括號標誌匿名或電子郵件等其他資訊，例如 test (test@abc.com)
+            '發行單位': '<span style="background-color: #BBB;"><span style="color:blue;">極</span><span style="color:#FEFE11;">光</span><span style="color:#005530;">駭</span><span style="color:red;">客</span></span>',
+            "版本": "Beta " + BB.ver,
+            "產生日期": "2019/3/1",
+			"函式庫": '<a href="http://melixyen.github.io/railtime/" target="_blank" style="color:#2233EE;">接軌時刻 </a><a href="https://github.com/melixyen/railtime/blob/gh-pages/ttlib/ptx.js" target="_blank" style="color:#2233EE;">公共交通動態查詢 PTX Javascript Library</a>',
+			"資料源": '資料介接交通部PTX服務平臺'
+    };
+	BB.alert = function(str){alert(str);}
+	BB.mask = function(str){
+		var mask = document.getElementById('mask');
+		mask.className = mask.className + ' show';
+		mask.querySelector('div.text').innerHTML = str;
+	}
+	BB.unmask = function(){
+		var mask = document.getElementById('mask');
+		mask.className = mask.className.replace(' show','');
+	}
+
+	var busCity = {//選擇主管機關縣市
+		template: '<div id="busCity" class="makeSub1">' +
+			'<div class="textA">{{_LANG.STR004}}' +
+				'<div class="quesTip" style="width:24px;height:24px;font-size:24px;line-height:24px;" v-on:click="clickTipCitySelector">?</div>' +
+			'</div>' +
+			'<transition name="fade">' +
+				'<div class="textB fz12mobile" v-show="flagCitySelectorTip">{{_LANG.STR005}} {{_LANG.STR024}}</div>' +
+			'</transition>' +
+			'<div class="busCityCodeForm frame1 floatLeftInnerDiv">' +
+				'<div class="busCityCodeButton btn1" v-for="(cityItem, idx) in cityArea" v-on:click="clickCity(cityItem)" v-bind:class="(getBtnClickCSS(cityItem))">{{ cityItem.name }}' +
+					'<div class="smallText" v-show="(_LANG.zxx==\'En\')">{{ cityItem.ename }}</div>' +
+				'</div>' +
+			'</div>' +
+			'<div class="frame0" v-html="showCitySelectStatus()"></div>' +
+			'<div class="formChooseCity"></div>' +
+		'</div>',
+		data: function(){return{
+			cityArea: BB.cityArea.map(function(c){return c;}),
+			flagCitySelectorTip: false,
+			selArea: this.$parent.busCitySelArea
+		}},
+		methods: {
+			clickCity: function(item){
+				var arrIndex = this.selArea.indexOf(item.area);
+				if(arrIndex != -1){
+					this.selArea.splice(arrIndex, 1);
+				}else{
+					this.selArea.push(item.area);
+				}
+			},
+			clickTipCitySelector: function(){
+				this.flagCitySelectorTip = !this.flagCitySelectorTip;
+			},
+			getBtnClickCSS: function(item){
+				var rt = (item.noStationID) ? ' btnNoSupport' : '';
+				rt += (this.selArea.indexOf(item.area) != -1) ? ' selected' : '';
+				rt += (_LANG.zxx=='En') ? ' isEn' : '';
+				return rt;
+			},
+			showCitySelectStatus: function(){
+				var rt = '';
+				if(this.selArea.length > 0){
+					rt = _LANG.STR006;
+					rt += this.selArea.map(function(c){
+						var en = (_LANG.zxx=='En') ? ' ' + getCityAreaData(c).ename : '';
+						return '<span style="color:#9A4C3E;">' + getCityAreaData(c).name + en + '</span>';
+					}).join(_LANG.CM01);
+				}
+				return rt;
+			}
+		},
+		watch: {
+			selArea: function(){
+				this.$parent.flagConfirmBusCity = !!(this.selArea.length>0);
+				this.$parent.busCitySelArea = this.selArea;
+				BB.now.busCitySelArea = this.selArea;
+			}
+		}
+	}
+	var busFindRoute = {//尋找路線
+		template: '<div id="busFindRoute" class="makeSub1">' +
+			'<div class="textA">{{_LANG.STR011}}</div>' +
+			'<div class="busFindRouteFrame frame1">' +
+				'<div>' +
+					'<input type="text" maxLengrh="10" class="busFindRouteCSSInput" v-bind:placeholder="_LANG.STR013" v-model="busFindRouteInput" />' +
+				'</div>' +
+				'<div class="clearFrame bs_no_select"><div v-on:click="inputClear()">{{_LANG.STR026}}</div><div v-on:click="inputBackSpace()">{{_LANG.STR027}}</div>' + '</div>' +
+				'<div class="keyboardFrame bs_no_select">' +
+					'<div class="keyboardGroup number">' +
+						'<div v-for="(num, idx) in keyNumberAry" v-on:click="ck(num)">{{ num }}</div>' +
+					'</div>' +
+					'<div class="keyboardGroup eng">' +
+						'<div v-for="(num, idx) in keyEngAry" v-on:click="ck(num)">{{ num }}</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+		'</div>',
+		data: function(){return{
+			keyNumberAry: ['藍','7','8','9','紅','4','5','6','綠','1','2','3','橘','棕','0','副'],
+			keyEngAry: ['F','A','B','C','幹線','通勤','專車','快','快速','市民','懷恩','接駁'],
+			busFindRouteInput: this.$parent.busFindRouteInput
+		}},
+		methods: {
+			ck: function(num){
+				this.busFindRouteInput = this.busFindRouteInput + num;
+			},
+			inputBackSpace: function(){
+				var tx = this.busFindRouteInput;
+				tx = tx.substr(0, tx.length-1);
+				this.busFindRouteInput = tx;
+			},
+			inputClear: function(){
+				this.busFindRouteInput = '';
+			}
+		},
+		watch: {
+			busFindRouteInput: function(){
+				this.$parent.busFindRouteInput = this.busFindRouteInput;
+				BB.now.busFindRouteInput = this.busFindRouteInput;
+			}
+		}
+	}
+	var busFindList = {//列出尋找到的所有巴士路線
+		template: '<div id="busFindList" class="makeSub1">' +
+			'<div class="textA">{{_LANG.STR014}}</div>' +
+			'<div class="textB">{{_LANG.STR015}}</div>' +
+			'<div class="busFindListFrame frame1 bs_no_select">' +
+				'<div class="busFindResultListBox" v-for="(row, idx) in busFindRouteResult">' +
+					'<div class="floatLeftInnerDiv head" v-html="head(row)" v-on:click="showHideStop(row)"></div>' +
+					'<div class="stopInfo" v-show="row.displayStop">' +
+						'<div class="slinText" v-html="_LANG.STR019"></div>' +
+						'<div class="stopList">' +
+							'<div v-for="(stop, sidx) in row.Stops" class="stop floatLeftInnerDiv" >' +
+									'<div class="stopIndex">{{ sidx+1 }}</div>' +
+									'<div class="stopName" title="StopName.Zh_tw" v-bind:class="nameCSS(row, stop, sidx)" v-on:click="stopNameClick(row, stop, sidx)">{{ printStopName(stop) }}</div>' +
+									'<div class="StopUID" title="StopUID">{{ stop.StopUID }}</div>' +
+									'<div class="StationID" title="StationID">{{ stop.StationID }}</div>' +
+									//以下部分 float right
+									'<div class=" stopOK" v-on:click="getStation(stop)" v-bind:class="getOKCSS(stop,sidx)">{{_LANG.CM_OK}}</div>' +
+									'<a class="stopOpenMap" v-bind:href="hrefMap(stop)" target="_new">' +
+										'<div class="stopMap">{{_LANG.STR020}}</div>' +
+									'</a>' +
+							'</div>' +
+						'</div>' +
+					'</div>' +
+				'</div>' +
+				'<div v-if="(busFindRouteResult.length==0)">{{_LANG.STR025}}</div>' +
+			'</div>' +
+		'</div>',
+		data: function(){return{
+			busFindRouteResult: (BB.now.busFindRouteResult) ? JSON.parse(JSON.stringify(BB.now.busFindRouteResult)) : [],
+			nextPage: false,
+			selectStop: [],
+			selectStopIndex: [],
+			selectStopRouteUID: ''
+		}},
+		methods: {
+			nameCSS: function(row, stop, sidx){
+				if(this.selectStopRouteUID != row.RouteUID) return '';
+				var selectStopIdx = this.selectStopIndex;
+				if(selectStopIdx.indexOf(sidx)!=-1) return 'onSelect';
+				if(sidx>selectStopIdx[0] && sidx<selectStopIdx[1]) return 'overSelect';
+				return '';
+			},
+			printStopName: getStopDisplayName,
+			stopNameClick: function(row, stop, sidx){
+				var selectStop = this.selectStop;
+				var stObj = {stop:stop, index:sidx, RouteUID: row.RouteUID, StationID: stop.StationID, Direction: row.Direction}
+				if(selectStop[0] && selectStop[0].RouteUID!=row.RouteUID){
+					selectStop = [];
+				}
+				if(selectStop.length==2){
+					if(selectStop[0].index==sidx){
+						selectStop.shift();
+						this.selectStop = selectStop;
+						return true;
+					}else if(selectStop[1].index==sidx){
+						selectStop = selectStop.slice(0,1);
+						this.selectStop = selectStop;
+						return true;
+					}
+					selectStop.shift();
+				}
+				var selA = selectStop[0];
+				if(selectStop.length==0){
+					selectStop.push(stObj);
+				}else if(selectStop.length==1){
+					if(selA.index==stObj.index){
+						selectStop = [];
+					}else if(selA.RouteUID==stObj.RouteUID){
+						selectStop[1] = stObj;
+					}else{
+						selectStop[0] = stObj;
+					}
+				}
+				selectStop.sort(function(a,b){
+					if(a.Direction != b.Direction) return (a.Direction > b.Direction) ? 1 : -1;
+					return (a.index > b.index) ? 1 : -1;
+				})
+				this.selectStop = selectStop;
+			},
+			getOKCSS: function(stop, idx){
+				var rt = '';
+				if(this.selectStop.length==2){
+					if(stop.StationID==this.selectStop[0].StationID || stop.StationID==this.selectStop[1].StationID){
+						rt = 'isFromTo';
+					}else{
+						rt = 'disable';
+					}
+					return rt;
+				}
+			},
+			getStation: function(stop){
+				//1.用 StationID 抓出 Station 資料  2.列出所有縣市站牌於一體
+				BB.now.StationID = false; 
+				BB.now.StationTargetID = false;
+				var StationID = stop.StationID, StationTargetID = false;
+				if(this.selectStop.length==2 ){
+					if(StationID==this.selectStop[0].StationID || stop.StationID==this.selectStop[1].StationID){
+						StationID = this.selectStop[0].StationID;
+						StationTargetID = this.selectStop[1].StationID;
+					}else{
+						return false;
+					}
+				}
+				var me = this;
+				BB.now.StationID = StationID;
+				BB.now.StationTargetID = StationTargetID;
+				if(!StationID){
+					BB.alert(_LANG.STR023);
+					return false;
+				}
+				if(this.nextPage){//有定義下一頁的方向時不使用預設的製作頁
+					var stnObj = stop;
+					if(!stnObj.StopName){
+						stnObj = this.selectStop[0].stop;
+					}
+					switch(this.nextPage){
+						case 'direct':
+							var url = makeShowURL(getStopDisplayName(stnObj), StationID, BB.now.cities);
+							if(StationTargetID){
+								url = makeShowURL([{name:getStopDisplayName(stnObj), id:StationID, cities:BB.now.cities, ts:StationTargetID}]);
+							}
+							location.href = url;
+						break;
+					}
+					return false;
+				}
+				var cities = BB.now.cities.slice();
+				var res = [];
+				var StationStopName = '', aryStationListStopName = [];
+				var listCityStops = [];
+				var aryArriveTime = [];
+				var maskString = (function(){
+					var rt = cities.map(function(c){
+						return '<span style="color:#9A4C3E;">' + TT.ptx.bus.getCityData(c).name + '</span>';
+					}).join(_LANG.CM01);
+					return '[ ' + rt + ' ] ' + _LANG.STR022;
+				})();
+				BB.mask(maskString);
+				function getStationStop(){
+					if(cities.length > 0){
+						var city = cities.shift();
+						var cityStr = TT.ptx.bus.getCityData(city).City;
+						
+						function runGetBusStation(aryFilter){
+							TT.ptx.bus.getBusStation(StationID, city, {cbFn: function(data,e){
+								if(e.status==TT.ptx.statusCode.SUCCESS && data.length>0 && data[0].Stops.length>0){
+									var dataStops = data[0].Stops;
+									if(aryFilter){
+										dataStops = dataStops.filter(function(c){
+											return !!(aryFilter.indexOf(c.RouteUID)!=-1);
+										})
+									}
+									var ary = dataStops.map(function(c){
+										c.CityCode = city;
+										c.City = cityStr;
+										c.StationID = StationID;
+										var stName = getStopDisplayName(c,'Zh');
+										if(aryStationListStopName.indexOf(stName)==-1) aryStationListStopName.push(stName);
+										var ename = c.StopName.En;
+										if(ename && aryStationListStopName.indexOf(ename)==-1) aryStationListStopName.push(ename);
+										return c;
+									});
+									StationStopName = getStopDisplayName(data[0]);
+									if(!StationStopName) StationStopName = getStopDisplayName(data[0], 'Zh');
+									res = res.concat(ary);
+								}
+								getStationStop();
+							}});
+						}
+						if(!StationTargetID){
+							runGetBusStation();
+						}else{
+							TT.ptx.bus.getBusStation(StationTargetID, city, {cbFn: function(data,e){
+								var aryFilter = [];
+								if(e.status==TT.ptx.statusCode.SUCCESS && data.length>0 && data[0].Stops.length>0){
+									aryFilter = data[0].Stops.map(function(c){
+										return c.RouteUID;
+									});
+								}
+								runGetBusStation(aryFilter);
+							}});
+						}
+					}else{
+						BB.now.stopList = res;
+						BB.now.StationStopName = StationStopName;
+						BB.now.aryStationListStopName = aryStationListStopName;
+						listCityStops = procCityWithStation(res, 'array');
+						getStopArriveTime();
+					}
+				}
+				function getStopArriveTime(){
+					if(listCityStops.length>0){
+						var city = listCityStops.shift();
+						var cityCode = city.CityCode, aryStopUID = city.StopUID;
+
+						TT.ptx.bus.getBusArriveTime(aryStopUID, cityCode, {cbFn: function(data,e){
+							if(e.status==TT.ptx.statusCode.SUCCESS && data.length>0){
+								aryArriveTime = aryArriveTime.concat(data);
+							}
+							getStopArriveTime();
+						}})
+					}else{
+						BB.unmask();
+						BB.now.aryArriveTime = aryArriveTime;
+						me.$parent.gotoNextStep();
+					}
+				}
+				getStationStop();
+			},
+			head: function(bus){
+				var busTypeString = _LANG.STR018;
+				var linkFT = '-';
+				if(bus.Direction==0) linkFT = '=&gt;';
+				if(bus.Direction==1) linkFT = '&lt;=';
+				if(bus.CityCode=='NWT' && /^F\d/.test(bus.RouteName.Zh_tw)){ busTypeString = '<span style="color:#BABB24;">' + _LANG.STR021 + '</span>' }
+				var dep = (_LANG.zxx=='Zh') ? bus.DepartureStopNameZh : bus.DepartureStopNameEn;
+				var des = (_LANG.zxx=='Zh') ? bus.DestinationStopNameZh : bus.DestinationStopNameEn;
+				var cityStr = (_LANG.zxx=='Zh') ? TT.ptx.bus.getCityData(bus.CityCode).name : TT.ptx.bus.getCityData(bus.CityCode).City;
+				return '<div class="busNO">' + getBusDisplayString(bus) + '</div>' +
+					'<div class="fromTo">' + dep + ' <span class="dash1">' + linkFT + '</span> ' + des + '</div>' +
+					'<div class="dir"> ( ' + getDirString(bus.Direction) + ' )</div>' +
+					'<div class="manageBy">' + cityStr + ' ' + busTypeString + '</div>';
+			},
+			hrefMap: function(stop){
+				var lat = stop.StopPosition.PositionLat, lon = stop.StopPosition.PositionLon;
+				return 'http://maps.google.com/maps?q=' + lat + ',' + lon;
+			},
+			showHideStop: function(bus){
+				bus.displayStop = !bus.displayStop;
+			}
+		},
+		watch: {
+			selectStop: function(){
+				this.selectStopIndex = this.selectStop.map(function(c){return c.index;});
+				this.selectStopRouteUID = (this.selectStop.length>0) ? this.selectStop[0].RouteUID : '';
+				var flgNext = !(this.selectStop.length>1);
+				this.$parent.flagDisableNext = flgNext;
+			}
+		},
+		mounted: function(){
+			this.selectStop = [];
+			BB.busFindList = this;
+			this.nextPage = (this.$route.query && this.$route.query.as) ? this.$route.query.as : false;
+		}
+	}
+
+	var busArriveTime = {
+		template: '<div id="busArriveTime" class="makeSub1">' +
+			'<div class="textA">{{_LANG.STR036}}</div>' +
+			'<div class="StopNameFrame">' +
+				'<div class="item">' +
+					'<input type="text" maxLengrh="30" class="busFindRouteCSSInput" v-bind:placeholder="_LANG.STR038" v-model="StationStopName" />' +
+				'</div>' +
+				'<div class="item">' +
+					'<span class="bs_no_select">{{_LANG.STR037}}</span>' +
+					'<select style="max-width:95%;" v-model="StationNameListText"><option v-for="n1 in aryStationListStopName" v-bind:value="n1">{{n1}}</option></select>' +
+				'</div>' +
+			'</div>' +
+			'<div class="busArriveTimeFrame frame1">' +
+				'<div class="divTable">' +
+					'<div v-for="(bus,idx) in aryArriveTime" class="divTableRow">' +
+						'<div v-html="getBusDataName(bus)" class="divTableCell name"></div>' +
+						'<div v-html="getBusDataInfo(bus)" class="divTableCell info"></div>' +
+						'<div v-html="DisplayBusStopUID(bus)" class="divTableCell stopUID"></div>' +
+					'</div>' +
+				'</div>' +
+				'<div class="textA" v-if="(aryArriveTime.length==0)">{{_LANG.STR057}}</div>' +
+			'</div>' +
+		'</div>',
+		data: function(){return{
+			aryArriveTime: BB.now.aryArriveTime,
+			StationStopName: BB.now.StationStopName,
+			StationNameListText: '',
+			aryStationListStopName: BB.now.aryStationListStopName || []
+		}},
+		methods: {
+			getBusData: function(bus){
+				var info = getStopDisplayInfo(bus);
+				return '<span style="padding: 0 10px">' + bus.RouteName.Zh_tw + '</span><span style="color:blue;padding: 0 10px;">' + info + '</span>';
+			},
+			getBusDataName: function(bus){
+				return getBusDisplayString(bus);
+			},
+			getBusDataInfo: function(bus){
+				return info = getStopDisplayInfo(bus);
+			},
+			DisplayBusStopUID: function(bus){
+				return bus.StopUID;
+			}
+		},
+		watch: {
+			StationNameListText: function(){ this.StationStopName = this.StationNameListText; },
+			StationStopName: function(){ BB.now.StationStopName = this.StationStopName; }
+		}
+	}
+	
+	var busMakeURL = {
+		template: '<div id="busMakeURL" class="makeSub1">' +
+			'<div class="textA">{{_LANG.STR039}}</div>' +
+			'<div style="height:20px;"></div>' +
+			'<div class="hyperlinkShow" style="word-break:break-all;" v-html="makeURL()"></div>' +
+			'<div style="height:20px;"></div>' +
+			//'<div class="QRPanel" v-show="!flagDisplayQRImage"><div class="btn1" v-on:click="genStationQR()">{{_LANG.STR052}}</div></div>' +
+			'<div v-if="flagDisplayQRImage"><div class="textB">{{_LANG.STR042}}</div></div>' +
+			'<div v-if="flagDisplayQRImage">' +
+				'<div class="QRShow" v-html="getImage()" style="cursor:pointer;display:inline-block;" v-on:click="openSaveQR()"></div>' +
+			'</div>' +
+			'<div class="addToBookmark" v-show="flagDisplayBtnAddToBookmark"><div class="btn1" v-on:click="addToBookmark">{{_LANG.STR043}}</div></div>' +
+			'<div class="textA" v-if="!flagDisplayBtnAddToBookmark">{{_LANG.STR045}}</div>' +
+		'</div>',
+		data: function(){return{
+			link: '',
+			StationStopName: BB.now.StationStopName,
+			flagDisplayQRImage: true,
+			flagDisplayBtnAddToBookmark: true,
+			dataURL: '',
+			StationID: BB.now.StationID,
+			StationTargetID: BB.now.StationTargetID
+		}},
+		methods: {
+			addToBookmark: function(){
+				var ret = bookmark.add(this.StationStopName, this.StationID, BB.now.cities, this.StationTargetID);
+				if(!ret){
+					BB.alert(_LANG.STR044);
+				}else{
+					this.flagDisplayBtnAddToBookmark = false;
+				}
+			},
+			makeURL: function(){
+				var url = makeShowURL(this.StationStopName, this.StationID, BB.now.cities);
+				if(this.StationTargetID){
+					url = makeShowURL([{name:this.StationStopName, id:this.StationID, cities:BB.now.cities, ts:this.StationTargetID}]);
+				}
+				this.link = url;
+				this.genStationQR();
+				return '<a href="' + url + '" target="_blank">' + _LANG.STR063 + ' (' + this.StationStopName + ')' + '</a>';
+			},
+			genStationQR: function(){
+				var me = this;
+				genStationQR(this.link, this.StationStopName, function(canvas){
+					me.dataURL = canvas.toDataURL();
+					me.flagDisplayQRImage = true;
+				})
+			},
+			getImage: function(){
+				return '<img src="' + this.dataURL + '" width="300" height="300"></img>';
+			},
+			openSaveQR: function(){
+				window.open(this.dataURL, "_new");
+			}
+		}
+	}
+
+	//========收藏夾==========
+	var busBookmark = {
+		template: '<div id="busBookmark" class="bookmark makeSub1">' +
+			'<div class="textA">{{_LANG.STR046}}</div>' +
+			'<div class="bookmarkOut">' +
+				'<div class="bookmarkList divTable">' +
+					'<div class="divTableRow" v-for="(bm, idx) in store">' +
+						'<div class="divTableCell idx">' +
+							'<input type="checkbox" v-bind:value="bm.id" v-model="checkStID" />' +
+						'</div>' +
+						'<div class="divTableCell name"><span v-on:click="link(bm)">{{ bm.name }}</span></div>' +
+						'<div class="divTableCell func" v-on:click="removeID(bm.id)">[{{_LANG.STR047}}]</div>' +
+						'<div class="divTableCell func" v-on:click="make(bm)">[{{_LANG.STR048}}]</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+			'<div style="margin:20px 0 10px 0;">' +
+				'<div class="item">' +
+					'<input type="text" maxLengrh="30" class="busFindRouteCSSInput" v-bind:placeholder="_LANG.STR038" v-model="GroupStopName" />' +
+				'</div>' +
+				'<div class="btn1" v-on:click="groupStop">{{_LANG.STR050}}</div>' +
+				'<div class="textB divDPIB" v-if="flagShowCreated">{{_LANG.STR054}}</div>' +
+				'<div v-if="flagShowGroupLink">' +
+					'<div>' +
+						'<div class="btn1" v-on:click="addToGroupBookmark()">{{_LANG.STR059}}</div>' +
+						'<div class="textR1 divDPIB" v-show="flagShowGroupSuccess">{{_LANG.STR060}}</div>' +
+					'</div>' +
+					'<div v-html="getImage()" v-on:click="openSaveQR()" style="display:inline-block;"></div>' +
+					'<div v-html="printURL()" style="word-break:break-all;"></div>' +
+				'</div>' +
+				'<div class="textB" v-show="!flagShowGroupLink">{{_LANG.STR051}}</div>' +
+			'</div>' +
+		'</div>',
+		data: function(){return{
+			store: bookmark.read(),
+			dataURL: '',
+			flagShowCreated: false,
+			flagShowGroupLink: false,
+			flagShowGroupSuccess: false,
+			GroupStopName: '',
+			GroupData: [],
+			url: '',
+			checkStID: []
+		}},
+		methods: {
+			addToGroupBookmark: function(){
+				var flg = bookmark.groupAdd(this.GroupStopName,this.GroupData);
+				var me = this;
+				if(flg){
+					this.flagShowGroupSuccess = true;
+					setTimeout(function(){me.flagShowGroupSuccess = false;}, 2000);
+				}
+			},
+			removeID: function(id){
+				var rt = bookmark.remove(id);
+				if(rt){
+					this.store = rt;
+					this.checkStID = [];
+				}
+			},
+			getStoreByID: function(id){
+				for(var i=0; i<this.store.length; i++){
+					if(this.store[i].id==id) return this.store[i];
+				}
+				return undefined;
+			},
+			groupStop: function(){
+				var me = this;
+				if(this.checkStID.length==0) return false;
+				var ary = this.checkStID.map(function(id){
+					var data = me.getStoreByID(id);
+					var rt = {name:data.name, id:data.StationID, cities:data.cities}
+					if(data.StationTargetID) rt.ts = data.StationTargetID;
+					return rt;
+				});
+				this.GroupData = ary;
+				var url = makeShowURL(ary);
+				this.url = url;
+				this.genStationQR();
+				this.flagShowGroupLink = true;
+				this.flagShowCreated = true; setTimeout(function(){me.flagShowCreated=false;},2000);
+			},
+			link: function(bm){
+				var url = makeShowURL(bm.name, bm.StationID, bm.cities);
+				if(bm.StationTargetID) url = makeShowURL([{name:bm.name, id:bm.StationID, cities:bm.cities, ts:bm.StationTargetID}]);
+				window.open(url, "_blank");
+			},
+			make: function(bm){
+				BB.now.cities = bm.cities;
+				BB.now.StationID = bm.StationID;
+				BB.now.StationStopName = bm.name;
+				location.hash = '/make/busmakeurl';
+			},
+			printURL: function(){
+				return '<a href="' + this.url + '" target="_blank">' + _LANG.STR063 + ' (' + this.GroupStopName + ')' + '</a>';
+			},
+			genStationQR: function(){
+				var me = this;
+				var name = (this.GroupStopName) ? this.GroupStopName : 'Group Bus Stop';
+				genStationQR(this.url, name, function(canvas){
+					me.dataURL = canvas.toDataURL();
+				})
+			},
+			getImage: function(){
+				return '<img src="' + this.dataURL + '" width="300" height="300"></img>';
+			},
+			openSaveQR: function(){
+				window.open(this.dataURL, "_new");
+			}
+		},
+		watch: {
+			checkStID: function(ary){
+				if(this.GroupStopName=='' && ary.length>0) this.GroupStopName = this.getStoreByID(ary[0]).name;
+				this.flagShowGroupLink = false;
+			}
+		}
+	}
+	// Group Bookmark
+	var busGroupBookmark = {
+		template: '<div id="busGroupBookmark" class="bookmark makeSub1">' +
+			'<div v-if="!!dataURL" v-html="getImage()" v-on:click="openSaveQR()"></div>' +
+			'<div class="textA">{{_LANG.STR058}}</div>' +
+			'<div class="bookmarkOut">' +
+				'<div class="bookmarkList divTable">' +
+					'<div class="divTableRow" v-for="(bm, idx) in store">' +
+						'<div class="divTableCell idx">{{ idx+1 }}</div>' +
+						'<div class="divTableCell name"><span v-on:click="link(bm)">{{ bm.name }}</span></div>' +
+						'<div class="divTableCell func" v-on:click="removeID(bm.id)">[{{_LANG.STR047}}]</div>' +
+						'<div class="divTableCell func" v-on:click="make(bm)">[{{_LANG.STR048}}]</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+		'</div>',
+		data: function(){return{
+			store: bookmark.groupRead(),
+			dataURL: '',
+			flagShowCreated: false,
+			flagShowGroupLink: false,
+			GroupStopName: '',
+			url: ''
+		}},
+		methods: {
+			removeID: function(id){
+				var rt = bookmark.groupRemove(id);
+				if(rt){
+					this.store = rt;
+					this.checkStID = [];
+				}
+			},
+			getStoreByID: function(id){
+				for(var i=0; i<this.store.length; i++){
+					if(this.store[i].id==id) return this.store[i];
+				}
+				return undefined;
+			},
+			link: function(bm){
+				var url = makeShowURL(bm.StationArray);
+				window.open(url, "_blank");
+			},
+			make: function(bm){
+				this.url = makeShowURL(bm.StationArray);
+				this.GroupStopName = bm.name;
+				this.genStationQR();
+			},
+			genStationQR: function(){
+				var me = this;
+				var name = (this.GroupStopName) ? this.GroupStopName : 'Group Bus Stop';
+				genStationQR(this.url, name, function(canvas){
+					me.dataURL = canvas.toDataURL();
+					scrollToTop();
+				})
+			},
+			getImage: function(){
+				return '<img src="' + this.dataURL + '" width="300" height="300"></img>';
+			},
+			openSaveQR: function(){
+				window.open(this.dataURL, "_new");
+			}
+		}
+	}
+
+	var makeIndex = {
+		template: '<div>' +
+				'<div class="aloneLineRouteLinkA"><router-link :to="{path: \'/make/buscity?as=direct\'}">' + '<div class="btn1">{{_LANG.STR061}}</div>' + '</router-link></div>' +
+				'<div class="aloneLineRouteLinkA"><router-link :to="{path: \'/make/buscity\'}">' + '<div class="btn1">{{_LANG.STR003}}</div>' + '</router-link></div>' +
+				'<div class="aloneLineRouteLinkA"><router-link :to="{path: \'/make/busbookmark\'}">' + '<div class="btn1">{{_LANG.STR046}}</div>' + '</router-link></div>' +
+				'<div class="aloneLineRouteLinkA"><router-link :to="{path: \'/make/busgroupbookmark\'}">' + '<div class="btn1">{{_LANG.STR058}}</div>' + '</router-link></div>' +
+				'<div class="aloneLineRouteLinkA">' + '<div class="btn5" v-on:click="demo101()">{{_LANG.STR066}}</div>' + '</div>' +
+			'</div>',
+		methods: {
+			demo101: function(){
+				location.href = '?busStation=%5B%7B%22name%22%3A%22101(%E4%BF%A1%E7%BE%A9%E8%B7%AF)%E5%88%B0%E6%9D%BE%E5%B1%B1%22%2C%22id%22%3A%226928%22%2C%22cities%22%3A%5B%22TPE%22%2C%22NWT%22%5D%2C%22ts%22%3A%2215113%22%7D%2C%7B%22name%22%3A%22101(%E6%9D%BE%E6%99%BA%E8%B7%AF)%E5%88%B0%E6%9D%BE%E5%B1%B1%22%2C%22id%22%3A%222044%22%2C%22cities%22%3A%5B%22TPE%22%2C%22NWT%22%5D%2C%22ts%22%3A%2215113%22%7D%2C%7B%22name%22%3A%22%E5%B8%82%E6%94%BF%E5%BA%9C(%E6%9D%BE%E5%A3%BD%E8%B7%AF)%E5%88%B0%E6%9D%BE%E5%B1%B1%22%2C%22id%22%3A%222069%22%2C%22cities%22%3A%5B%22TPE%22%2C%22NWT%22%5D%2C%22ts%22%3A%2215113%22%7D%2C%7B%22name%22%3A%22101(%E5%B8%82%E5%BA%9C%E8%B7%AF)%E5%88%B0%E6%9D%BE%E5%B1%B1%22%2C%22id%22%3A%222029%22%2C%22cities%22%3A%5B%22TPE%22%2C%22NWT%22%5D%2C%22ts%22%3A%221530%22%7D%5D#/show';
+			}
+		},
+		mounted: function(){
+			BB.now.busFindRouteInput = ''; this.$parent.busFindRouteInput = '';
+		}
+	}
+	var makeArea = {
+		template: '<div id="makeArea">' + 
+			'<div class="makeContent">' +
+			'<transition name="fade">' +
+				'<router-view></router-view>' +
+			'</transition>' +
+			'</div>' +
+			'<div class="stepControlArea bs_no_select" v-show="flagShowStepControl">' +
+				'<div class="btnStep" v-bind:class="getControlCSS(\'prev\')" v-on:click="goPrev()">{{_LANG.STR007}}</div>' +
+				'<div class="btnStep" v-bind:class="getControlCSS(\'next\')" v-on:click="goNext()">{{_LANG.STR008}}</div>' +
+			'</div>' +
+		'</div>',
+		data: function(){return {
+			busCitySelArea: BB.now.busCitySelArea,
+			busFindRouteInput: BB.now.busFindRouteInput,
+			flagShowStepControl: false,
+			flagDisablePrev: false,
+			flagDisableNext: false,
+			flagConfirmBusCity: !!(BB.now.busCitySelArea.length>0),
+			transitionName: 'slide-left',
+			pageStep: ''
+		}},
+		methods: {
+			goNext: function(donotCareDisable){
+				if(this.flagDisableNext && !donotCareDisable) return false;
+				switch(this.pageStep){
+					case 'buscity':
+						if(!this.flagConfirmBusCity){
+							BB.alert(_LANG.STR010);
+							return false;
+						}
+					break;
+					case 'busfindroute':
+						if(this.busFindRouteInput==''){
+							BB.alert(_LANG.STR013);
+							return false;
+						}
+						this.findBusRoute();
+						return true;//需要進行 read 故一律中斷
+					break;
+					case 'busfindlist':
+						BB.busFindList.getStation(BB.busFindList.selectStop[0]);
+						return true;
+					break;
+				}
+				this.gotoNextStep();
+			},
+			gotoNextStep: function(){
+				var rot = this.getRouteData();
+				var path = rot.findRoute(this.pageStep).nextPath;
+				if(path === false) return false;
+				location.hash = location.hash.replace(this.pageStep,path);
+			},
+			goPrev: function(){
+				if(this.flagDisablePrev) return false;
+				var rot = this.getRouteData();
+				var path = rot.findRoute(this.pageStep).prevPath;
+				if(path=='/'){
+					path = '';
+				}else{
+					path = '/' + path;
+				}
+				if(path === false) return false;
+				if(window.history.length>1){
+					window.history.back();
+				}else{
+					location.hash = location.hash.replace('/' + this.pageStep, path);
+				}
+			},
+			getRouteData: function(){
+				var routeList = (function(siteMap){
+					for(var i=0; i<siteMap.length; i++){
+						if(siteMap[i].path=='/make'){
+							return siteMap[i].children.map(function(c, idx, arr){
+								c.index = idx;
+								c.prevPath = (arr[idx-1]) ? arr[idx-1].path : false;
+								c.nextPath = (arr[idx+1]) ? arr[idx+1].path : false;
+								return c;
+							});
+						}
+					}
+				})(siteMap);
+				routeList.findRoute = function(name){
+					for(var i=0; i<routeList.length; i++){
+						if(routeList[i].path==name){
+							return routeList[i];
+						}
+					}
+				}
+
+				return routeList;
+			},
+			getControlCSS: function(step){
+				//var pathAry = this.$route.path.replace('/','').split('/'); var pageStep = (pathAry[1]) ? pathAry[1] : '';
+				var rt = '';
+				if(step=='prev' && this.flagDisablePrev) rt = 'disabled';
+				if(step=='next' && this.flagDisableNext) rt = 'disabled';
+				return rt;
+			},
+			findBusRoute: function(){
+				BB.mask(_LANG.STR012);
+				var backAry = [];
+				BB.now.busCitySelArea.forEach(function(c){
+					backAry = backAry.concat(getCityAreaData(c).aryCityCode);
+				});
+				BB.now.cities = backAry;
+				var cityForPreDatas = backAry.slice();
+				var cities = backAry.slice();
+				var preDataRes = {}, res = [];
+				var preDataMatchField = ['DepartureStopNameZh','DepartureStopNameEn','DestinationStopNameZh','DestinationStopNameEn','TicketPriceDescriptionZh','TicketPriceDescriptionEn','FareBufferZoneDescriptionZh','FareBufferZoneDescriptionEn']
+				var me = this;
+				var busNum = BB.now.busFindRouteInput;
+
+				function preFindRouteData(){
+					if(cityForPreDatas.length>0){
+						var city = cityForPreDatas.shift();
+						TT.ptx.bus.searchBusByNumber(busNum, city, {
+							selectField: ['RouteUID','RouteName'].concat(preDataMatchField),
+							cbFn: function(data, e){
+								if(e.status==TT.ptx.statusCode.SUCCESS){
+									data.forEach(function(c){
+										preDataRes[c.RouteUID] = c;
+									})
+								}
+								preFindRouteData();
+							}
+						})
+					}else{
+						find();
+					}
+				}
+				function find(){
+					if(cities.length > 0){
+						var city = cities.shift();
+						TT.ptx.bus.getBusStopRouteByNumber(busNum, city, {cbFn: function(data, e){
+							if(e.status==TT.ptx.statusCode.SUCCESS){
+								//合併 preFindData 起迄站等資料
+								data = data.map(function(obj){
+									var preDataRouteFile = preDataRes[obj.RouteUID];
+									if(preDataRouteFile){
+										preDataMatchField.forEach(function(c){
+											obj[c] = preDataRouteFile[c];
+										})
+									}
+									obj.displayStop = false;
+									return obj;
+								});
+								res = res.concat(data);
+							}
+							find();
+						}})
+					}else{
+						//先排序，完全同名者優先，開頭相圖者次之，尾數相同者再次，其他向後
+						res.sort(function(objA,objB){
+							//if(a==busNum && b==busNum) return 0;
+							var a = getBusDisplayString(objA), b = getBusDisplayString(objB);
+							if(a==busNum && b!=busNum) return -1;
+							if(a!=busNum && b==busNum) return 1;
+							var regLast = new RegExp(busNum + '$');
+							if(regLast.test(a) && !regLast.test(b)) return -1;
+							if(!regLast.test(a) && regLast.test(b)) return 1;
+							var regFirst = new RegExp('^' + busNum);
+							if(regFirst.test(a) && !regFirst.test(b)) return -1;
+							if(!regFirst.test(a) && regFirst.test(b)) return 1;
+							return 0;
+						});
+						BB.now.busFindRouteResult = res;
+						BB.unmask();
+						me.gotoNextStep();
+					}
+				}
+				preFindRouteData();
+			}
+		},
+		watch: {
+			'$route': function(vroute){
+				var pathAry = vroute.path.replace('/','').split('/');
+				var pageStep = (pathAry[1]) ? pathAry[1] : '';
+				this.flagShowStepControl = !!(pathAry.length>1) && !(/busmakeurl|busbookmark|busgroupbookmark/.test(pageStep));
+				this.flagDisablePrev = !!(/buscity|busbookmark|busgroupbookmark|busbooklink/.test(pageStep));
+				this.flagDisableNext = !(/buscity|busfindroute|busarrivetime/.test(pageStep));
+				this.pageStep = pageStep;
+				scrollToTop();
+				BB.makeArea = this;
+			}
+		},
+		mounted: function(){
+			if(location.search!='') location.search = '';
+		}
+	};
+					
+	var showArea = {
+		template: '<div id="showArea">' +
+			'<div class="allOute">' +
+				'<div class="allIn" v-for="(station, stIdx) in aryArriveTime">' +
+					'<div class="stationDisplayTitle">' +
+						'<div class="stationDisplayMore" v-bind:title="_LANG.STR020">' +
+							'<a class="stopOpenMap" v-bind:href="hrefMap(station)" target="_new">' +
+							'<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAQAAABIkb+zAAADpElEQVR4Ae3aA9DsSBQF4DNa2+ZvZNL3lNa2d0tr24W1bdu2bdu2beO5l8/InX/6JpmqfKdcgz4dA4VCoVAohNQ7mSwrB8k5cjOf4gcyiL/zA3lcbpZzeIAsyxpyrMLV5Ab+Tj+J/C7XcTVUkDcLTCG7yWf0ushnsnvb5MiNqtuZX9I3mC+5A6rIHtfme/QDzHtuTWSqIifSNxc5IbMtgtPLffTNR+7j9EhffW6+TR8ob0XzIF2cTz6nDxf5nPMhPV0z8336wHm/a2akgzU+TW+Qp1M6TvMieqNcBHvcgN4wG8BW2+TyuWUB+dz4FEP2obeN7Gt76PrNvMBvhoc1OZbePnKM2e5TfqVPIb8Y7U5lHf0gZJBc5TaJ43iGvxO7TeQqGUT9t9eBBblKPYR73PwYh5ufd6sLXA0DJf6kHMCRmLCSHE6vyk8oIbR4MeXsHY5JcEfQaxIvhtDcnrqVJ2HuSryHXpG9EJqcr9l0k8/r++ZVbc7nITR5RFHgMijIZYpfegSh8YNQp2Ka00H5EKHxe/qkRJ1QiDoVU/E9QpMR9EnpnBYKndMqlsBwhMY/6JPSNh0U2qajT8wfCI2f0CfF9UDB9SgKfILQ+EKaGzFfQGiqA9AVUOAVqgNiaHK66kC2IBJEC2oOZHI6QpPNdLcJk04ldLcjZTOEVu9Vn4tOAo+i16Tei+DK/KPJ89GSHEavyh8oIzy5o5kLmv6FeI/2+3InLHCrRi8pXT2egdO7uttEruIQenW2MrqlKyPo7SMjemeCDT5An0IegBW3XSoFtoeVaGoZZD18GcSpYEcuNC9wISzFi1oXiBeFLb5tOv/vwppsZlpgM5irykdmBT5GFfbcFlYF3BYwYr8M7OfffjuQzZGaMt8MXuAtlJEet17oAm49pEteClrgFaTNLR/0+LsC0sdrgxW4FlnonSPMU0v5tW92ZIPb257/2yvJ403P/xMoITtRJ4c1VWBY1IlsydFNzf/RyNo8U/KTARf4dJ4pkb14rQHv/ddCPvCKARW4AnnRNh2/aHj4X7RNh/yIl260gFsK+dLYW9RyEvKGNXlOXeB51pA/9bn5nWr437u5kE/x0jI8+RG2WxL5JQcmFjgQuVbmU5Ms8DTKyLe+eeWHic7+j9E8yD+uOOEtQYZzRbQG2W2CBXaDHfsX1OR8tJSKPDnW8J9EBa0lmk2+HjX8r6PZ0Hoo/z8bHkJBa5Kt6ella7QuHsWjYKZQKBQKhb8AaFXSW3c/idsAAAAASUVORK5CYII=" width="28" height="28">' +
+							'</a>' +
+						'</div>' +
+						'<div class="stationDisplayName" v-html="tet2(station)"></div>' +
+					'</div>' +
+					'<div class="list divTable">' +
+						'<div v-for="(bus, bidx) in station.time" class="divTableRow">' +
+							'<div class="divTableCell item number"><span style="cursor:pointer;" v-html="getBusDataName(bus)" v-on:click="popBus(bus, station)"></span></div>' +
+							'<div class="divTableCell item timeState" v-html="getBusDataInfo(bus)"></div>' +
+						'</div>' +
+					'</div>' +
+				'</div>' +
+				'<div v-if="(aryArriveTime.length==0)" class="textA">{{_LANG.STR057}}</div>' +
+			'</div>' +
+		'</div>',
+		data: function(){return{
+			showBusStation: BB.now.showBusStation || [],
+			aryStation: [],
+			aryArriveTime: [],
+			reloadTimer: 0,
+			onReload: false
+		}},
+		methods: {
+			tet2: function(station){
+				return '<div class="">' + station.StationName + '</div>';
+			},
+			getBusMoreInfo: function(bus){
+				var ary = this.aryStation;
+				for(var i=0; i<ary.length; i++){
+					for(var j=0; j<ary[i].data.length; j++){
+						if(ary[i].data[j].RouteUID == bus.RouteUID) return ary[i].data[j];
+					}
+				}
+				return false;
+			},
+			getBusDataName: function(bus){
+				var dir = '';
+				var busRouteInfo = this.getBusMoreInfo(bus);
+				var fromStName = busRouteInfo.DepartureStopNameZh || '',
+					toStName = busRouteInfo.DestinationStopNameZh || '';
+				if(_LANG.zxx=='En'){
+					fromStName = busRouteInfo.DepartureStopNameEn || '';
+					toStName = busRouteInfo.DestinationStopNameEn || '';
+				}
+				if(bus.Direction===0) dir = '<span class="dir0">' + _LANG.STR055 + ' ' + toStName;
+				if(bus.Direction===1) dir = '<span class="dir1">' + _LANG.STR056 + ' ' + fromStName;
+				return '<div class="str">' + getBusDisplayString(bus) + '<div class="dir">' + dir + '</div></div>';
+			},
+			getBusDataInfo: function(bus){
+				return getStopDisplayInfo(bus);
+			},
+			hrefMap: function(station){
+				var pos = station.StationPosition || station.StopPosition;
+				if(!pos) return '';
+				var lat = pos.PositionLat, lon = pos.PositionLon;
+				return 'http://maps.google.com/maps?q=' + lat + ',' + lon;
+			},
+			popBus: function(bus, station){
+				BB.showBusRoutePop.RouteUID = bus.RouteUID;
+				BB.showBusRoutePop.StopUID = bus.StopUID;
+				BB.showBusRoutePop.Direction = bus.Direction;
+				BB.showBusRoutePop.busNO = getBusDisplayString(bus);
+				BB.showBusRoutePop.StationID = station.StationID;
+				BB.showBusRoutePop.StationTargetID = station.StationTargetID;
+				BB.showBusRoutePop.cities = station.cities;
+				location.hash = '/show/line';
+			},
+			readAllStation: function(cbFn){
+				var arySBS = JSON.parse(JSON.stringify(this.showBusStation));
+				var stAryCities = [];
+				var stRes = [];
+				var lastResult = [];
+				var tmpStatioinID = '', tmpStationTargetID = false, tmpCitiesAry = [], tmpStationPosition = false;
+				function goReadStation(){
+					if(arySBS.length>0){
+						var stObj = arySBS.shift();
+						stAryCities = stObj.cities.map(function(c){
+							return {city: c, StationID: stObj.id, StationTargetID: stObj.ts};
+						});
+						stRes = [];
+						tmpStatioinID = stObj.id;
+						if(stObj.ts) tmpStationTargetID = stObj.ts;
+						tmpCitiesAry = stObj.cities.slice();
+						getAllCityStation();
+					}else{
+						cbFn(lastResult);
+					}
+				}
+				function getAllCityStation(){
+					if(stAryCities.length>0){
+						var stCity = stAryCities.shift();
+						function runGetBusStation(aryFilter){
+							tmpStationPosition = false;
+							TT.ptx.bus.getBusStation(stCity.StationID, stCity.city, {
+								cbFn: function(data,e){
+									if(e.status==TT.ptx.statusCode.SUCCESS && data.length>0 && data[0].Stops.length>0){
+										var aryRouteUID = [];
+										var dataStops = data[0].Stops;
+										tmpStationPosition = data[0].StationPosition;
+										if(aryFilter){
+											dataStops = dataStops.filter(function(c){
+												return !!(aryFilter.indexOf(c.RouteUID)!=-1);
+											})
+										}
+										var ary = dataStops.map(function(c){
+											c.CityCode = stCity.city;
+											c.StationID = stCity.StationID;
+											c.StationTargetID = stCity.StationTargetID;
+											aryRouteUID.push(c.RouteUID);
+											return c;
+										});
+										//二次工作，取得 Bus Route Data 合併進去
+										if(aryRouteUID.length>0){
+											TT.ptx.bus.getBusRoute(aryRouteUID, {cbFn: function(rData, re){
+												if(e.status==TT.ptx.statusCode.SUCCESS){
+													if(rData.find){
+														ary = ary.map(function(rot){
+															var tmpA = rData.find(function(el){return !!(el.RouteUID==rot.RouteUID)});
+															if(tmpA){//有相同的 RouteUID 則合併資料
+																for(var k in tmpA){
+																	if(!rot[k]) rot[k] = tmpA[k];
+																}
+															}
+															return rot;
+														})
+													}
+												}
+												stRes = stRes.concat(ary);
+												getAllCityStation();
+											}})
+										}else{
+											getAllCityStation();
+										}
+									}else{
+										getAllCityStation();
+									}
+								},
+								selectField: ['Stops','StationUID','StationID','StationPosition']
+							});
+						}
+						if(!stCity.StationTargetID){
+							runGetBusStation();
+						}else{
+							TT.ptx.bus.getBusStation(stCity.StationTargetID, stCity.city, {cbFn: function(data,e){
+								var aryFilter = [];
+								if(e.status==TT.ptx.statusCode.SUCCESS && data.length>0 && data[0].Stops.length>0){
+									aryFilter = data[0].Stops.map(function(c){
+										return c.RouteUID;
+									});
+								}
+								runGetBusStation(aryFilter);
+							}});
+						}
+					}else{
+						lastResult.push({
+							StationID: tmpStatioinID,
+							StationTargetID: tmpStationTargetID,
+							cities: tmpCitiesAry,
+							StationPosition: tmpStationPosition,
+							data: stRes
+						});
+						goReadStation();
+					}
+				}
+				goReadStation();
+			},
+			readAllTime: function(cbFn){
+				cbFn = cbFn || function(){};
+				var aryStation = JSON.parse(JSON.stringify(this.aryStation));
+				var listCityStops = [];
+				var aryArriveTime = [];
+				var tmpStationID = '';
+				var tmpStationTargetID = false;
+				var tmpCities = [];
+				var tmpStationPosition = [];
+				var allStationArriveTime = [];
+				var showBusStation = this.showBusStation;
+				function getTargetStation(){
+					if(aryStation.length>0){
+						var stObj = aryStation.shift();
+						tmpStationID = stObj.StationID;
+						tmpCities = stObj.cities.slice();
+						tmpStationPosition = stObj.StationPosition;
+						tmpStationTargetID = stObj.StationTargetID;
+						listCityStops = procCityWithStation(stObj.data, 'array');
+						aryArriveTime = [];
+						getStopArriveTime();
+					}else{
+						cbFn(allStationArriveTime);
+					}
+				}
+				function getStopArriveTime(){
+					if(listCityStops.length>0){
+						var city = listCityStops.shift();
+						var cityCode = city.CityCode, aryStopUID = city.StopUID;
+
+						TT.ptx.bus.getBusArriveTime(aryStopUID, cityCode, {cbFn: function(data,e){
+							if(e.status==TT.ptx.statusCode.SUCCESS && data.length>0){
+								aryArriveTime = aryArriveTime.concat(data);
+							}
+							getStopArriveTime();
+						}})
+					}else{
+						var stName = (function(){
+							for(var i=0; i<showBusStation.length; i++){
+								if(showBusStation[i].id==tmpStationID){
+									return showBusStation[i].name;
+								}
+							}
+						})();
+						//排序完再丟回去
+						aryArriveTime = aryArriveTime.sort(function(a,b){
+							return (a.RouteName.Zh_tw > b.RouteName.Zh_tw) ? 1: -1;
+						})
+						allStationArriveTime.push({
+							StationID: tmpStationID,
+							StationPosition: tmpStationPosition,
+							StationName: stName,
+							cities: tmpCities,
+							StationTargetID: tmpStationTargetID,
+							time: JSON.parse(JSON.stringify(aryArriveTime))
+						});
+						getTargetStation();
+					}
+				}
+				getTargetStation();
+			},
+			reloadPage: function(){
+				var reloadInterval = BB.reloadInterval;
+				var me = this;
+				me.onReload = true;
+				clearTimeout(this.reloadTimer);
+				this.readAllTime(function(data){
+					me.onReload = false;
+					me.aryArriveTime = data;
+					me.reloadTimer = setTimeout(me.reloadPage, reloadInterval);
+					if(BB.showBusRoutePop.flagShowBase){
+						BB.showBusRoutePop.getBusDynamicData();
+					}
+				})
+
+			}
+		},
+		mounted: function(){
+			var me = this;
+			function afterGetStationData(data){
+				me.aryStation = data;
+				BB.now.showUseStationData = data;
+				me.reloadPage();
+				BB.unmask();
+				//Extends Route Data
+
+			}
+			BB.mask(_LANG.STR041);
+			if(BB.now.showUseStationData){
+				afterGetStationData(BB.now.showUseStationData);
+			}else{
+				this.readAllStation(afterGetStationData);
+			}
+			return true;
+		},
+		destroyed: function(){
+			clearTimeout(this.reloadTimer);
+		},
+		watch: {
+			'$route': function(vroute){
+				BB.showBusRoutePop.flagShowBase = !!(vroute.path=='/show/line');
+			}
+		}
+	};
+	
+	var aboutArea = {
+		template: '<div v-html="getAboutInfo()"></div>', 
+		data: function(){return {
+			name: 'about info'
+		}},
+		methods: {
+			getAboutInfo: function(){
+				var rt = '<br><br><div style="margin-left: 2%;">';
+				for(var k in BB.programAbout){
+					rt += '<div>' + k + ': ' + BB.programAbout[k] + '</div>';
+				}
+				rt += '</div>';
+				// HELP Document
+				rt += '<div style="margin: 20px 4px;">' +
+					'<div>本程式可由通過欲查詢之站牌的路線自動連結該站牌上的所有公車動態顯示，類似智慧型站牌將所有通過路線的公車動態都顯示出來。製作成 QR CODE 後，可貼在任何位置方便持有智慧型手機的人快速掃碼查詢動態。</div>' +
+					'<div style="margin-top: 20px; color:#2c5dba;">製作公車站牌 QR Code 圖檔的方式</div>' +
+					'<ol>' +
+						'<li>從[功能]選擇經由路線製作。</li>' +
+						'<li>選擇此站牌路線的公車主管機關單位，本地站牌公車可能隸屬其他縣市管理，必要時請選擇多個縣市。共同生活圈如雙北、新竹縣市預設即為一起。</li>' +
+						'<li>輸入公車編號或名稱，會從所選主管機關內查詢，因此請勿一次選全部縣市，雖不會遺漏但未來會耗費時間查詢所有縣市。</li>' +
+						'<li>從查詢結果中選擇通過此站牌的路線，打開該路線所有站牌列表，找到要製作的站牌後按確定。<span style="color:red">請注意公車有分往程與返程</span>，需確認路線行駛方向和要製作的站牌是相同的。</li>' +
+						'<li>程式會列出自動尋找出來在同站牌下的路線，輸入名稱或選擇一個建議名稱當作雲端站牌名稱。台北及新北以外的縣市目前似乎無有意義的 StationName，預設顯示東行站位之類的方向名稱，可從建議中挑選適合的名字或自行輸入。</li>' +
+						'<li>製作完成後會產生一個網址連結，該連結即為雲端站牌 URL。下方按鈕可產生 QR CODE 圖檔，亦可存入收藏夾內作為製作群組站牌之用</li>' +
+					'</ol>' +
+					'<div style="margin-top: 20px; color:#2c5dba;">製作群組的方式</div>' +
+					'<ol>' +
+						'<li>從[功能]選擇管理站牌收藏夾。</li>' +
+						'<li>勾選要合併為群組的站牌，<span style="color:red">請注意這裡的勾選順序會決定群組站牌顯示時的順序</span>，並在下方修改群組站牌名稱。</li>' +
+						'<li>按下合併為群組站牌後即會產生 QR CODE 圖檔與查詢之 URL 連結。</li>' +
+					'</ol>' +
+					'<div style="margin-top: 20px; color:#2c5dba;">應用情境</div>' +
+					'<div>' + _LANG.CM_APP_USE_P + '</div>' +
+				'</div>';
+				return rt;
+			}
+		}
+	};
+
+	var makeShowBusRoutePop = function(){
+	var tplBusDynamicRow = '' +
+						'<div class="index divTableCell" v-html="busIndex(stop)" v-on:click="debugStop(stop)"></div>' +
+						'<div class="stop divTableCell"><span v-html="busStop(stop)" v-on:click="openStop(stop)"></span></div>' +
+						'<div class="status divTableCell" v-html="stopStatus(stop)"></div>';
+	//Define every bus stop display format
+	var showBusRoutePopTpl = Vue.compile('<div id="showBusRoutePop" class="pop" v-if="flagShowBase">' + 
+			'<div class="topBar" style="height:40px;border:5px solid #28B; font-size:36px; background-color: #8AC2E4;">' +
+				'<div class="back" v-on:click="back()" style="display:inline-block; height:40px; cursor:pointer; text-align:center; line-height:40px; width:40px; overflow:hidden;">&lt;</div>' +
+				'<div class="busNO" style="overflow:hidden; display:inline-block; width:calc(98vw - 70px); font-size:30px; height:40px; line-height:40px; border-left:5px solid #28B; text-align:center;">{{ busNO }}</div>' +
+			'</div>' +
+			'<div class="guideBar">' +
+				'<div class="guideBarFlex bs_no_select">' +
+					'<div class="btnItem" v-bind:class="getInfoBtnCSS()" v-on:click="toggleFlag(\'flagExpandInfo\')">{{_LANG.STR062}}</div>' +
+					'<div class="btnItem" v-show="!flagShowFullRoute" v-on:click="(flagShowFullRoute=true)">{{ _LANG.STR064 }}</div>' +
+					'<div class="btnItem" v-show="flagShowFullRoute" v-on:click="(flagShowFullRoute=false)">{{ _LANG.STR065 }}</div>' +
+				'</div>' +
+				'<transition name="expandBox">' +
+					'<div class="info" v-show="flagExpandInfo" v-html="printBusInfo()"></div>' +
+				'</transition>' +
+			'</div>' +
+			'<div class="content" style="width:100%; background-color:#E0E9F3; padding: 20px 0px; box-sizing:border-box; overflow:auto;" v-bind:style="contentAdjust()">' +
+				'<div class="divTable" style="">' +
+					'<div class="divTableRow row single" v-show="!flagShowFullRoute" v-bind:class="getRowCSS(stop, rix)" v-for="(stop, rix) in aryRoute">' + 
+						tplBusDynamicRow +
+					'</div>' +
+					'<div class="divTableRow row full" v-if="flagShowFullRoute" v-bind:class="getRowCSS(stop, rix)" v-for="(stop, rix) in aryFullRoute">' + 
+						tplBusDynamicRow +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+		'</div>');
+	BB.showBusRoutePop = new Vue({
+		staticRenderFns: showBusRoutePopTpl.staticRenderFns,
+		render: showBusRoutePopTpl.render,
+		el: '#showBusRoutePop',
+		data: {
+			flagShowBase: false,
+			flagExpandInfo: false,
+			flagShowFullRoute: false,
+			flagOpenScrollTo: false,
+			busNO: '',
+			RouteUID: '',
+			StopUID: '',
+			StationID: '',
+			StationTargetID: '',
+			Direction: 0,
+			aryRoute: [],
+			aryFullRoute: [],
+			cities: [],
+			nearStatusData: [],
+			busInfo: false,
+			baseCSS: ''
+		},
+		methods: {
+			back: function(){
+				history.back();
+				this.flagShowBase = false;
+			},
+			busIndex: function(stop){
+				if(this.flagShowFullRoute){
+					switch(stop.Direction){
+						case 0:
+							return '<span class="busRouteDir0Color">' + stop.StopSequence + '</span>';
+						break;
+						case 1:
+							return '<span class="busRouteDir1Color">' + stop.StopSequence + '</span>';
+						break;
+					}
+				}
+				return stop.StopSequence;
+			},
+			busStop: function(stop){
+				return getStopDisplayName(stop);
+			},
+			contentAdjust: function(){
+				var h = (this.flagExpandInfo) ? 237 : 107;
+				return 'height:calc(100vh - ' + h + 'px;';
+			},
+			debugStop: function(stop){
+				var b = this.stopStatus(stop);
+				var a = TT.lib.clone(stop);
+				a.st = b; a.selfThis = this;
+				BB.showBusRoutePop.debugObj = a;
+			},
+			getBaseCSS: function(){
+				return (this.flagShowBase) ? 'show' : '';
+			},
+			getInfoBtnCSS: function(){
+				return (this.flagExpandInfo) ? 'open' : '';
+			},
+			getRowCSS: function(stop){
+				var rt = '';
+				if(stop.stopMoveStep){//ever, now, over, target
+					rt = stop.stopMoveStep;
+					if(rt != 'now') rt = rt + ' link';
+					return rt;
+				}
+				return (stop.StopUID==this.StopUID) ? 'now' : 'link';
+			},
+			getBusRoute: function(){
+				var city = this.RouteUID.substr(0,3);
+				var me = this;
+				me.aryFullRoute = [];
+
+				function giveStopCSS(ary){//站牌背景上色
+							var stopMoveStep = 'ever';
+							var isNowStop = false;
+							for(var j=0; j<ary.length; j++){
+								if(ary[j].StopUID==me.StopUID){
+									isNowStop = true;
+									stopMoveStep = 'now';
+								}else if(/now|over/.test(stopMoveStep) && ary[j].StationID && me.StationTargetID){
+									stopMoveStep = 'over';
+									if(me.StationTargetID==ary[j].StationID){
+										stopMoveStep = 'target';
+									}
+								}else if(stopMoveStep=='target'){
+									stopMoveStep = '';
+								}else if(stopMoveStep=='now'){
+									stopMoveStep = '';
+								}
+								ary[j].stopMoveStep = stopMoveStep;
+							}
+							ary.isNowStop = isNowStop;
+							return ary;
+				}
+
+				TT.ptx.bus.getBusStopRoute(this.RouteUID, city, {cbFn: function(data,e){
+					if(e.status==TT.ptx.statusCode.SUCCESS){
+						var tmpA, fmp = false, ffmp = false, stopMoveStep = 'ever';
+						for(var i=0; i<data.length; i++){
+							tmpA = giveStopCSS(data[i].Stops);
+							data[i].Stops = tmpA;
+							if(tmpA.isNowStop) fmp = data[i];
+							if(fmp) break;
+						}
+						me.aryRoute = fmp.Stops;
+						ffmp = fmp.Stops.map(function(c){c.Direction=fmp.Direction; return c});
+						switch(fmp.Direction){//屬於去回線的公車
+							case 0:
+								var tmpBack = data.find(function(c){
+									return !!(c.SubRouteUID==fmp.SubRouteUID && c.Direction==1);
+								});
+								
+								if(tmpBack && tmpBack.Stops){
+									tmpBack.Stops = tmpBack.Stops.map(function(c){c.Direction=1; return c;});
+									ffmp = ffmp.concat(tmpBack.Stops);
+								}
+							break;
+							case 1:
+								var tmpGo = data.find(function(c){
+									return !!(c.SubRouteUID==fmp.SubRouteUID && c.Direction==0);
+								});
+								if(tmpGo && tmpGo.Stops){
+									tmpGo.Stops = tmpGo.Stops.map(function(c){c.Direction=0; return c;});
+									ffmp = tmpGo.Stops.concat(ffmp);
+								}
+							break;
+						}
+						ffmp = giveStopCSS(ffmp);
+						me.aryFullRoute = ffmp;
+						TT.ptx.bus.getBusRouteInfo(me.RouteUID, {cbFn: function(data,e){
+							if(e.status==TT.ptx.statusCode.SUCCESS && data[0] && data[0].RouteUID){
+								me.busInfo = data[0];
+							}
+						}});
+						me.getBusDynamicData();
+					}
+				}});
+			},
+			getBusDynamicData: function(){
+				var me = this;
+				TT.ptx.bus.getBusRealtimeNearStop(this.RouteUID, false, {cbFn: function(data,e){
+					if(e.status==TT.ptx.statusCode.SUCCESS){
+						var nearData = data;
+						TT.ptx.bus.getBusRouteArriveTime(me.RouteUID, {cbFn: function(data,e){
+							if(e.status==TT.ptx.statusCode.SUCCESS){
+								var ary = data.map(function(c){
+									var nearStopData = nearData.find(function(nearStop){
+										return !!(nearStop.StopUID==c.StopUID);
+									});
+									if(nearStopData){
+										c.isNearStop = true;
+										c.nearData = nearStopData;
+										c.PlateNumb = nearStopData.PlateNumb;
+									}
+									return c;
+								})
+								me.nearStatusData = ary;
+							}
+						}})
+					}
+				}})
+			},
+			openStop: function(stop){
+				if(stop.StationID && stop.StationID != this.StationID){
+					this.back();
+					var url = makeShowURL(getStopDisplayName(stop), stop.StationID, this.cities);
+					location.href = url;
+				}
+			},
+			printBusInfo: function(){
+				var b = this.busInfo;
+				var sub = (b.SubRoutes && b.SubRoutes[0]) ? b.SubRoutes[0] : {};
+				if(sub && sub.HolidayFirstBusTime && !sub.HolidayLastBusTime && b.SubRoutes[1] && b.SubRoutes[1].HolidayLastBusTime) sub.HolidayLastBusTime = b.SubRoutes[1].HolidayLastBusTime;
+				function procTimeStr(str){return (str) ? str.substr(0,2) + ':' + str.substr(2,2) : '';}
+				var flagHasBusTimeInfo = !!(sub.FirstBusTime) || !!(sub.HolidayFirstBusTime);
+
+				return '<div class="busInfo">' +
+					'<div class="panel zh">' +
+						'<div class="fromTo">' + b.DepartureStopNameZh + ' &nbsp;-&nbsp; ' + b.DestinationStopNameZh + '</div>' +
+						((b.TicketPriceDescriptionZh) ? '<div>' + b.TicketPriceDescriptionZh + '</div>' : '') +
+						((b.FareBufferZoneDescriptionZh) ? '<div class="fareBufferZone">分段點：' + b.FareBufferZoneDescriptionZh + '</div>' : '') +
+						((flagHasBusTimeInfo) ? '<div>平日：' + ((sub.FirstBusTime) ? procTimeStr(sub.FirstBusTime) + ' ~ ' + procTimeStr(sub.LastBusTime) : '停駛') + '</div>' : '') +
+						((flagHasBusTimeInfo) ? '<div>假日：' + ((sub.HolidayFirstBusTime) ? procTimeStr(sub.HolidayFirstBusTime) + ' ~ ' + procTimeStr(sub.HolidayLastBusTime) : '停駛') + '</div>'  : '') +
+					'</div>' +
+					'<div class="panel en">' +
+						'<div class="fromTo">' + b.DepartureStopNameEn + ' &nbsp;-&nbsp; ' + b.DestinationStopNameEn + '</div>' +
+						((b.TicketPriceDescriptionZh) ? '<div>' + b.TicketPriceDescriptionEn + '</div>' : '') +
+						((b.FareBufferZoneDescriptionEn) ? '<div class="fareBufferZone">Fare buffer zone：' + b.FareBufferZoneDescriptionEn + '</div>' : '') +
+						((flagHasBusTimeInfo) ? '<div>Weekday: ' + ((sub.FirstBusTime) ? procTimeStr(sub.FirstBusTime) + ' ~ ' + procTimeStr(sub.LastBusTime) : 'No Service') + '</div>' : '') +
+						((flagHasBusTimeInfo) ? '<div>Weekend: ' + ((sub.HolidayFirstBusTime) ? procTimeStr(sub.HolidayFirstBusTime) + ' ~ ' + procTimeStr(sub.HolidayLastBusTime) : 'No Service') + '</div>' : '') +
+					'</div>' +
+				'</div>';
+			},
+			toggleFlag: function(flg){this[flg] = !this[flg];},
+			stopStatus: function(stop){
+				//dsd
+				var rt = '';
+				this.nearStatusData.forEach(function(c){
+					if(c.StopUID==stop.StopUID){
+						rt = getStopDisplayInfo(c);
+						if(c.isNearStop){
+							rt += '<div class="carp">' + c.PlateNumb + '</div>';
+						}
+					}
+				});
+				return '<div class="statusInner">' + rt + '</div>';
+			}
+		},
+		updated: function(){
+			var stop = document.querySelector('#showBusRoutePop div.single.now');
+			if(!this.flagOpenScrollTo && stop){
+				this.flagOpenScrollTo = true;
+						var content = document.querySelector('#showBusRoutePop div.content');
+						var stopRect = stop.getBoundingClientRect(),
+							contentRect = content.getBoundingClientRect();
+						var cHeight = contentRect.height;
+						var finalTop = stopRect.top - contentRect.height - 40;
+						var timeAry = [];
+						for(var i=1; i<=10; i++){timeAry.push(i*30);}
+						timeAry.map(function(sec, idx){
+							setTimeout(function(){
+								content.scrollTop = (finalTop / 10) * idx+1;
+							}, sec)
+						})
+					setTimeout(function(){
+						content.scrollTop = finalTop;
+					},330);
+			}
+		},
+		watch: {
+			flagShowBase: function(){
+				if(this.flagShowBase){
+					this.getBusRoute();
+					scrollToTop();
+				}else{
+					this.aryRoute = [];
+					this.aryFullRoute = [];
+					this.busInfo = false;
+					this.flagShowFullRoute = false;
+					this.flagOpenScrollTo = false;
+					this.StationTargetID = '';
+				}
+			}
+		}
+	});
+	}
+
+	var indexArea = {
+		template: '<div>' +
+			'<div class="textA" v-html="firstText()">' + '</div>' +
+			'<div v-html="_LANG.CM_APP_USE_P"></div>' +
+		'</div>', 
+		data: function(){return {
+		}},
+		methods: {
+			firstText: function(){
+				return _LANG.STR049.replace('{title}',_LANG.CM_TITLE).replace('{btnA}',_LANG.STR001);
+			}
+		}
+	};
+	var siteMap = [
+		{path: '/', component: indexArea},
+		{path: '/show', name: 'show', component: showArea,
+			children: [
+				{path: 'line'}
+			]
+		},
+		{path: '/make', component: makeArea, 
+			children: [
+				{path: '/', component: makeIndex},
+				{path: 'buscity', component: busCity},
+				{path: 'busfindroute', component: busFindRoute},
+				{path: 'busfindlist', component: busFindList},
+				{path: 'busarrivetime', component: busArriveTime},
+				{path: 'busmakeurl', component: busMakeURL},
+				{path: 'busbookmark', component: busBookmark},
+				{path: 'busgroupbookmark', component: busGroupBookmark}
+			]
+		},
+		//{path: '/bus2city', name: 'bus2city', component: busCity},
+		{path: '/about', name: 'about', component: aboutArea}
+	]
+
+	BB.mainRoute = new VueRouter({
+		routes: siteMap
+	});
+
+	var menuBarTpl =  Vue.compile('<div id="menuBar" class="bs_no_select">' +
+			'<router-link :to="{path: \'/make\'}">' +
+				'<div class="menuBtn1">{{_LANG.STR001}}</div>' +
+			'</router-link>' +
+			'<router-link :to="{path: \'/about\'}">' +
+				'<div class="menuBtn1">{{_LANG.STR002}}</div>' +
+			'</router-link>' +
+			'<div class="menuBtn1" v-on:click="changeLang()">Language</div>' +
+	'</div>');
+	BB.menuBar = Vue.component('vcmp_menu_bar', {
+		render: menuBarTpl.render,
+		staticRenderFns: menuBarTpl.staticRenderFns,
+		methods: {
+			changeLang: function(){
+				var ln = Vue.duoguo.lang;
+				if(Vue.duoguo.lang=='Zh'){ln = 'En';}
+				else if(Vue.duoguo.lang=='En'){ln = 'Zh';}
+
+				Vue.duoguo.change(ln);
+			}
+		}
+	});
+
+	BB.initFn = function(){
+		var GetP = TT.defined.GetP;
+		if(GetP && GetP[_DEFINE_PARAM_BUS_STATION]){
+			try {
+				BB.now.showBusStation = JSON.parse(decodeURIComponent(GetP[_DEFINE_PARAM_BUS_STATION]));
+			}catch(e){
+				// Error
+			}
+		}
+		var tpl = Vue.compile('<div id="main">' + 
+			'<vcmp_menu_bar id="menuBar"></vcmp_menu_bar>' +
+			'<router-view></router-view>' +
+			'<div id="showBusRoutePop" class="pop"></div>' +
+			'<div id="statusBar"></div>' +
+		'</div>');
+		BB.main = new Vue({
+			router: BB.mainRoute,
+			render: tpl.render,
+			el: '#main'
+		});
+		makeShowBusRoutePop();
+	}
+	return BB;
+})(TT);
+
+</script>
+<!-- -->
+<!-- -->
+</head>
+<body onload="BB.initFn()">
+	<div id="main"></div>
+	<div id="mask" class="mask"><div class="text"></div></div>
+</body>
+</html>

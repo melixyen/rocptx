@@ -1,0 +1,34 @@
+{
+  "name": "rocptx",
+  "version": "0.0.1",
+  "description": "Dynamic public traffic library of Taiwan and Kinmen, Lienchiang",
+  "main": "dist/rocptx.js",
+  "module": "src/main.js",
+  "scripts": {
+    "umd": "rollup -f umd --config rollup.config.js",
+    "umd2": "rollup -f umd --config rollup.config.js --flag-use-banner",
+    "tt": "rollup -f umd --config rollup.config.js -n $trainTaiwanLib.ptx -o dist/ptx.js -m inline",
+    "ttbuild": "rollup -f umd --config rollup.config.js -n $trainTaiwanLib.ptx -o dist/ptx.js --flag-use-banner --flag-use-minify",
+    "watch": "rollup -f umd --config rollup.config.js --watch",
+    "build": "rollup -f umd --config rollup.config.js --flag-use-banner --flag-use-minify",
+    "es": "rollup -f es --config rollup.config.js",
+    "es2": "rollup -f es --config rollup.config.js --flag-use-banner",
+    "iife": "rollup -f iife --config rollup.config.js",
+    "amd": "rollup -f amd --config rollup.config.js",
+    "cjs": "rollup -f cjs --config rollup.config.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "rollup": "^1.3.1",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-babel-minify": "^7.0.0",
+    "rollup-plugin-commonjs": "^9.2.1",
+    "rollup-plugin-node-resolve": "^4.0.1"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.2.5"
+  }
+}
