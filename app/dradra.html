@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width; initial-scale=1.0" />
 <meta name="description" content="公車運輸 QR CODE 雲端看板" />
 <title>測試抓取用途</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
 <style type="text/css">
 @charset "utf-8";
 
@@ -16,7 +17,7 @@ body {
 	background-color: rgb(192, 244, 247);
 }
 
-.btn1, .btn2 {
+.btn1, .btn2, .btn3, .btn4, .btnBW {
 	display: inline-block;
 	padding: 5px 10px;
 	font-size: 18px;
@@ -25,10 +26,56 @@ body {
 	border-radius: 10px;
 	margin: 2px 5px;
 	cursor: pointer;
+   -o-user-select:none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   -webkit-user-select: none;
+   user-select: none;
 }
 .btn2 {
-	border-color: #743;
-	background-color: #fc9d9d;
+	border-color: #743; background-color: #fc9d9d;
+}
+.btn3 {
+	border-color: #505806; background-color: #dee97a;
+}
+.btn4 {
+	border-color: #057205; background-color: #a2ec8f;
+}
+.btnBW {
+	border-color: #222; background-color: #FFF;
+}
+.bs_no_select{
+   -o-user-select:none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   -webkit-user-select: none;
+   user-select: none;
+}
+
+#json_text {
+	max-width: calc(100vw - 20px);
+	width: 1000px;
+	height: calc(100vh - 200px);
+	min-height: 400px;
+	font-size: 12px;
+	font-family: Arial;
+}
+
+.codeArea {
+	max-width: calc(100vw - 20px);
+	width: 1000px;
+	display: inline-block;
+	overflow: auto;
+	height: calc(100vh - 200px);
+	min-height: 400px;
+	font-size: 12px;
+	font-family: Arial;
+	margin-left: 5px;
+	border: 1px solid #222;
+}
+.codeArea pre{ margin:0}
+.codeArea .hljs {
+	background-color: #FFF;
 }
 
 
@@ -37,13 +84,15 @@ body {
 <!--
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue-router@2.7.0/dist/vue-router.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
 -->
 
 <script type="text/javascript" src="../../railtime/libs/vue.js"></script>
-<script type="text/javascript">Vue.config.productionTip=false</script>
+<script type="text/javascript">
+Vue.config.productionTip=false;
+</script>
 
 <!--
-<script type="text/javascript" src="../../railtime/ttlib/defined.js"></script>
 <script type="text/javascript" src="../../railtime/ttlib/data.js"></script>
 -->
 <script type="text/javascript" src="../dist/ptx.js"></script>
@@ -51,10 +100,11 @@ body {
 
 
 var BB = {};
+var TT = {ptx: rocptx}
 var ptx = rocptx;
 (function(){
 	function getData(){
-		ptx.trtc.getStationTime("BL", 'BL11', 2, function(json){
+		TT.ptx.trtc.getStationTime("BL", 'BL11', 2, function(json){
 			console.info(json);
 		})
 	}
@@ -74,13 +124,90 @@ var ptx = rocptx;
 		}
 	});
 
+	var trtcPanelTpl = Vue.compile('<div id="trtc_panel" class="" v-if="show_trtc">' +
+		'<div id="trtc_line">' +
+			'<div class="btnBW" v-for="line in aryLINE" v-bind:style="lineStyle(line)" v-on:click="getStationOfLine(line)">{{ line.LineName.Zh_tw }}</div>' +
+		'</div>' +
+		'<div id="trtc_station" v-show="aryStationOfLine.length >0 ">' +
+			'<div class="btnBW" v-for="station in aryStationOfLine" v-bind:style="stationStyle()">{{ station.StationName.Zh_tw }}</div>' +
+		'</div>' +
+	'</div>');
+	Vue.component('vcmp_trtc_panel', {
+		render: trtcPanelTpl.render,
+		staticRenderFns: trtcPanelTpl.staticRenderFns,
+		props: ['show_trtc'],
+		data: function(){
+			return {
+				aryLINE: [],
+				aryStationOfLine: [],
+				lineColor: '',
+				flagShowPanel: false,
+				flagShowLine: false,
+				flagShowStation: false
+			}
+		},
+		methods: {
+			clearAryData: function(ary){
+				for(var i=0; i<ary.length; i++){
+					this[ary[i]] = [];
+				}
+			},
+			getLINE: function(){
+				var me = this;
+				me.clearAryData(["aryLINE", 'aryStationOfLine']);
+				TT.ptx.trtc._LINE().then(function(res){
+					me.aryLINE = res.data;
+					me.$emit('printj', res.data);
+				}).catch(function(res){
+					console.info(res);
+				});
+			},
+			getStationOfLine: function(line){
+				var LineID = line.LineID;
+				var me = this;
+				me.clearAryData(['aryStationOfLine']);
+				me.lineColor = line.LineColor;
+				var cfg = {
+					filterBy: TT.ptx.filterParam('LineID', '==', LineID)
+				}
+				TT.ptx.trtc._StationOfLine(cfg).then(function(res){
+					me.aryStationOfLine = res.data[0].Stations;
+					me.$emit('printj', res.data[0]);
+				}).catch(function(res){
+					console.info(res);
+				});
+			},
+			lineStyle: function(line){
+				var rt = 'color:#FFF;';
+				if(line.LineColor) rt += 'background-color:' + line.LineColor + ';';
+				return rt;
+			},
+			stationStyle: function(){
+				return 'color:#FFF; background-color:' + this.lineColor + ';';
+			}
+		},
+		mounted: function() {
+			this.getLINE();
+		},
+		destroy: function() {
+		}
+	});
+
 	BB.initFn = function(){
+		//hljs.initHighlightingOnLoad();
 		var tpl = Vue.compile('<div id="main">' + 
 			'<vcmp_menu_bar id="menuBar" v-on:showPanelName="changeName"></vcmp_menu_bar>' +
 			'<div id="panel">' +
-				'<div id="trtc" v-show="panelName==\'trtc\'">' +
-					'<div class="btn2">車站時刻表</div>' +
-				'</div>' +
+				'<vcmp_trtc_panel v-bind:show_trtc="(panelName==\'trtc\')" v-if="(panelName==\'trtc\')" v-on:printj="printJSON" />' +
+			'</div>' +
+			'<div id="output">' +
+				'<textarea id="json_text" v-show="flagShowTextArea">{{json_text}}</textarea>' +
+				//'<div class="codeArea" v-show="!flagShowTextArea"><pre><code class="json">{{json_text}}</code></pre></div>' +
+			'</div>' +
+			'<div class="bottom">' +
+				'<div class="btn2" v-on:click="toConsole()">將 Response 印到 console </div>' +
+				//'<div class="btn2" v-show="!flagShowTextArea" v-on:click="flagShowTextArea=true">顯示文字編輯器</div>' +
+				//'<div class="btn2" v-show="flagShowTextArea" v-on:click="flagShowTextArea=false">顯示程式語法</div>' +
 			'</div>' +
 			'<div id="statusBar"></div>' +
 		'</div>');
@@ -88,11 +215,26 @@ var ptx = rocptx;
 			render: tpl.render,
 			el: '#main',
 			data: {
-				panelName: ''
+				panelName: '',
+				flagShowTextArea: true,
+				json_data: [],
+				json_text: ''
 			},
 			methods: {
 				changeName: function(name){
 					this.panelName = name;
+				},
+				printJSON: function(json){
+					this.json_data = json;
+					this.json_text = JSON.stringify(json, undefined, 4);
+				},
+				toConsole: function(){
+					console.info(TT.ptx.common.clone(this.json_data));
+				}
+			},
+			watch: {
+				json_text: function(){
+					//setTimeout(()=>{hljs.initHighlighting.call();},500);
 				}
 			}
 		});

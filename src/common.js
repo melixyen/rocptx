@@ -1,6 +1,7 @@
 
 var CM = {
-    inBrowser: !!(typeof(window)!='undefined' && window.document)
+    inBrowser: !!(typeof(window)!='undefined' && window.document),
+    clone: function(objA){return JSON.parse(JSON.stringify(objA));}
 }
 
 CM.statusCode = {

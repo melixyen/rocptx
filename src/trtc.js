@@ -14,9 +14,8 @@ function testFetch(cmd){
         })
     }
 }
-function _LINE(cfg){
-    return metro._LINE(companyTag, cfg);
-}
+function _LINE(cfg){ return metro._LINE(companyTag, cfg); }
+function _StationOfLine(cfg){ return metro._StationOfLine(companyTag, cfg); }
 
 var fnTRTC = {
     checkRouteIdOnUse: function(RouteID, LineID){
@@ -172,6 +171,7 @@ var fnTRTC = {
         return stData;
     },
     _LINE: _LINE,
+    _StationOfLine: _StationOfLine,
     testFetch: testFetch
 }
 

@@ -44,7 +44,7 @@ function processCfg(cfg){//將 cfg 轉為對應的參數
     if(cfg.selectField) aryParam.push(ptx.selectFieldFn(cfg.selectField));
     if(cfg.filterBy) aryParam.push(ptx.filterFn(cfg.filterBy));
     if(cfg.orderBy){
-        var dir = cfg.orderDir || 'asc';
+        var dir = cfg.orderDir || false;
         aryParam.push(ptx.orderByFn(cfg.orderBy, dir));
     }
     aryParam.push(ptx.topFn(cfg.top, cfg.format));//最後加這個
@@ -60,9 +60,16 @@ function _LINE(companyTag, cfg){
     return getPTX(urls.LINE + companyTag + param);
 }
 
+function _StationOfLine(companyTag, cfg){
+    cfg = setDefaultCfg(cfg);
+    var param = processCfg(cfg);
+    return getPTX(urls.StationOfLine + companyTag + param);
+}
+
 var metro = {
     getCompanyTag: getCompanyTag,
     _LINE: _LINE,
+    _StationOfLine: _StationOfLine,
     urls: urls,
     companyTag: companyTag
 }
