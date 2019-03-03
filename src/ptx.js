@@ -40,8 +40,8 @@ var ptx = {
         return encodeURI('$filter=' + param);
     },
     orderByFn: function(field, dir){
-        var a = arguments;
-        return encodeURI('$orderby=' + arguments[0] + ' ' + arguments[1].toLowerCase());
+        dir = (dir && typeof(dir)=='string') ? ' ' + dir.toLowerCase() : '';
+        return encodeURI('$orderby=' + arguments[0] + dir);
     },
     topFn: function(top, formatStr){
         top = top || 3000;
@@ -122,6 +122,43 @@ var ptx = {
             fm.setRequestHeader(k, headerObj[k]);
         }
         fm.send();
+    },
+    getPromiseURL: function(url, cfg={}){
+
+        return new Promise(function(resolve, reject){
+            function reqListener(xhr){
+                var event = {
+                    xhr: xhr,
+                    url: url,
+                    config: cfg,
+                    resolve: resolve,
+                    reject: reject,
+                    response: xhr.target.response
+                }
+                if(xhr.target.readyState==4 && xhr.target.status==200){
+                    event.status = common.CONST_PTX_API_SUCCESS;
+                    event.data = JSON.parse(xhr.target.response);
+                    resolve(event);
+                }else{
+                    event.status = common.CONST_PTX_API_FAIL;
+                    reject(event);
+                }
+            }
+            var fm = new XMLHttpRequest();
+            fm.addEventListener("load", reqListener);
+            fm.addEventListener("error", reqListener);
+            fm.addEventListener("abort", reqListener);
+            fm.addEventListener("timeout", reqListener);
+
+            var method = cfg.method || 'GET';
+            fm.open(method, url);
+            fm.timeout = cfg.timeout || ptx.timeout;
+            var headerObj = cfg.head || ptx.GetAuthorizationHeader();
+            for(var k in headerObj){
+                fm.setRequestHeader(k, headerObj[k]);
+            }
+            fm.send();
+        })
     },
     getStationLiveInfo: function(stid, cbFn){
         stid = (stid) ? stid.replace('tra_','') : '1008';

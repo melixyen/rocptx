@@ -1,0 +1,111 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="zh-TW" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+<meta name="description" content="公車運輸 QR CODE 雲端看板" />
+<title>測試抓取用途</title>
+<style type="text/css">
+@charset "utf-8";
+
+body {
+	font-family: "Arial", "Microsoft JhengHei";
+	font-size: 15px;;
+	margin: 0px;
+	background-color: rgb(192, 244, 247);
+}
+
+.btn1, .btn2 {
+	display: inline-block;
+	padding: 5px 10px;
+	font-size: 18px;
+	border: 2px solid #35A;
+	background-color: #ACE;
+	border-radius: 10px;
+	margin: 2px 5px;
+	cursor: pointer;
+}
+.btn2 {
+	border-color: #743;
+	background-color: #fc9d9d;
+}
+
+
+</style>
+
+<!--
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue-router@2.7.0/dist/vue-router.js"></script>
+-->
+
+<script type="text/javascript" src="../../railtime/libs/vue.js"></script>
+<script type="text/javascript">Vue.config.productionTip=false</script>
+
+<!--
+<script type="text/javascript" src="../../railtime/ttlib/defined.js"></script>
+<script type="text/javascript" src="../../railtime/ttlib/data.js"></script>
+-->
+<script type="text/javascript" src="../dist/ptx.js"></script>
+<script type="text/javascript">
+
+
+var BB = {};
+var ptx = rocptx;
+(function(){
+	function getData(){
+		ptx.trtc.getStationTime("BL", 'BL11', 2, function(json){
+			console.info(json);
+		})
+	}
+	var menuBarTpl =  Vue.compile('<div id="menuBar" class="bs_no_select">' +
+		'<div class="btn1" v-on:click="changePanel(\'trtc\')">台北捷運</div>' +
+	'</div>');
+	Vue.component('vcmp_menu_bar', {
+		render: menuBarTpl.render,
+		staticRenderFns: menuBarTpl.staticRenderFns,
+		data: function(){return{
+			flagShowCommTool: false
+		}},
+		methods: {
+			changePanel: function(name){
+				this.$emit('showPanelName',name);
+			}
+		}
+	});
+
+	BB.initFn = function(){
+		var tpl = Vue.compile('<div id="main">' + 
+			'<vcmp_menu_bar id="menuBar" v-on:showPanelName="changeName"></vcmp_menu_bar>' +
+			'<div id="panel">' +
+				'<div id="trtc" v-show="panelName==\'trtc\'">' +
+					'<div class="btn2">車站時刻表</div>' +
+				'</div>' +
+			'</div>' +
+			'<div id="statusBar"></div>' +
+		'</div>');
+		BB.main = new Vue({
+			render: tpl.render,
+			el: '#main',
+			data: {
+				panelName: ''
+			},
+			methods: {
+				changeName: function(name){
+					this.panelName = name;
+				}
+			}
+		});
+	}
+	return BB;
+})();
+
+</script>
+<!-- -->
+<!-- -->
+</head>
+<body onload="BB.initFn()">
+	<div id="main"></div>
+	<div id="mask" class="mask"><div class="text"></div></div>
+</body>
+</html>

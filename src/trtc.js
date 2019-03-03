@@ -1,6 +1,22 @@
 import common from './common.js';
 import ptx from './ptx.js';
 import pData from './data.js';
+import metro from './metro.js';
+
+const companyTag = metro.getCompanyTag('trtc');
+
+function testFetch(cmd){
+    if(typeof(fnTRTC[cmd])=='function'){
+        return fnTRTC[cmd]().then(function(e){
+            console.info(e);
+        }).catch(function(e){
+            console.info(e);
+        })
+    }
+}
+function _LINE(cfg){
+    return metro._LINE(companyTag, cfg);
+}
 
 var fnTRTC = {
     checkRouteIdOnUse: function(RouteID, LineID){
@@ -154,7 +170,9 @@ var fnTRTC = {
             }
         }
         return stData;
-    }
+    },
+    _LINE: _LINE,
+    testFetch: testFetch
 }
 
 export default fnTRTC;
