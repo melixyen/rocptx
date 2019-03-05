@@ -5,7 +5,7 @@ import pData from './data.js';
 const metroURL = common.metroURL;
 const urls = {
     Network: metroURL + '/Network', //取得捷運路網資料
-    LINE: metroURL + '/LINE/', //取得捷運路線基本資料
+    Line: metroURL + '/Line/', //取得捷運路線基本資料
     Station: metroURL + '/Station/', //取得捷運車站基本資料
     StationOfLine: metroURL + '/StationOfLine/', //取得捷運路線車站基本資料
     LineTransfer: metroURL + '/LineTransfer/', //取得捷運路線站間轉乘基本資料
@@ -53,25 +53,31 @@ function processCfg(cfg){//將 cfg 轉為對應的參數
 }
 
 function getCompanyTag(name){ return companyTag[name] || name; }
-
-function _LINE(companyTag, cfg){
+function makePTX_func(cmd, companyTag, cfg){
     cfg = setDefaultCfg(cfg);
     var param = processCfg(cfg);
-    return getPTX(urls.LINE + companyTag + param);
+    return getPTX(urls[cmd] + companyTag + param, cfg);
 }
 
-function _StationOfLine(companyTag, cfg){
-    cfg = setDefaultCfg(cfg);
-    var param = processCfg(cfg);
-    return getPTX(urls.StationOfLine + companyTag + param);
-}
 
 var metro = {
     getCompanyTag: getCompanyTag,
-    _LINE: _LINE,
-    _StationOfLine: _StationOfLine,
+    //_Line: function(companyTag, cfg){return makePTX_func('Line', companyTag, cfg);},
+    //_Route: function(companyTag, cfg){return makePTX_func('Route', companyTag, cfg);},
+    //_StationOfLine: function(companyTag, cfg){return makePTX_func('StationOfLine', companyTag, cfg);},
     urls: urls,
     companyTag: companyTag
 }
+//自動產生 Function
+var aryMakeFunction = Object.keys(urls);
+var ptxAutoMetroFunctionKey = [];
+aryMakeFunction.forEach(function(fn){
+    if(!/^Network$/.test(fn)){
+        metro['_' + fn] = function(companyTag, cfg){return makePTX_func(fn, companyTag, cfg);}
+        ptxAutoMetroFunctionKey.push('_' + fn);
+    }
+})
+metro.ptxAutoMetroFunctionKey = ptxAutoMetroFunctionKey;
+
 
 export default metro;

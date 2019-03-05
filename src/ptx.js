@@ -138,6 +138,9 @@ var ptx = {
                 if(xhr.target.readyState==4 && xhr.target.status==200){
                     event.status = common.CONST_PTX_API_SUCCESS;
                     event.data = JSON.parse(xhr.target.response);
+                    if(typeof(cfg.processJSON) == 'function'){
+                        event.data = cfg.processJSON(event.data);
+                    }
                     resolve(event);
                 }else{
                     event.status = common.CONST_PTX_API_FAIL;

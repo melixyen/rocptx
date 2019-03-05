@@ -14,8 +14,17 @@ function testFetch(cmd){
         })
     }
 }
-function _LINE(cfg){ return metro._LINE(companyTag, cfg); }
-function _StationOfLine(cfg){ return metro._StationOfLine(companyTag, cfg); }
+
+function useLineID2filterBy(LineID, cfg={}){
+    cfg.filterBy = cfg.filterBy || '';
+    cfg.filterBy += TT.ptx.filterParam('LineID', '==', LineID);
+    return cfg;
+}
+
+var trtcPTXFn = {};
+metro.ptxAutoMetroFunctionKey.forEach(function(fn){
+    trtcPTXFn[fn] = function(cfg){return metro[fn](companyTag, cfg)};
+})
 
 var fnTRTC = {
     checkRouteIdOnUse: function(RouteID, LineID){
@@ -170,9 +179,52 @@ var fnTRTC = {
         }
         return stData;
     },
-    _LINE: _LINE,
-    _StationOfLine: _StationOfLine,
+    //以下為 Return Promise Function
+    getRoute: function(LineID, cfg={}){
+        cfg = useLineID2filterBy(LineID, cfg);
+        return trtcPTXFn._Route(cfg);
+    },
+    getLineFrequency: function(LineID, cfg={}){
+        cfg = useLineID2filterBy(LineID, cfg);
+        return trtcPTXFn._Frequency(cfg);
+    },
+    getLineTransfer: function(LineID, cfg={}){
+        cfg.filterBy = cfg.filterBy || '';
+        cfg.filterBy += TT.ptx.filterParam('FromLineID', '==', LineID);
+        return trtcPTXFn._LineTransfer(cfg);
+    },
+    getShape: function(LineID, cfg={}){
+        return trtcPTXFn._Shape(cfg);
+    },
+    getFirstLastTimetable: function(LineID, cfg={}){
+        cfg = useLineID2filterBy(LineID, cfg);
+        return trtcPTXFn._FirstLastTimetable(cfg);
+    },
+    getS2STravelTime: function(LineID, cfg={}){
+        cfg = useLineID2filterBy(LineID, cfg);
+        cfg.processJSON = function(json){
+            var travleTimes, tmpA, tmpNextStop;
+            for(var m=0; m<json.length; m++){
+                travleTimes = json[m].TravelTimes;
+                json[m].TravelInterval = travleTimes.map(function(c, idx){
+                    tmpNextStop = (travleTimes[idx + 1]) ? parseInt(travleTimes[idx + 1].StopTime) : 0;
+                    tmpA = parseInt(c.RunTime) + Math.ceil(parseInt(c.StopTime)/2) + Math.ceil(tmpNextStop);
+                    return tmpA;
+                });
+            }
+            return json;
+        }
+        return trtcPTXFn._S2STravelTime(cfg);
+    },
+    getStationOfLine: function(LineID, cfg={}){
+        cfg = useLineID2filterBy(LineID, cfg);
+        return trtcPTXFn._StationOfLine(cfg);
+    },
     testFetch: testFetch
+}
+
+for(var k in trtcPTXFn){
+    fnTRTC[k] = trtcPTXFn[k];
 }
 
 export default fnTRTC;

@@ -26,11 +26,8 @@ body {
 	border-radius: 10px;
 	margin: 2px 5px;
 	cursor: pointer;
-   -o-user-select:none;
-   -moz-user-select: none;
-   -ms-user-select: none;
-   -webkit-user-select: none;
-   user-select: none;
+	height: 100%;
+   	-o-user-select:none; -moz-user-select: none; -ms-user-select: none; -webkit-user-select: none; user-select: none;
 }
 .btn2 {
 	border-color: #743; background-color: #fc9d9d;
@@ -44,6 +41,17 @@ body {
 .btnBW {
 	border-color: #222; background-color: #FFF;
 }
+
+.frame1 {
+	margin: 3px 0;
+	border-top: 1px solid #734;
+	padding: 3px 0;
+	overflow: auto;
+}
+.frameIn{
+	overflow: auto;
+	display: inline-flex;
+}
 .bs_no_select{
    -o-user-select:none;
    -moz-user-select: none;
@@ -56,7 +64,7 @@ body {
 	max-width: calc(100vw - 20px);
 	width: 1000px;
 	height: calc(100vh - 200px);
-	min-height: 400px;
+	max-height: 70vh !important;
 	font-size: 12px;
 	font-family: Arial;
 }
@@ -76,6 +84,14 @@ body {
 .codeArea pre{ margin:0}
 .codeArea .hljs {
 	background-color: #FFF;
+}
+
+
+@media screen and (max-width: 679px) {
+	.btn1, .btn2, .btn3, .btn4, .btnBW {
+		font-size: 15px;
+		padding: 3px 6px;
+	}
 }
 
 
@@ -125,11 +141,25 @@ var ptx = rocptx;
 	});
 
 	var trtcPanelTpl = Vue.compile('<div id="trtc_panel" class="" v-if="show_trtc">' +
-		'<div id="trtc_line">' +
+		'<div id="trtc_line" class="frame1">' +
 			'<div class="btnBW" v-for="line in aryLINE" v-bind:style="lineStyle(line)" v-on:click="getStationOfLine(line)">{{ line.LineName.Zh_tw }}</div>' +
 		'</div>' +
-		'<div id="trtc_station" v-show="aryStationOfLine.length >0 ">' +
-			'<div class="btnBW" v-for="station in aryStationOfLine" v-bind:style="stationStyle()">{{ station.StationName.Zh_tw }}</div>' +
+		//===路線相關功能===
+		'<div id="trtc_func_line" class="frame1" v-show="nowLineID != \'\'">' +
+			'<div class="frameIn">' +
+				'<div class="btn3" v-on:click="getRoute()">基本</div>' +
+				'<div class="btn3" v-on:click="getLineFrequency()">班距</div>' +
+				'<div class="btn3" v-on:click="getS2STravelTime()">站間距</div>' +
+				'<div class="btn3" v-on:click="getLineTransfer()">轉乘</div>' +
+				'<div class="btn3" v-on:click="getShape()">圖資</div>' +
+				'<div class="btn3" v-on:click="getFirstLastTimetable()">首末</div>' +
+			'</div>' +
+		'</div>' +
+		//===車站陣列===
+		'<div id="trtc_station" class="frame1" v-show="aryStationOfLine.length >0 ">' +
+			'<div class="frameIn">' +
+				'<div class="btnBW" v-for="station in aryStationOfLine" v-bind:style="stationStyle()">{{ station.StationName.Zh_tw }}</div>' +
+			'</div>' +
 		'</div>' +
 	'</div>');
 	Vue.component('vcmp_trtc_panel', {
@@ -141,6 +171,8 @@ var ptx = rocptx;
 				aryLINE: [],
 				aryStationOfLine: [],
 				lineColor: '',
+				nowLineID: '',
+				nowStation: '',
 				flagShowPanel: false,
 				flagShowLine: false,
 				flagShowStation: false
@@ -155,22 +187,48 @@ var ptx = rocptx;
 			getLINE: function(){
 				var me = this;
 				me.clearAryData(["aryLINE", 'aryStationOfLine']);
-				TT.ptx.trtc._LINE().then(function(res){
+				TT.ptx.trtc._Line().then(function(res){
 					me.aryLINE = res.data;
 					me.$emit('printj', res.data);
 				}).catch(function(res){
 					console.info(res);
 				});
 			},
+			getRoute: function(){
+				var me = this;
+				TT.ptx.trtc.getRoute(me.nowLineID).then(function(res){
+					me.$emit('printj', res.data);
+				}).catch(function(res){
+					console.info(res);
+				});
+			},
+			getLineFrequency: function(){
+				var me = this;
+				TT.ptx.trtc.getLineFrequency(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+			},
+			getLineTransfer: function(){
+				var me = this;
+				TT.ptx.trtc.getLineTransfer(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+			},
+			getShape: function(){
+				var me = this;
+				TT.ptx.trtc.getShape(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+			},
+			getFirstLastTimetable: function(){
+				var me = this;
+				TT.ptx.trtc.getFirstLastTimetable(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+			},
+			getS2STravelTime: function(){
+				var me = this;
+				TT.ptx.trtc.getS2STravelTime(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+			},
 			getStationOfLine: function(line){
 				var LineID = line.LineID;
 				var me = this;
 				me.clearAryData(['aryStationOfLine']);
 				me.lineColor = line.LineColor;
-				var cfg = {
-					filterBy: TT.ptx.filterParam('LineID', '==', LineID)
-				}
-				TT.ptx.trtc._StationOfLine(cfg).then(function(res){
+				me.nowLineID = line.LineID;
+				TT.ptx.trtc.getStationOfLine(LineID).then(function(res){
 					me.aryStationOfLine = res.data[0].Stations;
 					me.$emit('printj', res.data[0]);
 				}).catch(function(res){
