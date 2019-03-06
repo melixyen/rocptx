@@ -20,6 +20,11 @@ function useLineID2filterBy(LineID, cfg={}){
     cfg.filterBy += TT.ptx.filterParam('LineID', '==', LineID);
     return cfg;
 }
+function useStationID2filterBy(StationID, cfg={}){
+    cfg.filterBy = cfg.filterBy || '';
+    cfg.filterBy += TT.ptx.filterParam('StationID', '==', StationID);
+    return cfg;
+}
 
 var trtcPTXFn = {};
 metro.ptxAutoMetroFunctionKey.forEach(function(fn){
@@ -193,8 +198,9 @@ var fnTRTC = {
         cfg.filterBy += TT.ptx.filterParam('FromLineID', '==', LineID);
         return trtcPTXFn._LineTransfer(cfg);
     },
-    getShape: function(LineID, cfg={}){
-        return trtcPTXFn._Shape(cfg);
+    getLineFrequency: function(LineID, cfg={}){
+        cfg = useLineID2filterBy(LineID, cfg);
+        return trtcPTXFn._Frequency(cfg);
     },
     getFirstLastTimetable: function(LineID, cfg={}){
         cfg = useLineID2filterBy(LineID, cfg);
@@ -216,9 +222,38 @@ var fnTRTC = {
         }
         return trtcPTXFn._S2STravelTime(cfg);
     },
+    getStation: function(StationID, cfg={}){
+        cfg = useStationID2filterBy(StationID, cfg);
+        return trtcPTXFn._Station(cfg);
+    },
     getStationOfLine: function(LineID, cfg={}){
         cfg = useLineID2filterBy(LineID, cfg);
         return trtcPTXFn._StationOfLine(cfg);
+    },
+    getStationOfRoute: function(LineID, cfg={}){
+        cfg = useLineID2filterBy(LineID, cfg);
+        return trtcPTXFn._StationOfRoute(cfg);
+    },
+    getStationTimeTable: function(StationID, cfg={}){
+        cfg = useStationID2filterBy(StationID, cfg);
+        return trtcPTXFn._StationTimeTable(cfg);
+    },
+    getStationFacility: function(StationID, cfg={}){
+        cfg = useStationID2filterBy(StationID, cfg);
+        return trtcPTXFn._StationFacility(cfg);
+    },
+    getStationExit: function(StationID, cfg={}){
+        cfg = useStationID2filterBy(StationID, cfg);
+        return trtcPTXFn._StationExit(cfg);
+    },
+    getStationFare: function(StationID, cfg={}){
+        cfg.filterBy = cfg.filterBy || '';
+        cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+        return trtcPTXFn._ODFare(cfg);
+    },
+    getStationLiveBoard: function(StationID, cfg={}){
+        cfg = useStationID2filterBy(StationID, cfg);
+        return trtcPTXFn._LiveBoard(cfg);
     },
     testFetch: testFetch
 }

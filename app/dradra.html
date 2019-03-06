@@ -39,8 +39,9 @@ body {
 	border-color: #057205; background-color: #a2ec8f;
 }
 .btnBW {
-	border-color: #222; background-color: #FFF;
+	border-color: transparent; background-color: #FFF;
 }
+.btnBW.selected {border-color: #222;}
 
 .frame1 {
 	margin: 3px 0;
@@ -86,6 +87,15 @@ body {
 	background-color: #FFF;
 }
 
+.mask_ui{
+	display: block;
+	position: fixed;
+	left: 0; top: 0; width:100%; height:100%;
+	overflow: hidden;
+	background-color: rgba(230,230,230,0.6);
+	z-index: 1000;
+}
+
 
 @media screen and (max-width: 679px) {
 	.btn1, .btn2, .btn3, .btn4, .btnBW {
@@ -119,10 +129,23 @@ var BB = {};
 var TT = {ptx: rocptx}
 var ptx = rocptx;
 (function(){
-	function getData(){
-		TT.ptx.trtc.getStationTime("BL", 'BL11', 2, function(json){
-			console.info(json);
-		})
+	function loading(cmd, text){
+		var maskID = 'functional_mask_out';
+		var dom = false;
+		if(!document.getElementById(maskID)){
+			dom = document.createElement('div');
+			dom.id = maskID;
+			dom.className = 'mask_ui';
+			document.body.appendChild(dom);
+		}else{
+			dom = document.getElementById(maskID);
+		}
+
+		if(cmd==0){
+			dom.style.display = 'none';
+		}else{
+			dom.style.display = '';
+		}
 	}
 	var menuBarTpl =  Vue.compile('<div id="menuBar" class="bs_no_select">' +
 		'<div class="btn1" v-on:click="changePanel(\'trtc\')">台北捷運</div>' +
@@ -150,6 +173,7 @@ var ptx = rocptx;
 				'<div class="btn3" v-on:click="getRoute()">基本</div>' +
 				'<div class="btn3" v-on:click="getLineFrequency()">班距</div>' +
 				'<div class="btn3" v-on:click="getS2STravelTime()">站間距</div>' +
+				'<div class="btn3" v-on:click="getStationOfRoute()">路由</div>' +
 				'<div class="btn3" v-on:click="getLineTransfer()">轉乘</div>' +
 				'<div class="btn3" v-on:click="getShape()">圖資</div>' +
 				'<div class="btn3" v-on:click="getFirstLastTimetable()">首末</div>' +
@@ -158,7 +182,17 @@ var ptx = rocptx;
 		//===車站陣列===
 		'<div id="trtc_station" class="frame1" v-show="aryStationOfLine.length >0 ">' +
 			'<div class="frameIn">' +
-				'<div class="btnBW" v-for="station in aryStationOfLine" v-bind:style="stationStyle()">{{ station.StationName.Zh_tw }}</div>' +
+				'<div class="btnBW" v-for="station in aryStationOfLine" v-bind:style="stationStyle(station)" v-on:click="doStation(station)">{{ station.StationName.Zh_tw }}</div>' +
+			'</div>' +
+		'</div>' +
+		//===車站相關功能===
+		'<div id="trtc_func_station" class="frame1" v-show="nowStationID != \'\'">' +
+			'<div class="frameIn">' +
+				'<div class="btn2" v-on:click="getStationTimeTable()">時刻表</div>' +
+				'<div class="btn2" v-on:click="getStationFacility()">設施</div>' +
+				'<div class="btn2" v-on:click="getStationExit()">出口</div>' +
+				'<div class="btn2" v-on:click="getStationFare()">票價</div>' +
+				'<div class="btn2" v-on:click="getStationLiveBoard()">看板</div>' +
 			'</div>' +
 		'</div>' +
 	'</div>');
@@ -172,7 +206,7 @@ var ptx = rocptx;
 				aryStationOfLine: [],
 				lineColor: '',
 				nowLineID: '',
-				nowStation: '',
+				nowStationID: '',
 				flagShowPanel: false,
 				flagShowLine: false,
 				flagShowStation: false
@@ -184,6 +218,19 @@ var ptx = rocptx;
 					this[ary[i]] = [];
 				}
 			},
+			clearBarReset: function(cmd){
+				switch(cmd){
+					case 'line':
+						this.nowStationID = '';
+					break;
+				}
+			},
+			doStation: function(station){
+				this.nowStationID = station.StationID;
+				this.getStation();
+			},
+			doLoad: function(){loading(1);},
+			unload: function(){loading(0);},
 			getLINE: function(){
 				var me = this;
 				me.clearAryData(["aryLINE", 'aryStationOfLine']);
@@ -196,52 +243,102 @@ var ptx = rocptx;
 			},
 			getRoute: function(){
 				var me = this;
+				me.doLoad();
 				TT.ptx.trtc.getRoute(me.nowLineID).then(function(res){
+					me.unload();
 					me.$emit('printj', res.data);
 				}).catch(function(res){
+					me.unload();
 					console.info(res);
 				});
 			},
 			getLineFrequency: function(){
 				var me = this;
-				TT.ptx.trtc.getLineFrequency(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+				me.doLoad();
+				TT.ptx.trtc.getLineFrequency(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
 			},
 			getLineTransfer: function(){
 				var me = this;
-				TT.ptx.trtc.getLineTransfer(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+				me.doLoad();
+				TT.ptx.trtc.getLineTransfer(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
 			},
 			getShape: function(){
 				var me = this;
-				TT.ptx.trtc.getShape(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+				me.doLoad();
+				TT.ptx.trtc._Shape().then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
 			},
 			getFirstLastTimetable: function(){
 				var me = this;
-				TT.ptx.trtc.getFirstLastTimetable(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+				me.doLoad();
+				TT.ptx.trtc.getFirstLastTimetable(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
 			},
 			getS2STravelTime: function(){
 				var me = this;
-				TT.ptx.trtc.getS2STravelTime(me.nowLineID).then(function(res){ me.$emit('printj', res.data); }).catch(function(res){ console.info(res); });
+				me.doLoad();
+				TT.ptx.trtc.getS2STravelTime(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+			},
+			getStation: function(){
+				var me = this;
+				me.doLoad();
+				TT.ptx.trtc.getStation(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data[0]); }).catch(function(res){me.unload(); console.info(res); });
 			},
 			getStationOfLine: function(line){
 				var LineID = line.LineID;
 				var me = this;
+				me.clearBarReset('line');
 				me.clearAryData(['aryStationOfLine']);
 				me.lineColor = line.LineColor;
 				me.nowLineID = line.LineID;
+				me.doLoad();
 				TT.ptx.trtc.getStationOfLine(LineID).then(function(res){
+					me.unload();
 					me.aryStationOfLine = res.data[0].Stations;
 					me.$emit('printj', res.data[0]);
 				}).catch(function(res){
+					me.unload();
 					console.info(res);
 				});
+			},
+			getStationOfRoute: function(line){
+				var me = this;
+				me.doLoad();
+				TT.ptx.trtc.getStationOfRoute(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+			},
+			getStationTimeTable: function(){
+				var me = this;
+				me.doLoad();
+				TT.ptx.trtc.getStationTimeTable(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+			},
+			getStationFacility: function(){
+				var me = this;
+				me.doLoad();
+				TT.ptx.trtc.getStationFacility(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+			},
+			getStationExit: function(){
+				var me = this;
+				me.doLoad();
+				TT.ptx.trtc.getStationExit(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+			},
+			getStationLiveBoard: function(){
+				var me = this;
+				me.doLoad();
+				TT.ptx.trtc.getStationLiveBoard(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+			},
+			getStationFare: function(){
+				var me = this;
+				me.doLoad();
+				TT.ptx.trtc.getStationFare(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
 			},
 			lineStyle: function(line){
 				var rt = 'color:#FFF;';
 				if(line.LineColor) rt += 'background-color:' + line.LineColor + ';';
+				if(line.LineID==this.nowLineID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
 				return rt;
 			},
-			stationStyle: function(){
-				return 'color:#FFF; background-color:' + this.lineColor + ';';
+			stationStyle: function(station){
+				var rt = 'color:#FFF; background-color:' + this.lineColor + ';';
+				if(station.StationID==this.nowStationID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
+				return rt;
 			}
 		},
 		mounted: function() {

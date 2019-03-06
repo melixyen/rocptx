@@ -18,6 +18,21 @@
     return _typeof(obj);
   }
 
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
   var CM = {
     inBrowser: !!(typeof window != 'undefined' && window.document),
     clone: function clone(objA) {
@@ -1534,6 +1549,7 @@
   });
   metro.ptxAutoMetroFunctionKey = ptxAutoMetroFunctionKey;
 
+  var _fnTRTC;
   var companyTag$1 = metro.getCompanyTag('trtc');
 
   function testFetch(cmd) {
@@ -1553,13 +1569,20 @@
     return cfg;
   }
 
+  function useStationID2filterBy(StationID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg.filterBy = cfg.filterBy || '';
+    cfg.filterBy += TT.ptx.filterParam('StationID', '==', StationID);
+    return cfg;
+  }
+
   var trtcPTXFn = {};
   metro.ptxAutoMetroFunctionKey.forEach(function (fn) {
     trtcPTXFn[fn] = function (cfg) {
       return metro[fn](companyTag$1, cfg);
     };
   });
-  var fnTRTC$1 = {
+  var fnTRTC$1 = (_fnTRTC = {
     checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
       var lineData = this.getLineData(LineID);
       var rt = false;
@@ -1741,44 +1764,69 @@
       cfg.filterBy = cfg.filterBy || '';
       cfg.filterBy += TT.ptx.filterParam('FromLineID', '==', LineID);
       return trtcPTXFn._LineTransfer(cfg);
-    },
-    getShape: function getShape(LineID) {
-      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      return trtcPTXFn._Shape(cfg);
-    },
-    getFirstLastTimetable: function getFirstLastTimetable(LineID) {
-      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      cfg = useLineID2filterBy(LineID, cfg);
-      return trtcPTXFn._FirstLastTimetable(cfg);
-    },
-    getS2STravelTime: function getS2STravelTime(LineID) {
-      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      cfg = useLineID2filterBy(LineID, cfg);
+    }
+  }, _defineProperty(_fnTRTC, "getLineFrequency", function getLineFrequency(LineID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useLineID2filterBy(LineID, cfg);
+    return trtcPTXFn._Frequency(cfg);
+  }), _defineProperty(_fnTRTC, "getFirstLastTimetable", function getFirstLastTimetable(LineID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useLineID2filterBy(LineID, cfg);
+    return trtcPTXFn._FirstLastTimetable(cfg);
+  }), _defineProperty(_fnTRTC, "getS2STravelTime", function getS2STravelTime(LineID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useLineID2filterBy(LineID, cfg);
 
-      cfg.processJSON = function (json) {
-        var travleTimes, tmpA, tmpNextStop;
+    cfg.processJSON = function (json) {
+      var travleTimes, tmpA, tmpNextStop;
 
-        for (var m = 0; m < json.length; m++) {
-          travleTimes = json[m].TravelTimes;
-          json[m].TravelInterval = travleTimes.map(function (c, idx) {
-            tmpNextStop = travleTimes[idx + 1] ? parseInt(travleTimes[idx + 1].StopTime) : 0;
-            tmpA = parseInt(c.RunTime) + Math.ceil(parseInt(c.StopTime) / 2) + Math.ceil(tmpNextStop);
-            return tmpA;
-          });
-        }
+      for (var m = 0; m < json.length; m++) {
+        travleTimes = json[m].TravelTimes;
+        json[m].TravelInterval = travleTimes.map(function (c, idx) {
+          tmpNextStop = travleTimes[idx + 1] ? parseInt(travleTimes[idx + 1].StopTime) : 0;
+          tmpA = parseInt(c.RunTime) + Math.ceil(parseInt(c.StopTime) / 2) + Math.ceil(tmpNextStop);
+          return tmpA;
+        });
+      }
 
-        return json;
-      };
+      return json;
+    };
 
-      return trtcPTXFn._S2STravelTime(cfg);
-    },
-    getStationOfLine: function getStationOfLine(LineID) {
-      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      cfg = useLineID2filterBy(LineID, cfg);
-      return trtcPTXFn._StationOfLine(cfg);
-    },
-    testFetch: testFetch
-  };
+    return trtcPTXFn._S2STravelTime(cfg);
+  }), _defineProperty(_fnTRTC, "getStation", function getStation(StationID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useStationID2filterBy(StationID, cfg);
+    return trtcPTXFn._Station(cfg);
+  }), _defineProperty(_fnTRTC, "getStationOfLine", function getStationOfLine(LineID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useLineID2filterBy(LineID, cfg);
+    return trtcPTXFn._StationOfLine(cfg);
+  }), _defineProperty(_fnTRTC, "getStationOfRoute", function getStationOfRoute(LineID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useLineID2filterBy(LineID, cfg);
+    return trtcPTXFn._StationOfRoute(cfg);
+  }), _defineProperty(_fnTRTC, "getStationTimeTable", function getStationTimeTable(StationID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useStationID2filterBy(StationID, cfg);
+    return trtcPTXFn._StationTimeTable(cfg);
+  }), _defineProperty(_fnTRTC, "getStationFacility", function getStationFacility(StationID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useStationID2filterBy(StationID, cfg);
+    return trtcPTXFn._StationFacility(cfg);
+  }), _defineProperty(_fnTRTC, "getStationExit", function getStationExit(StationID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useStationID2filterBy(StationID, cfg);
+    return trtcPTXFn._StationExit(cfg);
+  }), _defineProperty(_fnTRTC, "getStationFare", function getStationFare(StationID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg.filterBy = cfg.filterBy || '';
+    cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+    return trtcPTXFn._ODFare(cfg);
+  }), _defineProperty(_fnTRTC, "getStationLiveBoard", function getStationLiveBoard(StationID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg = useStationID2filterBy(StationID, cfg);
+    return trtcPTXFn._LiveBoard(cfg);
+  }), _defineProperty(_fnTRTC, "testFetch", testFetch), _fnTRTC);
 
   for (var k in trtcPTXFn) {
     fnTRTC$1[k] = trtcPTXFn[k];
