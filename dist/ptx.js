@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, (global[''] = global[''] || {}, global[''].ptx = factory()));
+  (global = global || self, (global.$trainTaiwanLib = global.$trainTaiwanLib || {}, global.$trainTaiwanLib.ptx = factory()));
 }(this, function () { 'use strict';
 
   function _typeof(obj) {
@@ -16,6 +16,12 @@
     }
 
     return _typeof(obj);
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
   }
 
   function _defineProperty(obj, key, value) {
@@ -1527,11 +1533,24 @@
     return getPTX(urls[cmd] + companyTag + param, cfg);
   }
 
+  function getStationOnWhatLineID(StationID) {
+    var ary = StationID.split('');
+    var rt = '';
+
+    for (var i = 0; i < ary.length; i++) {
+      if (/[a-zA-Z]/.test(ary[i])) {
+        rt = rt + ary[i];
+      } else {
+        break;
+      }
+    }
+
+    return rt;
+  }
+
   var metro = {
     getCompanyTag: getCompanyTag,
-    //_Line: function(companyTag, cfg){return makePTX_func('Line', companyTag, cfg);},
-    //_Route: function(companyTag, cfg){return makePTX_func('Route', companyTag, cfg);},
-    //_StationOfLine: function(companyTag, cfg){return makePTX_func('StationOfLine', companyTag, cfg);},
+    getStationOnWhatLineID: getStationOnWhatLineID,
     urls: urls,
     companyTag: companyTag //自動產生 Function
 
@@ -1547,42 +1566,228 @@
       ptxAutoMetroFunctionKey.push('_' + fn);
     }
   });
-  metro.ptxAutoMetroFunctionKey = ptxAutoMetroFunctionKey;
+  metro.ptxAutoMetroFunctionKey = ptxAutoMetroFunctionKey; //========= 建立各捷運公司可直接使用之基本定義 Function ============
 
-  var _fnTRTC;
-  var companyTag$1 = metro.getCompanyTag('trtc');
+  var baseMethod = function baseMethod(companyTag) {
+    var _this = this,
+        _methodObj;
 
-  function testFetch(cmd) {
-    if (typeof fnTRTC$1[cmd] == 'function') {
-      return fnTRTC$1[cmd]().then(function (e) {
-        console.info(e);
-      }).catch(function (e) {
-        console.info(e);
-      });
+    _classCallCheck(this, baseMethod);
+
+    var me = this;
+    this.companyTag = companyTag;
+    ptxAutoMetroFunctionKey.forEach(function (fn) {
+      _this[fn] = function (cfg) {
+        return metro[fn](companyTag, cfg);
+      };
+    });
+
+    function useLineID2filterBy(LineID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg.filterBy = cfg.filterBy || '';
+      cfg.filterBy += ptx.filterParam('LineID', '==', LineID);
+      return cfg;
     }
-  }
 
-  function useLineID2filterBy(LineID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg.filterBy = cfg.filterBy || '';
-    cfg.filterBy += TT.ptx.filterParam('LineID', '==', LineID);
-    return cfg;
-  }
+    function useStationID2filterBy(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg.filterBy = cfg.filterBy || '';
+      cfg.filterBy += ptx.filterParam('StationID', '==', StationID);
+      return cfg;
+    }
 
-  function useStationID2filterBy(StationID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg.filterBy = cfg.filterBy || '';
-    cfg.filterBy += TT.ptx.filterParam('StationID', '==', StationID);
-    return cfg;
-  }
+    var methodObj = (_methodObj = {
+      getRoute: function getRoute(LineID) {
+        var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+        cfg = useLineID2filterBy(LineID, cfg);
+        return me._Route(cfg);
+      },
+      getLineFrequency: function getLineFrequency(LineID) {
+        var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+        cfg = useLineID2filterBy(LineID, cfg);
+        return me._Frequency(cfg);
+      },
+      getLineTransfer: function getLineTransfer(LineID) {
+        var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+        cfg.filterBy = cfg.filterBy || '';
+        cfg.filterBy += ptx.filterParam('FromLineID', '==', LineID);
+        return me._LineTransfer(cfg);
+      }
+    }, _defineProperty(_methodObj, "getLineFrequency", function getLineFrequency(LineID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useLineID2filterBy(LineID, cfg);
+      return me._Frequency(cfg);
+    }), _defineProperty(_methodObj, "getFirstLastTimetable", function getFirstLastTimetable(LineID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useLineID2filterBy(LineID, cfg);
+      return me._FirstLastTimetable(cfg);
+    }), _defineProperty(_methodObj, "getS2STravelTime", function getS2STravelTime(LineID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useLineID2filterBy(LineID, cfg);
 
-  var trtcPTXFn = {};
-  metro.ptxAutoMetroFunctionKey.forEach(function (fn) {
-    trtcPTXFn[fn] = function (cfg) {
-      return metro[fn](companyTag$1, cfg);
-    };
-  });
-  var fnTRTC$1 = (_fnTRTC = {
+      cfg.processJSON = function (json) {
+        var travleTimes, tmpA, tmpNextStop;
+
+        for (var m = 0; m < json.length; m++) {
+          travleTimes = json[m].TravelTimes;
+          json[m].TravelInterval = travleTimes.map(function (c, idx, arr) {
+            tmpNextStop = arr[idx + 1] ? parseInt(arr[idx + 1].StopTime) : 0;
+            tmpA = parseInt(c.RunTime) + Math.ceil(parseInt(c.StopTime) / 2) + Math.ceil(tmpNextStop / 2);
+            return tmpA;
+          });
+        }
+
+        return json;
+      };
+
+      return me._S2STravelTime(cfg);
+    }), _defineProperty(_methodObj, "getStationOfLine", function getStationOfLine(LineID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useLineID2filterBy(LineID, cfg);
+      return me._StationOfLine(cfg);
+    }), _defineProperty(_methodObj, "getStationOfRoute", function getStationOfRoute(LineID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useLineID2filterBy(LineID, cfg);
+      return me._StationOfRoute(cfg);
+    }), _defineProperty(_methodObj, "getFromToFare", function getFromToFare(fromID, toID) {
+      var cfg = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      cfg.filterBy = cfg.filterBy || '';
+      cfg.filterBy += TT.ptx.filterParam(['OriginStationID', 'DestinationStationID'], '==', [fromID, toID], 'and');
+      return me._ODFare(cfg);
+    }), _defineProperty(_methodObj, "getFromToTravelTime", function getFromToTravelTime(fromID, toID) {
+      var cfg = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      var LineID = getStationOnWhatLineID(fromID);
+      return me.getS2STravelTime(LineID, cfg).then(function (res) {
+        var aryTravelTimes = res.data.find(function (c) {
+          var hasFrom = false,
+              hasTo = false,
+              t = c.TravelTimes;
+
+          for (var i = 0; i < t.length; i++) {
+            if (t[i].FromStationID == fromID || t[i].ToStationID == fromID) {
+              hasFrom = true;
+            } else if (t[i].FromStationID == toID || t[i].ToStationID == toID) {
+              hasTo = true;
+            }
+          }
+
+          return hasFrom && hasTo;
+        });
+        if (aryTravelTimes && aryTravelTimes.TravelTimes) aryTravelTimes = aryTravelTimes.TravelTimes;
+        var flagReverse = false,
+            findTag = 'any'; // any , from / to , finish
+
+        if (!aryTravelTimes) return {
+          status: CM.CONST_PTX_API_FAIL,
+          error: 'No match any route.'
+        };
+        var aryBack = aryTravelTimes.filter(function (c, idx) {
+          switch (findTag) {
+            case 'any':
+              if (c.FromStationID == fromID || c.FromStationID == toID) {
+                findTag = c.FromStationID == fromID ? 'to' : 'from';
+                return true;
+              } else {
+                return false;
+              }
+
+              break;
+
+            case 'from':
+              flagReverse = true;
+
+            case 'to':
+              if (c.ToStationID == fromID || c.ToStationID == toID) findTag = 'finish';
+              return true;
+              break;
+
+            case 'finish':
+              return false;
+              break;
+          }
+        });
+
+        if (flagReverse) {
+          //如果是和伺服器給的順序相反時，將 FromStatioinID 與 ToStationID 反向
+          aryBack = aryBack.map(function (c, idx, arr) {
+            return {
+              FromStationID: c.ToStationID,
+              FromStationName: c.ToStationName,
+              ToStationID: c.FromStationID,
+              ToStationName: c.FromStationName,
+              Sequence: arr.length - idx,
+              RunTime: c.RunTime,
+              StopTime: idx == arr.length - 1 ? 0 : c.StopTime
+            };
+          }).reverse();
+        } else {
+          aryBack = aryBack.map(function (c, idx) {
+            c.Sequence = idx + 1;
+            c.StopTime = idx == 0 ? 0 : c.StopTime;
+            return c;
+          });
+        }
+
+        var totalTime = 0,
+            tmpNextStop;
+        var travelInterval = aryBack.map(function (c, idx, arr) {
+          totalTime += parseInt(c.RunTime) + parseInt(c.StopTime);
+          tmpNextStop = arr[idx + 1] ? parseInt(arr[idx + 1].StopTime) : 0;
+          return parseInt(c.RunTime) + Math.ceil(parseInt(c.StopTime) / 2) + Math.ceil(tmpNextStop / 2);
+        });
+        return {
+          status: CM.CONST_PTX_API_SUCCESS,
+          TravelTimes: aryBack,
+          TravelInterval: travelInterval,
+          TotalTime: totalTime,
+          FromStationID: fromID,
+          ToStationID: toID
+        };
+      });
+    }), _defineProperty(_methodObj, "getStation", function getStation(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useStationID2filterBy(StationID, cfg);
+      return me._Station(cfg);
+    }), _defineProperty(_methodObj, "getStationTimeTable", function getStationTimeTable(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useStationID2filterBy(StationID, cfg);
+      return me._StationTimeTable(cfg);
+    }), _defineProperty(_methodObj, "getStationFacility", function getStationFacility(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useStationID2filterBy(StationID, cfg);
+      return me._StationFacility(cfg);
+    }), _defineProperty(_methodObj, "getStationFirstLastTimetable", function getStationFirstLastTimetable(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useStationID2filterBy(StationID, cfg);
+      return me._FirstLastTimetable(cfg);
+    }), _defineProperty(_methodObj, "getStationExit", function getStationExit(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useStationID2filterBy(StationID, cfg);
+      return me._StationExit(cfg);
+    }), _defineProperty(_methodObj, "getStationFare", function getStationFare(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg.filterBy = cfg.filterBy || '';
+      cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+      return me._ODFare(cfg);
+    }), _defineProperty(_methodObj, "getStationLiveBoard", function getStationLiveBoard(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useStationID2filterBy(StationID, cfg);
+      return me._LiveBoard(cfg);
+    }), _methodObj);
+
+    for (var k in methodObj) {
+      this[k] = methodObj[k];
+    }
+
+    var methodList = Object.keys(this);
+    this.methodList = methodList;
+  };
+
+  metro.baseMethod = baseMethod;
+
+  var companyTag$1 = metro.getCompanyTag('trtc');
+  var mrtPTXFn = new metro.baseMethod(companyTag$1);
+  var fnMRT = {
     checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
       var lineData = this.getLineData(LineID);
       var rt = false;
@@ -1747,103 +1952,198 @@
       }
 
       return stData;
-    },
-    //以下為 Return Promise Function
-    getRoute: function getRoute(LineID) {
-      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      cfg = useLineID2filterBy(LineID, cfg);
-      return trtcPTXFn._Route(cfg);
-    },
-    getLineFrequency: function getLineFrequency(LineID) {
-      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      cfg = useLineID2filterBy(LineID, cfg);
-      return trtcPTXFn._Frequency(cfg);
-    },
-    getLineTransfer: function getLineTransfer(LineID) {
-      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      cfg.filterBy = cfg.filterBy || '';
-      cfg.filterBy += TT.ptx.filterParam('FromLineID', '==', LineID);
-      return trtcPTXFn._LineTransfer(cfg);
     }
-  }, _defineProperty(_fnTRTC, "getLineFrequency", function getLineFrequency(LineID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useLineID2filterBy(LineID, cfg);
-    return trtcPTXFn._Frequency(cfg);
-  }), _defineProperty(_fnTRTC, "getFirstLastTimetable", function getFirstLastTimetable(LineID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useLineID2filterBy(LineID, cfg);
-    return trtcPTXFn._FirstLastTimetable(cfg);
-  }), _defineProperty(_fnTRTC, "getS2STravelTime", function getS2STravelTime(LineID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useLineID2filterBy(LineID, cfg);
+  };
+  mrtPTXFn.methodList.forEach(function (k) {
+    fnMRT[k] = mrtPTXFn[k];
+  });
 
-    cfg.processJSON = function (json) {
-      var travleTimes, tmpA, tmpNextStop;
+  var companyTag$2 = metro.getCompanyTag('krtc');
+  var mrtPTXFn$1 = new metro.baseMethod(companyTag$2);
+  var fnMRT$1 = {
+    checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
+      var lineData = this.getLineData(LineID);
+      var rt = false;
 
-      for (var m = 0; m < json.length; m++) {
-        travleTimes = json[m].TravelTimes;
-        json[m].TravelInterval = travleTimes.map(function (c, idx) {
-          tmpNextStop = travleTimes[idx + 1] ? parseInt(travleTimes[idx + 1].StopTime) : 0;
-          tmpA = parseInt(c.RunTime) + Math.ceil(parseInt(c.StopTime) / 2) + Math.ceil(tmpNextStop);
-          return tmpA;
-        });
+      for (var i = 0; i < lineData.route.length; i++) {
+        for (var j = 0; j < lineData.route[i].work.length; j++) {
+          if (lineData.route[i].work[j].RouteID == RouteID) {
+            rt = true;
+            break;
+          }
+        }
       }
 
-      return json;
-    };
+      return rt;
+    },
+    getLineData: function getLineData(id) {
+      var rt = false;
+      pData.krtc.line.forEach(function (c) {
+        if (c.id == id || c.LineID == id) {
+          rt = c;
+        }
+      });
+      return rt;
+    },
+    getLineID: function getLineID(id) {
+      return this.getLineData(id).LineID;
+    },
+    getOriginalLineByLineID: function getOriginalLineByLineID(LineID) {
+      var rt = false;
+      pData.krtc.line.forEach(function (c) {
+        if (c.LineID == LineID) {
+          rt = c;
+        }
+      });
+      return rt;
+    },
+    getStationIDAry: function getStationIDAry(id) {
+      var ary = pData.krtc.station_ary;
+      var stData = false;
 
-    return trtcPTXFn._S2STravelTime(cfg);
-  }), _defineProperty(_fnTRTC, "getStation", function getStation(StationID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useStationID2filterBy(StationID, cfg);
-    return trtcPTXFn._Station(cfg);
-  }), _defineProperty(_fnTRTC, "getStationOfLine", function getStationOfLine(LineID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useLineID2filterBy(LineID, cfg);
-    return trtcPTXFn._StationOfLine(cfg);
-  }), _defineProperty(_fnTRTC, "getStationOfRoute", function getStationOfRoute(LineID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useLineID2filterBy(LineID, cfg);
-    return trtcPTXFn._StationOfRoute(cfg);
-  }), _defineProperty(_fnTRTC, "getStationTimeTable", function getStationTimeTable(StationID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useStationID2filterBy(StationID, cfg);
-    return trtcPTXFn._StationTimeTable(cfg);
-  }), _defineProperty(_fnTRTC, "getStationFacility", function getStationFacility(StationID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useStationID2filterBy(StationID, cfg);
-    return trtcPTXFn._StationFacility(cfg);
-  }), _defineProperty(_fnTRTC, "getStationExit", function getStationExit(StationID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useStationID2filterBy(StationID, cfg);
-    return trtcPTXFn._StationExit(cfg);
-  }), _defineProperty(_fnTRTC, "getStationFare", function getStationFare(StationID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg.filterBy = cfg.filterBy || '';
-    cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
-    return trtcPTXFn._ODFare(cfg);
-  }), _defineProperty(_fnTRTC, "getStationLiveBoard", function getStationLiveBoard(StationID) {
-    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    cfg = useStationID2filterBy(StationID, cfg);
-    return trtcPTXFn._LiveBoard(cfg);
-  }), _defineProperty(_fnTRTC, "testFetch", testFetch), _fnTRTC);
+      for (var i = 0; i < ary.length; i++) {
+        if (ary[i].id == id) {
+          stData = ary[i].StationID;
+          break;
+        }
+      }
 
-  for (var k in trtcPTXFn) {
-    fnTRTC$1[k] = trtcPTXFn[k];
-  }
+      return stData;
+    },
+    getStationID: function getStationID(id, lineOriginalID) {
+      var LineID = /^krtc/.test(lineOriginalID) ? this.getLineID(lineOriginalID) : lineOriginalID;
+      var stData = this.getStationIDAry(id);
+
+      if (!LineID) {
+        return false;
+      } else {
+        var rt = false,
+            lineCode = '',
+            codeLen = 0;
+        stData.forEach(function (c) {
+          if (/^[a-zA-Z]{1}\d{2}/gi.test(c)) {
+            codeLen = 1;
+          } else if (/^[a-zA-Z]{2}\d{2}/gi.test(c)) {
+            codeLen = 2;
+          }
+
+          lineCode = c.substr(0, codeLen);
+
+          if (lineCode == LineID) {
+            rt = c;
+          }
+        });
+        return rt;
+      }
+    },
+    getStationIDInWhatLine: function getStationIDInWhatLine(StatioinID) {
+      if (/^[a-zA-Z]{1}\d{2}/gi.test(StatioinID)) {
+        return StatioinID.substr(0, 1);
+      } else if (/^[a-zA-Z]{2}\d{2}/gi.test(StatioinID)) {
+        return StatioinID.substr(0, 2);
+      }
+    },
+    getStationTime: function getStationTime(LineID, StationID, w, cbFn) {
+      var targetID = false;
+      var me = this;
+
+      if (typeof StationID != 'string' && StationID.length == 2) {
+        targetID = StationID[1];
+        StationID = StationID[0];
+      }
+
+      var Week = false;
+      if (typeof w == 'number') Week = CM.ptxMRTWeekStr[w];
+      var mtStr = "$filter=LineID eq '" + LineID + "' and StationID eq '" + StationID + "'";
+      if (Week) mtStr += ' and ServiceDays/' + Week + ' eq true';
+      var url = CM.metroURL + '/StationTimeTable/KRTC?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
+      CM.pui.printStatus('線上尋找捷運 ' + StationID + ' 站時刻表'); //產生暫存時刻表空間
+
+      if (!ptx.tempTimeTable.krtc) ptx.tempTimeTable.krtc = {};
+      if (!ptx.tempTimeTable.krtc[LineID]) ptx.tempTimeTable.krtc[LineID] = [];
+      if (!ptx.tempTimeTable.krtc[LineID][StationID]) ptx.tempTimeTable.krtc[LineID][StationID] = [];
+      ptx.tempTimeTable.krtc[LineID][StationID][w] = [[], []]; //Direction 0 and 1
+      //抓時刻表
+
+      ptx.getURL(url, function (json, e) {
+        if (e.status == CM.CONST_PTX_API_FAIL) {
+          cbFn(json);
+          return false;
+        }
+
+        json.forEach(function (routeA) {
+          var tmpAry = ptx.tempTimeTable.krtc[LineID][StationID][w];
+          var tmpTimeAry = routeA.Timetables.map(function (timeObj) {
+            timeObj.tt_sortTime = TT.fn.transTime2Sec(timeObj.DepartureTime);
+            timeObj.RouteID = routeA.RouteID;
+            return timeObj;
+          });
+
+          if (me.checkRouteIdOnUse(routeA.RouteID, routeA.LineID)) {
+            if (routeA.Direction == 0) {
+              tmpAry[0] = tmpAry[0].concat(tmpTimeAry);
+            } else if (routeA.Direction == 1) {
+              tmpAry[1] = tmpAry[1].concat(tmpTimeAry);
+            }
+          }
+        });
+        var workAry = ptx.tempTimeTable.krtc[LineID][StationID][w];
+
+        var timeMakeFn = function timeMakeFn(c) {
+          return c.DepartureTime;
+        };
+
+        workAry[0] = workAry[0].sort(ptx.sortByTTSortTime); //在這一步之前都還是物件狀態時刻表，之後暫時改造成單一時刻表替換 rnwTimeTable
+
+        workAry[0] = workAry[0].map(timeMakeFn);
+        workAry[1] = workAry[1].sort(ptx.sortByTTSortTime);
+        workAry[1] = workAry[1].map(timeMakeFn);
+        cbFn(json);
+      });
+    },
+    getFormatStationTime: function getFormatStationTime(stID, line, dir, w) {
+      w = parseInt(w);
+      var StationID = ptx.krtc.getStationID(stID, line);
+      var LineID = ptx.krtc.getLineID(line);
+      if (!ptx.tempTimeTable.krtc) return false;
+      if (!ptx.tempTimeTable.krtc[LineID]) return false;
+      if (!ptx.tempTimeTable.krtc[LineID][StationID]) return false;
+      if (!ptx.tempTimeTable.krtc[LineID][StationID][w]) return false;
+      if (!ptx.tempTimeTable.krtc[LineID][StationID][w][dir]) return false;
+      if (ptx.tempTimeTable.krtc[LineID][StationID][w][dir].length == 0) return false;
+      return ptx.tempTimeTable.krtc[LineID][StationID][w][dir];
+    },
+    getOriginalStationID: function getOriginalStationID(StationID) {
+      var ary = pData.krtc.station_ary;
+      var stData = false;
+
+      for (var i = 0; i < ary.length; i++) {
+        if (ary[i].StationID.indexOf(StationID) != -1) {
+          stData = ary[i].id;
+          break;
+        }
+      }
+
+      return stData;
+    }
+  };
+  mrtPTXFn$1.methodList.forEach(function (k) {
+    fnMRT$1[k] = mrtPTXFn$1[k];
+  });
 
   var inBrowser = CM.inBrowser;
   var combine = {
     data: pData,
     bus: fnBUS,
     metro: metro,
-    trtc: fnTRTC$1,
+    trtc: fnMRT,
+    krtc: fnMRT$1,
     jsSHA: jsSHA,
     common: CM
   };
 
-  for (var k$1 in combine) {
-    ptx[k$1] = combine[k$1];
+  for (var k in combine) {
+    ptx[k] = combine[k];
   }
 
   if (inBrowser && !window.rocptx) {

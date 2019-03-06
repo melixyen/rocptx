@@ -3,7 +3,7 @@ import ptx from './ptx.js';
 import pData from './data.js';
 import metro from './metro.js';
 
-const companyTag = metro.getCompanyTag('trtc');
+const companyTag = metro.getCompanyTag('krtc');
 var mrtPTXFn = new metro.baseMethod(companyTag);
 
 var fnMRT = {
@@ -22,7 +22,7 @@ var fnMRT = {
     },
     getLineData: function(id){
         var rt = false;
-        pData.trtc.line.forEach(function(c){
+        pData.krtc.line.forEach(function(c){
             if(c.id==id || c.LineID==id){
                 rt = c;
             }
@@ -34,7 +34,7 @@ var fnMRT = {
     },
     getOriginalLineByLineID: function(LineID){
         var rt = false;
-        pData.trtc.line.forEach(function(c){
+        pData.krtc.line.forEach(function(c){
             if(c.LineID==LineID){
                 rt = c;
             }
@@ -42,7 +42,7 @@ var fnMRT = {
         return rt;
     },
     getStationIDAry: function(id){
-        var ary = pData.trtc.station_ary;
+        var ary = pData.krtc.station_ary;
         var stData = false;
         for(var i=0; i<ary.length; i++){
             if(ary[i].id==id){
@@ -53,7 +53,7 @@ var fnMRT = {
         return stData;
     },
     getStationID: function(id, lineOriginalID){
-        var LineID = (/^trtc/.test(lineOriginalID)) ? this.getLineID(lineOriginalID) : lineOriginalID;
+        var LineID = (/^krtc/.test(lineOriginalID)) ? this.getLineID(lineOriginalID) : lineOriginalID;
         var stData = this.getStationIDAry(id);
         if(!LineID){
             return false;
@@ -93,13 +93,13 @@ var fnMRT = {
         if(typeof(w)=='number') Week = common.ptxMRTWeekStr[w];
         var mtStr = "$filter=LineID eq '" + LineID + "' and StationID eq '" + StationID + "'";
         if(Week) mtStr += ' and ServiceDays/' + Week + ' eq true';
-        var url = common.metroURL + '/StationTimeTable/TRTC?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
+        var url = common.metroURL + '/StationTimeTable/KRTC?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
         common.pui.printStatus('線上尋找捷運 ' + StationID + ' 站時刻表');
         //產生暫存時刻表空間
-        if(!ptx.tempTimeTable.trtc) ptx.tempTimeTable.trtc = {};
-        if(!ptx.tempTimeTable.trtc[LineID]) ptx.tempTimeTable.trtc[LineID] = [];
-        if(!ptx.tempTimeTable.trtc[LineID][StationID]) ptx.tempTimeTable.trtc[LineID][StationID] = [];
-        ptx.tempTimeTable.trtc[LineID][StationID][w] = [[],[]];//Direction 0 and 1
+        if(!ptx.tempTimeTable.krtc) ptx.tempTimeTable.krtc = {};
+        if(!ptx.tempTimeTable.krtc[LineID]) ptx.tempTimeTable.krtc[LineID] = [];
+        if(!ptx.tempTimeTable.krtc[LineID][StationID]) ptx.tempTimeTable.krtc[LineID][StationID] = [];
+        ptx.tempTimeTable.krtc[LineID][StationID][w] = [[],[]];//Direction 0 and 1
         //抓時刻表
         ptx.getURL(url, function(json, e){
             if(e.status==common.CONST_PTX_API_FAIL){
@@ -107,7 +107,7 @@ var fnMRT = {
                 return false;
             }
             json.forEach(function(routeA){
-                var tmpAry = ptx.tempTimeTable.trtc[LineID][StationID][w];
+                var tmpAry = ptx.tempTimeTable.krtc[LineID][StationID][w];
                 var tmpTimeAry = routeA.Timetables.map(function(timeObj){
                     timeObj.tt_sortTime = TT.fn.transTime2Sec(timeObj.DepartureTime);
                     timeObj.RouteID = routeA.RouteID;
@@ -122,7 +122,7 @@ var fnMRT = {
                 }
             });
             
-            var workAry = ptx.tempTimeTable.trtc[LineID][StationID][w];
+            var workAry = ptx.tempTimeTable.krtc[LineID][StationID][w];
             var timeMakeFn = function(c){
                 return c.DepartureTime;
             };
@@ -137,19 +137,19 @@ var fnMRT = {
     },
     getFormatStationTime: function(stID, line, dir, w){
         w = parseInt(w);
-        var StationID = ptx.trtc.getStationID(stID, line);
-        var LineID = ptx.trtc.getLineID(line);
+        var StationID = ptx.krtc.getStationID(stID, line);
+        var LineID = ptx.krtc.getLineID(line);
         var rt = false;
-        if(!ptx.tempTimeTable.trtc) return false;
-        if(!ptx.tempTimeTable.trtc[LineID]) return false;
-        if(!ptx.tempTimeTable.trtc[LineID][StationID]) return false;
-        if(!ptx.tempTimeTable.trtc[LineID][StationID][w]) return false;
-        if(!ptx.tempTimeTable.trtc[LineID][StationID][w][dir]) return false;
-        if(ptx.tempTimeTable.trtc[LineID][StationID][w][dir].length==0) return false;
-        return ptx.tempTimeTable.trtc[LineID][StationID][w][dir];
+        if(!ptx.tempTimeTable.krtc) return false;
+        if(!ptx.tempTimeTable.krtc[LineID]) return false;
+        if(!ptx.tempTimeTable.krtc[LineID][StationID]) return false;
+        if(!ptx.tempTimeTable.krtc[LineID][StationID][w]) return false;
+        if(!ptx.tempTimeTable.krtc[LineID][StationID][w][dir]) return false;
+        if(ptx.tempTimeTable.krtc[LineID][StationID][w][dir].length==0) return false;
+        return ptx.tempTimeTable.krtc[LineID][StationID][w][dir];
     },
     getOriginalStationID: function(StationID){
-        var ary = pData.trtc.station_ary;
+        var ary = pData.krtc.station_ary;
         var stData = false;
         for(var i=0; i<ary.length; i++){
             if(ary[i].StationID.indexOf(StationID)!=-1){

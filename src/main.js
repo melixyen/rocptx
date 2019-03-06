@@ -4,6 +4,7 @@ import data from './data.js';
 import bus from './bus.js';
 import metro from './metro.js';
 import trtc from './trtc.js';
+import krtc from './krtc.js';
 import jsSHA from './jsSHA';
 
 
@@ -15,6 +16,7 @@ var combine = {
 	bus: bus,
 	metro: metro,
 	trtc: trtc,
+	krtc: krtc,
 	jsSHA: jsSHA,
 	common: common
 }
