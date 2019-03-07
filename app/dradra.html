@@ -129,6 +129,7 @@ var BB = {};
 var TT = {ptx: rocptx}
 var ptx = rocptx;
 (function(){
+	var CONST_DEFAULT_LINE_COLOR = "#555555";
 	function loading(cmd, text){
 		var maskID = 'functional_mask_out';
 		var dom = false;
@@ -149,6 +150,9 @@ var ptx = rocptx;
 	}
 	var menuBarTpl =  Vue.compile('<div id="menuBar" class="bs_no_select">' +
 		'<div class="btn1" v-on:click="changePanel(\'trtc\')">台北捷運</div>' +
+		'<div class="btn1" v-on:click="changePanel(\'krtc\')">高雄捷運</div>' +
+		'<div class="btn1" v-on:click="changePanel(\'tymetro\')">桃園捷運</div>' +
+		'<div class="btn1" v-on:click="changePanel(\'klrt\')">高雄輕軌</div>' +
 	'</div>');
 	Vue.component('vcmp_menu_bar', {
 		render: menuBarTpl.render,
@@ -163,190 +167,203 @@ var ptx = rocptx;
 		}
 	});
 
-	var trtcPanelTpl = Vue.compile('<div id="trtc_panel" class="" v-if="show_trtc">' +
-		'<div id="trtc_line" class="frame1">' +
-			'<div class="btnBW" v-for="line in aryLINE" v-bind:style="lineStyle(line)" v-on:click="getStationOfLine(line)">{{ line.LineName.Zh_tw }}</div>' +
-		'</div>' +
-		//===路線相關功能===
-		'<div id="trtc_func_line" class="frame1" v-show="nowLineID != \'\'">' +
-			'<div class="frameIn">' +
-				'<div class="btn3" v-on:click="getRoute()">基本</div>' +
-				'<div class="btn3" v-on:click="getLineFrequency()">班距</div>' +
-				'<div class="btn3" v-on:click="getS2STravelTime()">站間距</div>' +
-				'<div class="btn3" v-on:click="getStationOfRoute()">路由</div>' +
-				'<div class="btn3" v-on:click="getLineTransfer()">轉乘</div>' +
-				'<div class="btn3" v-on:click="getShape()">圖資</div>' +
-				'<div class="btn3" v-on:click="getFirstLastTimetable()">首末</div>' +
-			'</div>' +
-		'</div>' +
-		//===車站陣列===
-		'<div id="trtc_station" class="frame1" v-show="aryStationOfLine.length >0 ">' +
-			'<div class="frameIn">' +
-				'<div class="btnBW" v-for="station in aryStationOfLine" v-bind:style="stationStyle(station)" v-on:click="doStation(station)">{{ station.StationName.Zh_tw }}</div>' +
-			'</div>' +
-		'</div>' +
-		//===車站相關功能===
-		'<div id="trtc_func_station" class="frame1" v-show="nowStationID != \'\'">' +
-			'<div class="frameIn">' +
-				'<div class="btn2" v-on:click="getStationTimeTable()">時刻表</div>' +
-				'<div class="btn2" v-on:click="getStationFacility()">設施</div>' +
-				'<div class="btn2" v-on:click="getStationExit()">出口</div>' +
-				'<div class="btn2" v-on:click="getStationFare()">票價</div>' +
-				'<div class="btn2" v-on:click="getStationLiveBoard()">看板</div>' +
-			'</div>' +
-		'</div>' +
-	'</div>');
-	Vue.component('vcmp_trtc_panel', {
-		render: trtcPanelTpl.render,
-		staticRenderFns: trtcPanelTpl.staticRenderFns,
-		props: ['show_trtc'],
-		data: function(){
-			return {
-				aryLINE: [],
-				aryStationOfLine: [],
-				lineColor: '',
-				nowLineID: '',
-				nowStationID: '',
-				flagShowPanel: false,
-				flagShowLine: false,
-				flagShowStation: false
-			}
-		},
-		methods: {
-			clearAryData: function(ary){
-				for(var i=0; i<ary.length; i++){
-					this[ary[i]] = [];
+	function makeMrtPanel(compName){
+		var ptxFn = TT.ptx[compName];
+		ptxFn.commandPath = 'rocptx.' + compName;
+		var mrt = Vue.extend({
+			template: '<div id="' + compName + '_panel" class="" v-if="show_' + compName + '">' +
+				'<div id="' + compName + '_line" class="frame1">' +
+					'<div class="btnBW" v-for="line in aryLINE" v-bind:style="lineStyle(line)" v-on:click="getStationOfLine(line)">{{ line.LineName.Zh_tw }}</div>' +
+				'</div>' +
+				//===路線相關功能===
+				'<div id="' + compName + '_func_line" class="frame1" v-show="nowLineID != \'\'">' +
+					'<div class="frameIn">' +
+						'<div class="btn3" v-on:click="getRoute()">基本</div>' +
+						'<div class="btn3" v-on:click="getLineFrequency()">班距</div>' +
+						'<div class="btn3" v-on:click="getS2STravelTime()">站間距</div>' +
+						'<div class="btn3" v-on:click="getStationOfRoute()">路由</div>' +
+						'<div class="btn3" v-on:click="getLineTransfer()">轉乘</div>' +
+						'<div class="btn3" v-on:click="getShape()">圖資</div>' +
+						'<div class="btn3" v-on:click="getFirstLastTimetable()">首末</div>' +
+					'</div>' +
+				'</div>' +
+				//===車站陣列===
+				'<div id="' + compName + '_station" class="frame1" v-show="aryStationOfLine.length >0 ">' +
+					'<div class="frameIn">' +
+						'<div class="btnBW" v-for="station in aryStationOfLine" v-bind:style="stationStyle(station)" v-on:click="doStation(station)">{{ station.StationName.Zh_tw }}</div>' +
+					'</div>' +
+				'</div>' +
+				//===車站相關功能===
+				'<div id="' + compName + '_func_station" class="frame1" v-show="nowStationID != \'\'">' +
+					'<div class="frameIn">' +
+						'<div class="btn2" v-on:click="getStationTimeTable()">時刻表</div>' +
+						'<div class="btn2" v-on:click="getStationFacility()">設施</div>' +
+						'<div class="btn2" v-on:click="getStationExit()">出口</div>' +
+						'<div class="btn2" v-on:click="getStationFare()">票價</div>' +
+						'<div class="btn2" v-on:click="getStationFirstLastTimetable()">首末</div>' +
+						'<div class="btn2" v-on:click="getStationLiveBoard()">看板</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>',
+			props: ['show_' + compName + ''],
+			data: function(){
+				return {
+					aryLINE: [],
+					aryStationOfLine: [],
+					lineColor: '',
+					nowLineID: '',
+					nowStationID: '',
+					flagShowPanel: false,
+					flagShowLine: false,
+					flagShowStation: false
 				}
 			},
-			clearBarReset: function(cmd){
-				switch(cmd){
-					case 'line':
-						this.nowStationID = '';
-					break;
+			methods: {
+				clearAryData: function(ary){
+					for(var i=0; i<ary.length; i++){
+						this[ary[i]] = [];
+					}
+				},
+				clearBarReset: function(cmd){
+					switch(cmd){
+						case 'line':
+							this.nowStationID = '';
+						break;
+					}
+				},
+				doStation: function(station){
+					this.nowStationID = station.StationID;
+					this.getStation();
+				},
+				doLoad: function(){loading(1);},
+				unload: function(){loading(0);},
+				getLINE: function(){
+					var me = this;
+					me.clearAryData(["aryLINE", 'aryStationOfLine']);
+					ptxFn._Line().then(function(res){
+						me.aryLINE = res.data;
+						me.$emit('printj', res.data);
+					}).catch(function(res){
+						console.info(res);
+					});
+				},
+				getRoute: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getRoute(me.nowLineID).then(function(res){
+						me.unload();
+						me.$emit('printj', res.data);
+					}).catch(function(res){
+						me.unload();
+						console.info(res);
+					});
+				},
+				getLineFrequency: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getLineFrequency(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getLineTransfer: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getLineTransfer(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getShape: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn._Shape().then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getFirstLastTimetable: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getFirstLastTimetable(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getS2STravelTime: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getS2STravelTime(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStation: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStation(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data[0]); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStationOfLine: function(line){
+					var LineID = line.LineID;
+					var me = this;
+					me.clearBarReset('line');
+					me.clearAryData(['aryStationOfLine']);
+					me.lineColor = line.LineColor || CONST_DEFAULT_LINE_COLOR;
+					me.nowLineID = line.LineID;
+					me.doLoad();
+					ptxFn.getStationOfLine(LineID).then(function(res){
+						me.unload();
+						me.aryStationOfLine = res.data[0].Stations;
+						me.$emit('printj', res.data[0]);
+					}).catch(function(res){
+						me.unload();
+						console.info(res);
+					});
+				},
+				getStationOfRoute: function(line){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStationOfRoute(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStationTimeTable: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStationTimeTable(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStationFacility: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStationFacility(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStationExit: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStationExit(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStationFirstLastTimetable: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStationFirstLastTimetable(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStationLiveBoard: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStationLiveBoard(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStationFare: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStationFare(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				lineStyle: function(line){
+					var lineColor = line.LineColor || CONST_DEFAULT_LINE_COLOR;
+					var rt = 'color:#FFF; background-color:' + lineColor + ';';
+					if(line.LineID==this.nowLineID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
+					return rt;
+				},
+				stationStyle: function(station){
+					var rt = 'color:#FFF; background-color:' + this.lineColor + ';';
+					if(station.StationID==this.nowStationID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
+					return rt;
 				}
 			},
-			doStation: function(station){
-				this.nowStationID = station.StationID;
-				this.getStation();
+			mounted: function() {
+				this.getLINE();
 			},
-			doLoad: function(){loading(1);},
-			unload: function(){loading(0);},
-			getLINE: function(){
-				var me = this;
-				me.clearAryData(["aryLINE", 'aryStationOfLine']);
-				TT.ptx.trtc._Line().then(function(res){
-					me.aryLINE = res.data;
-					me.$emit('printj', res.data);
-				}).catch(function(res){
-					console.info(res);
-				});
-			},
-			getRoute: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getRoute(me.nowLineID).then(function(res){
-					me.unload();
-					me.$emit('printj', res.data);
-				}).catch(function(res){
-					me.unload();
-					console.info(res);
-				});
-			},
-			getLineFrequency: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getLineFrequency(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getLineTransfer: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getLineTransfer(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getShape: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc._Shape().then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getFirstLastTimetable: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getFirstLastTimetable(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getS2STravelTime: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getS2STravelTime(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getStation: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getStation(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data[0]); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getStationOfLine: function(line){
-				var LineID = line.LineID;
-				var me = this;
-				me.clearBarReset('line');
-				me.clearAryData(['aryStationOfLine']);
-				me.lineColor = line.LineColor;
-				me.nowLineID = line.LineID;
-				me.doLoad();
-				TT.ptx.trtc.getStationOfLine(LineID).then(function(res){
-					me.unload();
-					me.aryStationOfLine = res.data[0].Stations;
-					me.$emit('printj', res.data[0]);
-				}).catch(function(res){
-					me.unload();
-					console.info(res);
-				});
-			},
-			getStationOfRoute: function(line){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getStationOfRoute(me.nowLineID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getStationTimeTable: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getStationTimeTable(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getStationFacility: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getStationFacility(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getStationExit: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getStationExit(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getStationLiveBoard: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getStationLiveBoard(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			getStationFare: function(){
-				var me = this;
-				me.doLoad();
-				TT.ptx.trtc.getStationFare(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
-			},
-			lineStyle: function(line){
-				var rt = 'color:#FFF;';
-				if(line.LineColor) rt += 'background-color:' + line.LineColor + ';';
-				if(line.LineID==this.nowLineID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
-				return rt;
-			},
-			stationStyle: function(station){
-				var rt = 'color:#FFF; background-color:' + this.lineColor + ';';
-				if(station.StationID==this.nowStationID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
-				return rt;
+			destroy: function() {
 			}
-		},
-		mounted: function() {
-			this.getLINE();
-		},
-		destroy: function() {
-		}
-	});
+		});
+		return Vue.component('vcmp_' + compName + '_panel', mrt);
+	}
+	var trtcPanel = makeMrtPanel('trtc');
+	var krtcPanel = makeMrtPanel('krtc');
+	var tymetroPanel = makeMrtPanel('tymetro');
+	var klrtPanel = makeMrtPanel('klrt');
 
 	BB.initFn = function(){
 		//hljs.initHighlightingOnLoad();
@@ -354,6 +371,9 @@ var ptx = rocptx;
 			'<vcmp_menu_bar id="menuBar" v-on:showPanelName="changeName"></vcmp_menu_bar>' +
 			'<div id="panel">' +
 				'<vcmp_trtc_panel v-bind:show_trtc="(panelName==\'trtc\')" v-if="(panelName==\'trtc\')" v-on:printj="printJSON" />' +
+				'<vcmp_krtc_panel v-bind:show_krtc="(panelName==\'krtc\')" v-if="(panelName==\'krtc\')" v-on:printj="printJSON" />' +
+				'<vcmp_tymetro_panel v-bind:show_tymetro="(panelName==\'tymetro\')" v-if="(panelName==\'tymetro\')" v-on:printj="printJSON" />' +
+				'<vcmp_klrt_panel v-bind:show_klrt="(panelName==\'klrt\')" v-if="(panelName==\'klrt\')" v-on:printj="printJSON" />' +
 			'</div>' +
 			'<div id="output">' +
 				'<textarea id="json_text" v-show="flagShowTextArea">{{json_text}}</textarea>' +

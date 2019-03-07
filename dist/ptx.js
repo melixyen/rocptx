@@ -2131,6 +2131,352 @@
     fnMRT$1[k] = mrtPTXFn$1[k];
   });
 
+  var companyTag$3 = metro.getCompanyTag('tymetro');
+  var mrtPTXFn$2 = new metro.baseMethod(companyTag$3);
+  var fnMRT$2 = {
+    checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
+      var lineData = this.getLineData(LineID);
+      var rt = false;
+
+      for (var i = 0; i < lineData.route.length; i++) {
+        for (var j = 0; j < lineData.route[i].work.length; j++) {
+          if (lineData.route[i].work[j].RouteID == RouteID) {
+            rt = true;
+            break;
+          }
+        }
+      }
+
+      return rt;
+    },
+    getLineData: function getLineData(id) {
+      var rt = false;
+      pData.tymetro.line.forEach(function (c) {
+        if (c.id == id || c.LineID == id) {
+          rt = c;
+        }
+      });
+      return rt;
+    },
+    getLineID: function getLineID(id) {
+      return this.getLineData(id).LineID;
+    },
+    getOriginalLineByLineID: function getOriginalLineByLineID(LineID) {
+      var rt = false;
+      pData.tymetro.line.forEach(function (c) {
+        if (c.LineID == LineID) {
+          rt = c;
+        }
+      });
+      return rt;
+    },
+    getStationIDAry: function getStationIDAry(id) {
+      var ary = pData.tymetro.station_ary;
+      var stData = false;
+
+      for (var i = 0; i < ary.length; i++) {
+        if (ary[i].id == id) {
+          stData = ary[i].StationID;
+          break;
+        }
+      }
+
+      return stData;
+    },
+    getStationID: function getStationID(id, lineOriginalID) {
+      var LineID = /^tymetro/.test(lineOriginalID) ? this.getLineID(lineOriginalID) : lineOriginalID;
+      var stData = this.getStationIDAry(id);
+
+      if (!LineID) {
+        return false;
+      } else {
+        var rt = false,
+            lineCode = '',
+            codeLen = 0;
+        stData.forEach(function (c) {
+          if (/^[a-zA-Z]{1}\d{2}/gi.test(c)) {
+            codeLen = 1;
+          } else if (/^[a-zA-Z]{2}\d{2}/gi.test(c)) {
+            codeLen = 2;
+          }
+
+          lineCode = c.substr(0, codeLen);
+
+          if (lineCode == LineID) {
+            rt = c;
+          }
+        });
+        return rt;
+      }
+    },
+    getStationIDInWhatLine: function getStationIDInWhatLine(StatioinID) {
+      if (/^[a-zA-Z]{1}\d{2}/gi.test(StatioinID)) {
+        return StatioinID.substr(0, 1);
+      } else if (/^[a-zA-Z]{2}\d{2}/gi.test(StatioinID)) {
+        return StatioinID.substr(0, 2);
+      }
+    },
+    getStationTime: function getStationTime(LineID, StationID, w, cbFn) {
+      var targetID = false;
+      var me = this;
+
+      if (typeof StationID != 'string' && StationID.length == 2) {
+        targetID = StationID[1];
+        StationID = StationID[0];
+      }
+
+      var Week = false;
+      if (typeof w == 'number') Week = CM.ptxMRTWeekStr[w];
+      var mtStr = "$filter=LineID eq '" + LineID + "' and StationID eq '" + StationID + "'";
+      if (Week) mtStr += ' and ServiceDays/' + Week + ' eq true';
+      var url = CM.metroURL + '/StationTimeTable/TYMC?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
+      CM.pui.printStatus('線上尋找捷運 ' + StationID + ' 站時刻表'); //產生暫存時刻表空間
+
+      if (!ptx.tempTimeTable.tymetro) ptx.tempTimeTable.tymetro = {};
+      if (!ptx.tempTimeTable.tymetro[LineID]) ptx.tempTimeTable.tymetro[LineID] = [];
+      if (!ptx.tempTimeTable.tymetro[LineID][StationID]) ptx.tempTimeTable.tymetro[LineID][StationID] = [];
+      ptx.tempTimeTable.tymetro[LineID][StationID][w] = [[], []]; //Direction 0 and 1
+      //抓時刻表
+
+      ptx.getURL(url, function (json, e) {
+        if (e.status == CM.CONST_PTX_API_FAIL) {
+          cbFn(json);
+          return false;
+        }
+
+        json.forEach(function (routeA) {
+          var tmpAry = ptx.tempTimeTable.tymetro[LineID][StationID][w];
+          var tmpTimeAry = routeA.Timetables.map(function (timeObj) {
+            timeObj.tt_sortTime = TT.fn.transTime2Sec(timeObj.DepartureTime);
+            timeObj.RouteID = routeA.RouteID;
+            return timeObj;
+          });
+
+          if (me.checkRouteIdOnUse(routeA.RouteID, routeA.LineID)) {
+            if (routeA.Direction == 0) {
+              tmpAry[0] = tmpAry[0].concat(tmpTimeAry);
+            } else if (routeA.Direction == 1) {
+              tmpAry[1] = tmpAry[1].concat(tmpTimeAry);
+            }
+          }
+        });
+        var workAry = ptx.tempTimeTable.tymetro[LineID][StationID][w];
+
+        var timeMakeFn = function timeMakeFn(c) {
+          return c.DepartureTime;
+        };
+
+        workAry[0] = workAry[0].sort(ptx.sortByTTSortTime); //在這一步之前都還是物件狀態時刻表，之後暫時改造成單一時刻表替換 rnwTimeTable
+
+        workAry[0] = workAry[0].map(timeMakeFn);
+        workAry[1] = workAry[1].sort(ptx.sortByTTSortTime);
+        workAry[1] = workAry[1].map(timeMakeFn);
+        cbFn(json);
+      });
+    },
+    getFormatStationTime: function getFormatStationTime(stID, line, dir, w) {
+      w = parseInt(w);
+      var StationID = ptx.tymetro.getStationID(stID, line);
+      var LineID = ptx.tymetro.getLineID(line);
+      if (!ptx.tempTimeTable.tymetro) return false;
+      if (!ptx.tempTimeTable.tymetro[LineID]) return false;
+      if (!ptx.tempTimeTable.tymetro[LineID][StationID]) return false;
+      if (!ptx.tempTimeTable.tymetro[LineID][StationID][w]) return false;
+      if (!ptx.tempTimeTable.tymetro[LineID][StationID][w][dir]) return false;
+      if (ptx.tempTimeTable.tymetro[LineID][StationID][w][dir].length == 0) return false;
+      return ptx.tempTimeTable.tymetro[LineID][StationID][w][dir];
+    },
+    getOriginalStationID: function getOriginalStationID(StationID) {
+      var ary = pData.tymetro.station_ary;
+      var stData = false;
+
+      for (var i = 0; i < ary.length; i++) {
+        if (ary[i].StationID.indexOf(StationID) != -1) {
+          stData = ary[i].id;
+          break;
+        }
+      }
+
+      return stData;
+    }
+  };
+  mrtPTXFn$2.methodList.forEach(function (k) {
+    fnMRT$2[k] = mrtPTXFn$2[k];
+  });
+
+  var companyTag$4 = metro.getCompanyTag('klrt');
+  var mrtPTXFn$3 = new metro.baseMethod(companyTag$4);
+  var fnMRT$3 = {
+    checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
+      var lineData = this.getLineData(LineID);
+      var rt = false;
+
+      for (var i = 0; i < lineData.route.length; i++) {
+        for (var j = 0; j < lineData.route[i].work.length; j++) {
+          if (lineData.route[i].work[j].RouteID == RouteID) {
+            rt = true;
+            break;
+          }
+        }
+      }
+
+      return rt;
+    },
+    getLineData: function getLineData(id) {
+      var rt = false;
+      pData.klrt.line.forEach(function (c) {
+        if (c.id == id || c.LineID == id) {
+          rt = c;
+        }
+      });
+      return rt;
+    },
+    getLineID: function getLineID(id) {
+      return this.getLineData(id).LineID;
+    },
+    getOriginalLineByLineID: function getOriginalLineByLineID(LineID) {
+      var rt = false;
+      pData.klrt.line.forEach(function (c) {
+        if (c.LineID == LineID) {
+          rt = c;
+        }
+      });
+      return rt;
+    },
+    getStationIDAry: function getStationIDAry(id) {
+      var ary = pData.klrt.station_ary;
+      var stData = false;
+
+      for (var i = 0; i < ary.length; i++) {
+        if (ary[i].id == id) {
+          stData = ary[i].StationID;
+          break;
+        }
+      }
+
+      return stData;
+    },
+    getStationID: function getStationID(id, lineOriginalID) {
+      var LineID = /^klrt/.test(lineOriginalID) ? this.getLineID(lineOriginalID) : lineOriginalID;
+      var stData = this.getStationIDAry(id);
+
+      if (!LineID) {
+        return false;
+      } else {
+        var rt = false,
+            lineCode = '',
+            codeLen = 0;
+        stData.forEach(function (c) {
+          if (/^[a-zA-Z]{1}\d{2}/gi.test(c)) {
+            codeLen = 1;
+          } else if (/^[a-zA-Z]{2}\d{2}/gi.test(c)) {
+            codeLen = 2;
+          }
+
+          lineCode = c.substr(0, codeLen);
+
+          if (lineCode == LineID) {
+            rt = c;
+          }
+        });
+        return rt;
+      }
+    },
+    getStationIDInWhatLine: function getStationIDInWhatLine(StatioinID) {
+      if (/^[a-zA-Z]{1}\d{2}/gi.test(StatioinID)) {
+        return StatioinID.substr(0, 1);
+      } else if (/^[a-zA-Z]{2}\d{2}/gi.test(StatioinID)) {
+        return StatioinID.substr(0, 2);
+      }
+    },
+    getStationTime: function getStationTime(LineID, StationID, w, cbFn) {
+      var targetID = false;
+      var me = this;
+
+      if (typeof StationID != 'string' && StationID.length == 2) {
+        targetID = StationID[1];
+        StationID = StationID[0];
+      }
+
+      var Week = false;
+      if (typeof w == 'number') Week = CM.ptxMRTWeekStr[w];
+      var mtStr = "$filter=LineID eq '" + LineID + "' and StationID eq '" + StationID + "'";
+      if (Week) mtStr += ' and ServiceDays/' + Week + ' eq true';
+      var url = CM.metroURL + '/StationTimeTable/KLRT?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
+      CM.pui.printStatus('線上尋找捷運 ' + StationID + ' 站時刻表'); //產生暫存時刻表空間
+
+      if (!ptx.tempTimeTable.klrt) ptx.tempTimeTable.klrt = {};
+      if (!ptx.tempTimeTable.klrt[LineID]) ptx.tempTimeTable.klrt[LineID] = [];
+      if (!ptx.tempTimeTable.klrt[LineID][StationID]) ptx.tempTimeTable.klrt[LineID][StationID] = [];
+      ptx.tempTimeTable.klrt[LineID][StationID][w] = [[], []]; //Direction 0 and 1
+      //抓時刻表
+
+      ptx.getURL(url, function (json, e) {
+        if (e.status == CM.CONST_PTX_API_FAIL) {
+          cbFn(json);
+          return false;
+        }
+
+        json.forEach(function (routeA) {
+          var tmpAry = ptx.tempTimeTable.klrt[LineID][StationID][w];
+          var tmpTimeAry = routeA.Timetables.map(function (timeObj) {
+            timeObj.tt_sortTime = TT.fn.transTime2Sec(timeObj.DepartureTime);
+            timeObj.RouteID = routeA.RouteID;
+            return timeObj;
+          });
+
+          if (me.checkRouteIdOnUse(routeA.RouteID, routeA.LineID)) {
+            if (routeA.Direction == 0) {
+              tmpAry[0] = tmpAry[0].concat(tmpTimeAry);
+            } else if (routeA.Direction == 1) {
+              tmpAry[1] = tmpAry[1].concat(tmpTimeAry);
+            }
+          }
+        });
+        var workAry = ptx.tempTimeTable.klrt[LineID][StationID][w];
+
+        var timeMakeFn = function timeMakeFn(c) {
+          return c.DepartureTime;
+        };
+
+        workAry[0] = workAry[0].sort(ptx.sortByTTSortTime); //在這一步之前都還是物件狀態時刻表，之後暫時改造成單一時刻表替換 rnwTimeTable
+
+        workAry[0] = workAry[0].map(timeMakeFn);
+        workAry[1] = workAry[1].sort(ptx.sortByTTSortTime);
+        workAry[1] = workAry[1].map(timeMakeFn);
+        cbFn(json);
+      });
+    },
+    getFormatStationTime: function getFormatStationTime(stID, line, dir, w) {
+      w = parseInt(w);
+      var StationID = ptx.klrt.getStationID(stID, line);
+      var LineID = ptx.klrt.getLineID(line);
+      if (!ptx.tempTimeTable.klrt) return false;
+      if (!ptx.tempTimeTable.klrt[LineID]) return false;
+      if (!ptx.tempTimeTable.klrt[LineID][StationID]) return false;
+      if (!ptx.tempTimeTable.klrt[LineID][StationID][w]) return false;
+      if (!ptx.tempTimeTable.klrt[LineID][StationID][w][dir]) return false;
+      if (ptx.tempTimeTable.klrt[LineID][StationID][w][dir].length == 0) return false;
+      return ptx.tempTimeTable.klrt[LineID][StationID][w][dir];
+    },
+    getOriginalStationID: function getOriginalStationID(StationID) {
+      var ary = pData.klrt.station_ary;
+      var stData = false;
+
+      for (var i = 0; i < ary.length; i++) {
+        if (ary[i].StationID.indexOf(StationID) != -1) {
+          stData = ary[i].id;
+          break;
+        }
+      }
+
+      return stData;
+    }
+  };
+  mrtPTXFn$3.methodList.forEach(function (k) {
+    fnMRT$3[k] = mrtPTXFn$3[k];
+  });
+
   var inBrowser = CM.inBrowser;
   var combine = {
     data: pData,
@@ -2138,6 +2484,8 @@
     metro: metro,
     trtc: fnMRT,
     krtc: fnMRT$1,
+    tymetro: fnMRT$2,
+    klrt: fnMRT$3,
     jsSHA: jsSHA,
     common: CM
   };
