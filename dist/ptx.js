@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, (global.$trainTaiwanLib = global.$trainTaiwanLib || {}, global.$trainTaiwanLib.ptx = factory()));
+  (global = global || self, global.rocptx = factory());
 }(this, function () { 'use strict';
 
   function _typeof(obj) {
@@ -43,6 +43,24 @@
     inBrowser: !!(typeof window != 'undefined' && window.document),
     clone: function clone(objA) {
       return JSON.parse(JSON.stringify(objA));
+    },
+    findArrayTarget: function findArrayTarget(ary, testFn) {
+      for (var i = 0; i < ary.length; i++) {
+        if (testFn(ary[i])) {
+          return ary[i];
+        }
+      }
+    },
+    findAllArrayarget: function findAllArrayarget(ary, testFn) {
+      var rt = [];
+
+      for (var i = 0; i < ary.length; i++) {
+        if (testFn(ary[i])) {
+          rt.push(ary[i]);
+        }
+      }
+
+      return rt;
     }
   };
   CM.statusCode = {
@@ -1500,7 +1518,6 @@
 
     cfg.cbFn = cfg.cbFn || function (data, e) {};
 
-    cfg.selectField = cfg.selectField ? ptx.selectFieldFn(cfg.selectField) : '';
     cfg.top = 3000;
     cfg.format = 'JSON';
     return cfg;
@@ -1546,6 +1563,50 @@
     }
 
     return rt;
+  }
+
+  function promiseCatchLineCombine(json, data, combineName) {
+    var LineIDName = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'LineID';
+    var mode = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'array';
+    var sp = combineName.split('.');
+    combineName = sp[0];
+    var subCombineName = !!sp[1] ? sp[1] : false;
+
+    if (subCombineName) {
+      //綁子項目
+      json.forEach(function (c) {
+        if (mode == 'array') c[combineName][subCombineName] = [];
+      });
+      data.forEach(function (c) {
+        var LineObj = CM.findArrayTarget(json, function (item) {
+          return !!(item.LineID == c[LineIDName]);
+        });
+        if (mode == 'array') LineObj[combineName][subCombineName].push(c);
+      });
+      return json;
+    }
+
+    json.forEach(function (c) {
+      if (mode == 'array') c[combineName] = [];
+    });
+    data.forEach(function (c) {
+      var LineObj = CM.findArrayTarget(json, function (item) {
+        return !!(item.LineID == c[LineIDName]);
+      });
+      if (mode == 'array') LineObj[combineName].push(c);
+    });
+    return json;
+  }
+
+  function promiseCatchLinePredo(data, backTag, otherDo) {
+    return data.map(function (c) {
+      var rt = {};
+      backTag.forEach(function (key) {
+        rt[key] = c[key];
+      });
+      if (typeof otherDo == 'function') rt = otherDo(rt);
+      return rt;
+    });
   }
 
   var metro = {
@@ -1627,6 +1688,7 @@
 
       cfg.processJSON = function (json) {
         var travleTimes, tmpA, tmpNextStop;
+        if (_typeof(json) != 'object') return json;
 
         for (var m = 0; m < json.length; m++) {
           travleTimes = json[m].TravelTimes;
@@ -1777,8 +1839,64 @@
 
     for (var k in methodObj) {
       this[k] = methodObj[k];
-    }
+    } // ==== 整合抓資料 Function ====
 
+
+    var catchData = {
+      Line: function Line() {
+        //路線包抓法 1.Line  2.合併路由和轉乘到 Line  3.合併站間距與班距到路由
+        var atLine = _this._Line({
+          selectField: ['LineID', 'LineName', 'LineColor', 'IsBranch']
+        }).then(function (res) {
+          res.data = res.data.map(function (c) {
+            return {
+              LineID: c.LineID,
+              LineName: c.LineName,
+              LineSectionName: c.LineSectionName,
+              LineColor: c.LineColor,
+              IsBranch: c.IsBranch
+            };
+          });
+          return res.data;
+        }).then(function (json) {
+          //抓路由
+          var backTag = ['RouteID', 'Direction', 'LineID', 'Stations'];
+          return me._StationOfRoute({
+            selectField: backTag
+          }).then(function (res) {
+            //整理
+            return promiseCatchLinePredo(res.data, backTag, function (rt) {
+              rt.Stations = rt.Stations.map(function (st) {
+                return st.StationID;
+              });
+              return rt;
+            });
+          }).then(function (data) {
+            //合併
+            return promiseCatchLineCombine(json, data, 'Route');
+          }).catch(function () {
+            return json;
+          });
+        }).then(function (json) {
+          //抓轉乘
+          var backTag = ['FromLineID', 'FromStationID', 'ToLineID', 'ToStationID', 'IsOnSiteTransfer', 'TransferTime'];
+          return me._LineTransfer({
+            selectField: backTag
+          }).then(function (res) {
+            //整理
+            return promiseCatchLinePredo(res.data, backTag);
+          }).then(function (data) {
+            //合併
+            return promiseCatchLineCombine(json, data, 'Transfer', 'FromLineID');
+          }).catch(function () {
+            return json;
+          });
+        });
+
+        return atLine;
+      }
+    };
+    this.catchData = catchData;
     var methodList = Object.keys(this);
     this.methodList = methodList;
   };

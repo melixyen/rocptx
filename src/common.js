@@ -1,7 +1,23 @@
 
 var CM = {
     inBrowser: !!(typeof(window)!='undefined' && window.document),
-    clone: function(objA){return JSON.parse(JSON.stringify(objA));}
+    clone: function(objA){return JSON.parse(JSON.stringify(objA));},
+    findArrayTarget: function(ary, testFn){
+        for(var i=0; i<ary.length; i++){
+            if(testFn(ary[i])){
+                return ary[i];
+            }
+        }
+    },
+    findAllArrayarget: function(ary, testFn){
+        var rt = [];
+        for(var i=0; i<ary.length; i++){
+            if(testFn(ary[i])){
+                rt.push(ary[i]);
+            }
+        }
+        return rt;
+    }
 }
 
 CM.statusCode = {

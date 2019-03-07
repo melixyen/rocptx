@@ -33,7 +33,6 @@ let getPTX = ptx.getPromiseURL;
 function setDefaultCfg(cfg={}){
     if(typeof(cfg)=='string') cfg = {paramDirectlyUse: cfg};//若傳入的為字串代表直接用於最後的參數不需再調整
     cfg.cbFn = cfg.cbFn || function(data,e){};
-    cfg.selectField = (cfg.selectField) ? ptx.selectFieldFn(cfg.selectField) : '';
     cfg.top = 3000;
     cfg.format = 'JSON';
     return cfg;
@@ -70,6 +69,45 @@ function getStationOnWhatLineID(StationID){
         }
     }
     return rt;
+}
+
+function promiseCatchLineCombine(json, data, combineName, LineIDName='LineID', mode='array'){
+    var sp = combineName.split('.');
+    combineName = sp[0];
+    let subCombineName = !!(sp[1]) ? sp[1] : false;
+    if(subCombineName){//綁子項目
+        json.forEach(function(c){
+            if(mode=='array') c[combineName][subCombineName] = [];
+        });
+        data.forEach(function(c){
+            var LineObj = common.findArrayTarget(json, function(item){
+                return !!(item.LineID==c[LineIDName]);
+            });
+            if(mode=='array') LineObj[combineName][subCombineName].push(c);
+        })
+        return json;
+    }
+    json.forEach(function(c){
+        if(mode=='array') c[combineName] = [];
+    });
+    data.forEach(function(c){
+        var LineObj = common.findArrayTarget(json, function(item){
+            return !!(item.LineID==c[LineIDName]);
+        });
+        if(mode=='array') LineObj[combineName].push(c);
+    })
+    return json;
+}
+function promiseCatchLinePredo(data, backTag, otherDo){
+    return data.map(function(c){
+        var rt = {};
+        backTag.forEach(function(key){
+            rt[key] = c[key];
+        })
+        if(typeof(otherDo)=='function') rt = otherDo(rt);
+        return rt;
+    });
+
 }
 
 
@@ -136,6 +174,7 @@ class baseMethod {
                 cfg = useLineID2filterBy(LineID, cfg);
                 cfg.processJSON = function(json){
                     var travleTimes, tmpA, tmpNextStop;
+                    if(typeof(json)!='object') return json;
                     for(var m=0; m<json.length; m++){
                         travleTimes = json[m].TravelTimes;
                         json[m].TravelInterval = travleTimes.map(function(c, idx, arr){
@@ -271,6 +310,45 @@ class baseMethod {
         for(var k in methodObj){
             this[k] = methodObj[k];
         }
+
+        // ==== 整合抓資料 Function ====
+        let catchData = {
+            Line: ()=>{
+                //路線包抓法 1.Line  2.合併路由和轉乘到 Line  3.合併站間距與班距到路由
+                var atLine = this._Line({selectField: ['LineID','LineName','LineColor','IsBranch']})
+                .then(function(res){
+                    res.data = res.data.map(function(c){
+                        return {LineID:c.LineID, LineName:c.LineName, LineSectionName:c.LineSectionName, LineColor:c.LineColor, IsBranch:c.IsBranch}
+                    });
+                    return res.data;
+                }).then(function(json){//抓路由
+                    let backTag = ['RouteID','Direction','LineID','Stations'];
+                    return me._StationOfRoute({selectField:backTag})
+                    .then(function(res){//整理
+                        return promiseCatchLinePredo(res.data, backTag, function(rt){
+                            rt.Stations = rt.Stations.map(function(st){ return st.StationID; })
+                            return rt;
+                        });
+                    }).then(function(data){//合併
+                        return promiseCatchLineCombine(json, data, 'Route');
+                    }).catch(function(){
+                        return json;
+                    })
+                }).then(function(json){//抓轉乘
+                    let backTag = ['FromLineID','FromStationID','ToLineID','ToStationID','IsOnSiteTransfer','TransferTime'];
+                    return me._LineTransfer({selectField:backTag})
+                    .then(function(res){//整理
+                        return promiseCatchLinePredo(res.data, backTag);
+                    }).then(function(data){//合併
+                        return promiseCatchLineCombine(json, data, 'Transfer', 'FromLineID');
+                    }).catch(function(){
+                        return json;
+                    })
+                });
+                return atLine;
+            }
+        }
+        this.catchData = catchData;
 
         const methodList = Object.keys(this);
         this.methodList = methodList;
