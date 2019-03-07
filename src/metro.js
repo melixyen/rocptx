@@ -72,21 +72,21 @@ function getStationOnWhatLineID(StationID){
 }
 
 function promiseCatchLineCombine(json, data, combineName, LineIDName='LineID', mode='array'){
-    var sp = combineName.split('.');
-    combineName = sp[0];
-    let subCombineName = !!(sp[1]) ? sp[1] : false;
-    if(subCombineName){//綁子項目
-        json.forEach(function(c){
-            if(mode=='array') c[combineName][subCombineName] = [];
-        });
-        data.forEach(function(c){
-            var LineObj = common.findArrayTarget(json, function(item){
-                return !!(item.LineID==c[LineIDName]);
-            });
-            if(mode=='array') LineObj[combineName][subCombineName].push(c);
-        })
-        return json;
-    }
+    // var sp = combineName.split('.');
+    // combineName = sp[0];
+    // let subCombineName = !!(sp[1]) ? sp[1] : false;
+    // if(subCombineName){//綁子項目
+    //     json.forEach(function(c){
+    //         if(mode=='array') c[combineName][subCombineName] = [];
+    //     });
+    //     data.forEach(function(c){
+    //         var LineObj = common.findArrayTarget(json, function(item){
+    //             return !!(item.LineID==c[LineIDName]);
+    //         });
+    //         if(mode=='array') LineObj[combineName][subCombineName].push(c);
+    //     })
+    //     return json;
+    // }
     json.forEach(function(c){
         if(mode=='array') c[combineName] = [];
     });
@@ -313,8 +313,10 @@ class baseMethod {
 
         // ==== 整合抓資料 Function ====
         let catchData = {
-            Line: ()=>{
+            Line: (progressFn)=>{
+                if(typeof(progressFn)!='function') progressFn = (msg)=>{};
                 //路線包抓法 1.Line  2.合併路由和轉乘到 Line  3.合併站間距與班距到路由
+                progressFn('取得路網中');
                 var atLine = this._Line({selectField: ['LineID','LineName','LineColor','IsBranch']})
                 .then(function(res){
                     res.data = res.data.map(function(c){
@@ -322,6 +324,7 @@ class baseMethod {
                     });
                     return res.data;
                 }).then(function(json){//抓路由
+                    progressFn('取得各線路由中');
                     let backTag = ['RouteID','Direction','LineID','Stations'];
                     return me._StationOfRoute({selectField:backTag})
                     .then(function(res){//整理
@@ -335,12 +338,63 @@ class baseMethod {
                         return json;
                     })
                 }).then(function(json){//抓轉乘
+                    progressFn('取得轉乘資訊中');
                     let backTag = ['FromLineID','FromStationID','ToLineID','ToStationID','IsOnSiteTransfer','TransferTime'];
                     return me._LineTransfer({selectField:backTag})
                     .then(function(res){//整理
                         return promiseCatchLinePredo(res.data, backTag);
                     }).then(function(data){//合併
                         return promiseCatchLineCombine(json, data, 'Transfer', 'FromLineID');
+                    }).catch(function(){
+                        return json;
+                    })
+                }).then(function(json){//抓站間距
+                    progressFn('取得站間距時間中');
+                    let backTag = ['LineID','RouteID','TravelTimes'];
+                    if(companyTag=='TYMC') backTag = ['LineID','RouteID','TrainType','LineNo','TravelTimes'];
+                    return me._S2STravelTime({selectField:backTag})
+                    .then(function(res){//整理
+                        return promiseCatchLinePredo(res.data, backTag, function(rt){
+                            rt.TravelTimes = rt.TravelTimes.map(function(c, idx, arr){
+                                if(!arr[idx+1]) c.StopTime = 0;//最後一站無需再算 StopTime 將它歸零
+                                let ret = {
+                                    FromTo: [c.FromStationID, c.ToStationID],
+                                    RunTime: c.RunTime
+                                }
+                                if(c.StopTime) ret.StopTime = c.StopTime;
+                                return ret;
+                            })
+                            return rt;
+                        });
+                    }).then(function(data){//合併
+                        return promiseCatchLineCombine(json, data, 'TravelTime');
+                    }).catch(function(){
+                        return json;
+                    })
+                }).then(function(json){//抓班距
+                    progressFn('取得班距中');
+                    let backTag = ['LineID','RouteID','ServiceDays','OperationTime','Headways'];
+                    if(companyTag=='TYMC') backTag = ['LineID','RouteID','TrainType','LineNo','ServiceDays','OperationTime','Headways'];
+                    return me._Frequency({selectField:backTag})
+                    .then(function(res){//整理
+                        return promiseCatchLinePredo(res.data, backTag, function(rt){
+                            rt.OperationTime = [rt.OperationTime.StartTime, rt.OperationTime.EndTime];
+                            rt.Headways = rt.Headways.map(function(c){
+                                c.Time = [c.StartTime, c.EndTime];
+                                delete c.StartTime; delete c.EndTime;
+                                c.AveMins = Math.ceil((parseInt(c.MinHeadwayMins) + parseInt(c.MaxHeadwayMins))/2)
+                                return c;
+                            });
+                            let tmpSD = rt.ServiceDays;
+                            rt.ServiceDays = {
+                                ServiceTag: tmpSD.ServiceTag,
+                                NationalHolidays: tmpSD.NationalHolidays,
+                                week: [tmpSD.Sunday, tmpSD.Monday, tmpSD.Tuesday, tmpSD.Wednesday, tmpSD.Thursday, tmpSD.Friday, tmpSD.Saturday]
+                            }
+                            return rt;
+                        });
+                    }).then(function(data){//合併
+                        return promiseCatchLineCombine(json, data, 'Frequency');
                     }).catch(function(){
                         return json;
                     })

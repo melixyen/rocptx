@@ -95,6 +95,17 @@ body {
 	background-color: rgba(230,230,230,0.6);
 	z-index: 1000;
 }
+.mask_text{
+	display: inline-block;
+	padding: 5px 10px;
+	position: absolute;
+	left: 0px;
+	bottom: 0px;
+	font-size: 16px;
+	background-color: #23A;
+	color: #FFF;
+	min-height: 20px;
+}
 
 
 @media screen and (max-width: 679px) {
@@ -125,14 +136,17 @@ Vue.config.productionTip=false;
 <script type="text/javascript">
 
 
-var BB = {};
+var BB = {
+	jsonFileName: 'tmp.json'
+};
 var TT = {ptx: rocptx}
 var ptx = rocptx;
 (function(){
 	var CONST_DEFAULT_LINE_COLOR = "#555555";
 	function loading(cmd, text){
 		var maskID = 'functional_mask_out';
-		var dom = false;
+		var textID = 'functional_mask_text';
+		var dom = false, textDOM = false;
 		if(!document.getElementById(maskID)){
 			dom = document.createElement('div');
 			dom.id = maskID;
@@ -141,13 +155,29 @@ var ptx = rocptx;
 		}else{
 			dom = document.getElementById(maskID);
 		}
+		if(!document.getElementById(textID)){
+			textDOM = document.createElement('div');
+			textDOM.id = textID;
+			textDOM.className = 'mask_text';
+			dom.appendChild(textDOM);
+		}else{
+			textDOM = document.getElementById(textID);
+		}
 
 		if(cmd==0){
 			dom.style.display = 'none';
 		}else{
 			dom.style.display = '';
 		}
+		if(text){
+			textDOM.innerHTML = text;
+			textDOM.style.display = '';
+		}else{
+			textDOM.innerHTML = '';
+			textDOM.style.display = 'none';
+		}
 	}
+	BB.loading = loading;
 	var menuBarTpl =  Vue.compile('<div id="menuBar" class="bs_no_select">' +
 		'<div class="btn1" v-on:click="changePanel(\'trtc\')">台北捷運</div>' +
 		'<div class="btn1" v-on:click="changePanel(\'krtc\')">高雄捷運</div>' +
@@ -355,11 +385,16 @@ var ptx = rocptx;
 				//Catch Data Function
 				catchLine: function(){
 					var me = this;
-					ptxFn.catchData.Line().then(function(data){
+					me.doLoad();
+					var fnMsg = function(str){loading(1,str);}
+					ptxFn.catchData.Line(fnMsg).then(function(data){
 						me.$emit('printj', data);
+						me.unload();
 					}).catch(function(res){
+						me.unload();
 						console.info(res);;
 					})
+					BB.jsonFileName = compName + '.line.json';
 				}
 			},
 			mounted: function() {
@@ -391,6 +426,7 @@ var ptx = rocptx;
 			'</div>' +
 			'<div class="bottom">' +
 				'<div class="btn2" v-on:click="toConsole()">將 Response 印到 console </div>' +
+				'<div class="btn2" v-on:click="toFile()">下載 Response JSON </div>' +
 				//'<div class="btn2" v-show="!flagShowTextArea" v-on:click="flagShowTextArea=true">顯示文字編輯器</div>' +
 				//'<div class="btn2" v-show="flagShowTextArea" v-on:click="flagShowTextArea=false">顯示程式語法</div>' +
 			'</div>' +
@@ -408,6 +444,7 @@ var ptx = rocptx;
 			methods: {
 				changeName: function(name){
 					this.panelName = name;
+					BB.jsonFileName = name + '.json';
 				},
 				printJSON: function(json){
 					this.json_data = json;
@@ -415,6 +452,17 @@ var ptx = rocptx;
 				},
 				toConsole: function(){
 					console.info(TT.ptx.common.clone(this.json_data));
+				},
+				toFile: function(){
+					var blob = new Blob([JSON.stringify(this.json_data)], { type:"application/json" });
+					var blobUrl = URL.createObjectURL(blob);
+					var fileName = BB.jsonFileName;
+					var a = document.createElement('A');
+					a.href = blobUrl;
+					a.download = fileName;
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
 				}
 			},
 			watch: {

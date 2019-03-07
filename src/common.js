@@ -1,5 +1,10 @@
 
 var CM = {
+    defaultCrossDayTime: '04:00',
+    timeHour: ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'],
+    timeMinSec: ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29',
+        '30','31','32','33','34','35','36','37','38','39','40','41','42','43','44','45','46','47','48','49','50','51','52','53','54','55','56','57','58','59'],
+    weekStringAry: ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'],
     inBrowser: !!(typeof(window)!='undefined' && window.document),
     clone: function(objA){return JSON.parse(JSON.stringify(objA));},
     findArrayTarget: function(ary, testFn){
@@ -17,6 +22,51 @@ var CM = {
             }
         }
         return rt;
+    },
+    transTime2Sec: function(str,offsetTomorrow){
+        if (str == null || str == '') {
+            str = '0';
+        }
+        var aryA = str.split(':'), rt;
+        if (aryA.length <= 1) {
+            rt = parseInt(str,10);
+        } else if (aryA.length == 2) {
+            rt = parseInt(aryA[0],10) * 3600 + parseInt(aryA[1],10) * 60;
+        } else if (aryA.length == 3) {
+            rt = parseInt(aryA[0],10) * 3600 + parseInt(aryA[1],10) * 60 + parseInt(aryA[2],10);
+        }
+        
+        if(offsetTomorrow && rt < TT.fn.transTime2Sec(TT.fn.getDefaultDayLastTime())){
+            rt = rt + 86400;
+        }
+        return rt;
+    },
+    transSec2Time: function(sec){
+        var tih = 0,
+            tim = 0,
+            tis = 0;
+
+        if((sec === '')){
+            return '';
+        }else if(parseInt(sec,10) < 0){
+            sec = 86400 + sec;
+        }
+        
+        sec = parseInt(sec,10);
+        tis = sec % 60;
+        sec = sec - tis;
+        sec = sec / 60;
+        tim = sec % 60;
+        sec = sec - tim;
+        sec = sec / 60
+        tih = sec;
+        
+
+        tih = (tih < 10) ? '0' + tih : tih;
+        tim = (tim < 10) ? '0' + tim : tim;
+        tis = (tis < 10) ? '0' + tis : tis;
+
+        return tih + ':' + tim;
     }
 }
 
