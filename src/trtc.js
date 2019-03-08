@@ -25,6 +25,7 @@ mrtPTXFn.catchData.config.Line_callback = function(json){
             }
             Route.TravelTime = {RunTime:RunTime, StopTime:StopTime}
         })
+        delete Line.TravelTime;
     })
     return json;
 }

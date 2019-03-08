@@ -8,6 +8,29 @@ var mrtPTXFn = new metro.baseMethod(companyTag);
 //修正桃園捷運的 function
 mrtPTXFn.catchData.config.Line_S2STravelTime_BackTag = ['LineID','RouteID','TrainType','LineNo','TravelTimes'];
 mrtPTXFn.catchData.config.Line_Frequency_BackTag = ['LineID','RouteID','TrainType','LineNo','ServiceDays','OperationTime','Headways'];
+mrtPTXFn.catchData.config.Line_FirstLastTimetable_BackTag = ['LineID','StationID','TrainType','DestinationStaionID','FirstTrainTime','LastTrainTime'];
+//Catch Data 資料預處理
+mrtPTXFn.catchData.config.Line_callback = function(json){
+    json.forEach((Line)=>{
+        if(Line.LineID=='A'){
+            let TravelTime = Line.TravelTime;
+            let TravelTimeTrainType1 = {}, TravelTimeTrainType2 = {};
+            TravelTime.forEach(function(TRTM, Tidx){
+                let objA = (TRTM.TrainType==1) ? TravelTimeTrainType1 : TravelTimeTrainType2;
+                TRTM.TravelTimes.forEach(function(c){
+                    if(!objA[c.FromTo[0]]) objA[c.FromTo[0]] = {};
+                    objA[c.FromTo[0]][c.FromTo[1]] = c.RunTime;
+                })
+                TravelTime[Tidx] = undefined;
+            })
+            Line.TravelTimeBetween = {
+                "TrainType1": TravelTimeTrainType1,
+                "TrainType2": TravelTimeTrainType2
+            };
+        }
+    })
+    return json;
+}
 
 var fnMRT = {
     checkRouteIdOnUse: function(RouteID, LineID){

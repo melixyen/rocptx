@@ -8,7 +8,7 @@ var mrtPTXFn = new metro.baseMethod(companyTag);
 //Catch Data 資料預處理
 mrtPTXFn.catchData.config.Line_callback = function(json){
     json.forEach((Line)=>{
-        let TravelTime = Line.TravelTime, tmpA, tmpB, tmpC;
+        let TravelTime = Line.TravelTime, tmpA, tmpB;
         Line.Route.forEach((Route)=>{
             tmpA = TravelTime.find((rr)=>{ return !!(rr.RouteID==Route.RouteID)});
             //高雄捷運 TravelTimes 有重複值要先濾除
@@ -36,6 +36,7 @@ mrtPTXFn.catchData.config.Line_callback = function(json){
             }
             Route.TravelTime = {RunTime:RunTime, StopTime:StopTime}
         })
+        delete Line.TravelTime;
     })
     return json;
 }

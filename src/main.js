@@ -1,6 +1,7 @@
 import common from './common.js';
 import ptx from './ptx.js';
 import data from './data.js';
+import datax from './datax.js';
 import bus from './bus.js';
 import metro from './metro.js';
 import trtc from './trtc.js';
@@ -15,6 +16,7 @@ var inBrowser = common.inBrowser;
 
 var combine = {
 	data: data,
+	datax: datax,
 	bus: bus,
 	metro: metro,
 	trtc: trtc,

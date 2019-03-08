@@ -33,7 +33,7 @@ let getPTX = ptx.getPromiseURL;
 function setDefaultCfg(cfg={}){
     if(typeof(cfg)=='string') cfg = {paramDirectlyUse: cfg};//若傳入的為字串代表直接用於最後的參數不需再調整
     cfg.cbFn = cfg.cbFn || function(data,e){};
-    cfg.top = 3000;
+    cfg.top = cfg.top || 50000;
     cfg.format = 'JSON';
     return cfg;
 }
@@ -59,6 +59,11 @@ function makePTX_func(cmd, companyTag, cfg){
 }
 
 function getStationOnWhatLineID(StationID){
+    if(/^[a-zA-Z]{1}\d{2}/gi.test(StationID)){
+        return StationID.substr(0,1);
+    }else if(/^[a-zA-Z]{2}\d{2}/gi.test(StationID)){
+        return StationID.substr(0,2);
+    }
     var ary = StationID.split('');
     var rt = '';
     for(var i=0; i<ary.length; i++){
@@ -93,6 +98,18 @@ function promiseCatchLinePredo(data, backTag, otherDo){
         return rt;
     });
 
+}
+function promiseCatchStationCombine(json, data, combineName, StationID='StationID', mode='array'){
+    json.forEach(function(c){
+        if(mode=='array') c[combineName] = [];
+    });
+    data.forEach(function(c){
+        var Obj = common.findArrayTarget(json, function(item){
+            return !!(item.StationID==c[StationID]);
+        });
+        if(mode=='array') Obj[combineName].push(c);
+    })
+    return json;
 }
 
 
@@ -309,7 +326,9 @@ class baseMethod {
                 },
                 Line_callback_final: (json)=>{//私用預處理
                     return json;
-                }
+                },
+                Station_BackTag: ['StationID','StationName','StationPosition'],
+                Line_FirstLastTimetable_BackTag: ['StationID','LineID','DestinationStaionID','FirstTrainTime','LastTrainTime']
             },
             Line: function(progressFn){
                 if(typeof(progressFn)!='function') progressFn = (msg)=>{};
@@ -396,6 +415,40 @@ class baseMethod {
                     return catchData.config.Line_callback_final(catchData.config.Line_callback(json));
                 });
                 return atLine;
+            },
+            Station: function(progressFn){
+                if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+                //路線包抓法 1.Line  2.合併路由和轉乘到 Line  3.合併站間距與班距到路由
+                progressFn('取得車站中');
+                let stationBackTag = catchData.config.Station_BackTag;
+                var atStation = me._Station({selectField: stationBackTag})
+                .then(function(res){
+                    return promiseCatchLinePredo(res.data, stationBackTag);
+                }).then(function(json){
+                    json.forEach((st,idx,arr)=>{
+                        if(st.StationPosition){
+                            st.lat = st.StationPosition.PositionLat;
+                            st.lon = st.StationPosition.PositionLat;
+                            delete st.StationPosition;
+                        }
+                        st.name = st.StationName.Zh_tw;
+                        if(st.StationName.En) st.ename = st.StationName.En;
+                        delete st.StationName;
+                    })
+                    return json;
+                }).then(function(json){//抓首末班車
+                    progressFn('取得首末班車');
+                    let backTag = catchData.config.Line_FirstLastTimetable_BackTag;
+                    return me._FirstLastTimetable({selectField:backTag})
+                    .then(function(res){//整理
+                        return promiseCatchLinePredo(res.data, backTag);
+                    }).then(function(data){//合併
+                        return promiseCatchStationCombine(json, data, 'FirstLast');
+                    }).catch(function(){
+                        return json;
+                    })
+                })
+                return atStation;
             }
         }
         this.catchData = catchData;

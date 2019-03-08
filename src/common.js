@@ -83,6 +83,7 @@ CM.metroURL = CM.ptxURL + '/Rail/Metro';
 CM.busURL = CM.ptxURL + '/Bus'
 CM.traURL = '/Rail/TRA';
 CM.ptxMRTWeekStr = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+CM.defaultCrossDayTimeSec = CM.transTime2Sec(CM.defaultCrossDayTime);
 
 
 CM.pui = {

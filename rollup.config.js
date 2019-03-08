@@ -1,6 +1,7 @@
 import resolve from 'rollup-plugin-node-resolve';
 import babel from 'rollup-plugin-babel';
 import minify from 'rollup-plugin-babel-minify';
+import json from 'rollup-plugin-json';
 import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
 import path from 'path';
@@ -18,6 +19,7 @@ var config = {
 	plugins: [
 		resolve(),
 		commonjs(),
+		json(),
 		babel({
 			exclude: 'node_modules/**' // Do not translate node modules 不轉換此內容之 code
 		})
