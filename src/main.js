@@ -28,8 +28,10 @@ for(var k in combine){
 	ptx[k] = combine[k];
 }
 
-if(inBrowser && !window.rocptx){
-	window.rocptx = ptx;
+if(inBrowser){
+	if(!window.rocptx) window.rocptx = ptx;
+	if(!window.$trainTaiwanLib) window.$trainTaiwanLib = {};
+	if(!window.$trainTaiwanLib.ptx) window.$trainTaiwanLib.ptx = ptx;
 	if(!window.Promise) console.log("PTX library need Promise, please include a Promise polyfill.")
 }
 

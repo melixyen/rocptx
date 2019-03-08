@@ -5,6 +5,29 @@ import metro from './metro.js';
 
 const companyTag = metro.getCompanyTag('trtc');
 var mrtPTXFn = new metro.baseMethod(companyTag);
+//Catch Data 資料預處理
+mrtPTXFn.catchData.config.Line_callback = function(json){
+    json.forEach((Line)=>{
+        let TravelTime = Line.TravelTime, tmpA, tmpB, tmpC;
+        Line.Route.forEach((Route)=>{
+            tmpA = TravelTime.find((rr)=>{ return !!(rr.RouteID==Route.RouteID)});
+            let sameDir = !!(tmpA.TravelTimes[0].FromTo[0] == Route.Stations[0]);
+            let RunTime = [], StopTime = [];
+            for(var i=0; i<Route.Stations.length; i++){
+                tmpB = tmpA.TravelTimes[i] || {RunTime:0, StopTime:0}
+                RunTime.push(tmpB.RunTime);
+                StopTime.push(tmpB.StopTime);
+            }
+            if(!sameDir){//與 Route 同方向時，每一站同一 index , RunTime 儲存本站到下一站要開多久 , StopTime 儲存本站要停多久 ; 不同時反轉陣列，RunTime 位移一站再補終站 0
+                RunTime.reverse().shift();
+                RunTime.push(0);
+                StopTime.reverse();
+            }
+            Route.TravelTime = {RunTime:RunTime, StopTime:StopTime}
+        })
+    })
+    return json;
+}
 
 var fnMRT = {
     checkRouteIdOnUse: function(RouteID, LineID){

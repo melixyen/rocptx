@@ -1618,21 +1618,6 @@
   function promiseCatchLineCombine(json, data, combineName) {
     var LineIDName = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'LineID';
     var mode = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'array';
-    // var sp = combineName.split('.');
-    // combineName = sp[0];
-    // let subCombineName = !!(sp[1]) ? sp[1] : false;
-    // if(subCombineName){//綁子項目
-    //     json.forEach(function(c){
-    //         if(mode=='array') c[combineName][subCombineName] = [];
-    //     });
-    //     data.forEach(function(c){
-    //         var LineObj = common.findArrayTarget(json, function(item){
-    //             return !!(item.LineID==c[LineIDName]);
-    //         });
-    //         if(mode=='array') LineObj[combineName][subCombineName].push(c);
-    //     })
-    //     return json;
-    // }
     json.forEach(function (c) {
       if (mode == 'array') c[combineName] = [];
     });
@@ -1890,28 +1875,35 @@
 
 
     var catchData = {
+      config: {
+        Line_BackTag: ['LineID', 'LineName', 'LineColor', 'IsBranch'],
+        Line_StationOfRoute_BackTag: ['RouteID', 'Direction', 'LineID', 'Stations'],
+        Line_LineTransfer_BackTag: ['FromLineID', 'FromStationID', 'ToLineID', 'ToStationID', 'IsOnSiteTransfer', 'TransferTime'],
+        Line_S2STravelTime_BackTag: ['LineID', 'RouteID', 'TravelTimes'],
+        Line_Frequency_BackTag: ['LineID', 'RouteID', 'ServiceDays', 'OperationTime', 'Headways'],
+        Line_callback: function Line_callback(json) {
+          //通用預處理
+          return json;
+        },
+        Line_callback_final: function Line_callback_final(json) {
+          //私用預處理
+          return json;
+        }
+      },
       Line: function Line(progressFn) {
         if (typeof progressFn != 'function') progressFn = function progressFn(msg) {}; //路線包抓法 1.Line  2.合併路由和轉乘到 Line  3.合併站間距與班距到路由
 
         progressFn('取得路網中');
+        var lineBackTag = catchData.config.Line_BackTag;
 
-        var atLine = _this._Line({
-          selectField: ['LineID', 'LineName', 'LineColor', 'IsBranch']
+        var atLine = me._Line({
+          selectField: lineBackTag
         }).then(function (res) {
-          res.data = res.data.map(function (c) {
-            return {
-              LineID: c.LineID,
-              LineName: c.LineName,
-              LineSectionName: c.LineSectionName,
-              LineColor: c.LineColor,
-              IsBranch: c.IsBranch
-            };
-          });
-          return res.data;
+          return promiseCatchLinePredo(res.data, lineBackTag);
         }).then(function (json) {
           //抓路由
           progressFn('取得各線路由中');
-          var backTag = ['RouteID', 'Direction', 'LineID', 'Stations'];
+          var backTag = catchData.config.Line_StationOfRoute_BackTag;
           return me._StationOfRoute({
             selectField: backTag
           }).then(function (res) {
@@ -1931,7 +1923,7 @@
         }).then(function (json) {
           //抓轉乘
           progressFn('取得轉乘資訊中');
-          var backTag = ['FromLineID', 'FromStationID', 'ToLineID', 'ToStationID', 'IsOnSiteTransfer', 'TransferTime'];
+          var backTag = catchData.config.Line_LineTransfer_BackTag;
           return me._LineTransfer({
             selectField: backTag
           }).then(function (res) {
@@ -1946,21 +1938,18 @@
         }).then(function (json) {
           //抓站間距
           progressFn('取得站間距時間中');
-          var backTag = ['LineID', 'RouteID', 'TravelTimes'];
-          if (companyTag == 'TYMC') backTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'TravelTimes'];
+          var backTag = catchData.config.Line_S2STravelTime_BackTag;
           return me._S2STravelTime({
             selectField: backTag
           }).then(function (res) {
             //整理
             return promiseCatchLinePredo(res.data, backTag, function (rt) {
               rt.TravelTimes = rt.TravelTimes.map(function (c, idx, arr) {
-                if (!arr[idx + 1]) c.StopTime = 0; //最後一站無需再算 StopTime 將它歸零
-
                 var ret = {
                   FromTo: [c.FromStationID, c.ToStationID],
                   RunTime: c.RunTime
                 };
-                if (c.StopTime) ret.StopTime = c.StopTime;
+                if (typeof c.StopTime != 'undefined') ret.StopTime = c.StopTime;
                 return ret;
               });
               return rt;
@@ -1974,8 +1963,7 @@
         }).then(function (json) {
           //抓班距
           progressFn('取得班距中');
-          var backTag = ['LineID', 'RouteID', 'ServiceDays', 'OperationTime', 'Headways'];
-          if (companyTag == 'TYMC') backTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'ServiceDays', 'OperationTime', 'Headways'];
+          var backTag = catchData.config.Line_Frequency_BackTag;
           return me._Frequency({
             selectField: backTag
           }).then(function (res) {
@@ -2003,6 +1991,9 @@
           }).catch(function () {
             return json;
           });
+        }).then(function (json) {
+          progressFn('整理輸出資料格式');
+          return catchData.config.Line_callback_final(catchData.config.Line_callback(json));
         });
 
         return atLine;
@@ -2016,7 +2007,46 @@
   metro.baseMethod = baseMethod;
 
   var companyTag$1 = metro.getCompanyTag('trtc');
-  var mrtPTXFn = new metro.baseMethod(companyTag$1);
+  var mrtPTXFn = new metro.baseMethod(companyTag$1); //Catch Data 資料預處理
+
+  mrtPTXFn.catchData.config.Line_callback = function (json) {
+    json.forEach(function (Line) {
+      var TravelTime = Line.TravelTime,
+          tmpA,
+          tmpB;
+      Line.Route.forEach(function (Route) {
+        tmpA = TravelTime.find(function (rr) {
+          return !!(rr.RouteID == Route.RouteID);
+        });
+        var sameDir = !!(tmpA.TravelTimes[0].FromTo[0] == Route.Stations[0]);
+        var RunTime = [],
+            StopTime = [];
+
+        for (var i = 0; i < Route.Stations.length; i++) {
+          tmpB = tmpA.TravelTimes[i] || {
+            RunTime: 0,
+            StopTime: 0
+          };
+          RunTime.push(tmpB.RunTime);
+          StopTime.push(tmpB.StopTime);
+        }
+
+        if (!sameDir) {
+          //與 Route 同方向時，每一站同一 index , RunTime 儲存本站到下一站要開多久 , StopTime 儲存本站要停多久 ; 不同時反轉陣列，RunTime 位移一站再補終站 0
+          RunTime.reverse().shift();
+          RunTime.push(0);
+          StopTime.reverse();
+        }
+
+        Route.TravelTime = {
+          RunTime: RunTime,
+          StopTime: StopTime
+        };
+      });
+    });
+    return json;
+  };
+
   var fnMRT = {
     checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
       var lineData = this.getLineData(LineID);
@@ -2189,7 +2219,63 @@
   });
 
   var companyTag$2 = metro.getCompanyTag('krtc');
-  var mrtPTXFn$1 = new metro.baseMethod(companyTag$2);
+  var mrtPTXFn$1 = new metro.baseMethod(companyTag$2); //Catch Data 資料預處理
+
+  mrtPTXFn$1.catchData.config.Line_callback = function (json) {
+    json.forEach(function (Line) {
+      var TravelTime = Line.TravelTime,
+          tmpA,
+          tmpB;
+      Line.Route.forEach(function (Route) {
+        tmpA = TravelTime.find(function (rr) {
+          return !!(rr.RouteID == Route.RouteID);
+        }); //高雄捷運 TravelTimes 有重複值要先濾除
+
+        var alreadyWriteStation = [],
+            aryTravelTimes = [];
+        tmpA.TravelTimes.forEach(function (c, idx, arr) {
+          if (alreadyWriteStation.indexOf(c.FromTo[0]) == -1) {
+            if (c.FromTo[0] == 'R11' && alreadyWriteStation.indexOf('R10') == -1) {
+              //PTX Bug : 高雄紅線 Travel Time 漏掉 R10 to R11 
+              aryTravelTimes.push({
+                RunTime: 180,
+                StopTime: 40
+              });
+            }
+
+            aryTravelTimes.push(c);
+            alreadyWriteStation.push(c.FromTo[0]);
+          }
+        });
+        var sameDir = !!(aryTravelTimes[0].FromTo[0] == Route.Stations[0]);
+        var RunTime = [],
+            StopTime = [];
+
+        for (var i = 0; i < Route.Stations.length; i++) {
+          tmpB = aryTravelTimes[i] || {
+            RunTime: 0,
+            StopTime: 0
+          };
+          RunTime.push(tmpB.RunTime);
+          StopTime.push(tmpB.StopTime);
+        }
+
+        if (!sameDir) {
+          //與 Route 同方向時，每一站同一 index , RunTime 儲存本站到下一站要開多久 , StopTime 儲存本站要停多久 ; 不同時反轉陣列，RunTime 位移一站再補終站 0
+          RunTime.reverse().shift();
+          RunTime.push(0);
+          StopTime.reverse();
+        }
+
+        Route.TravelTime = {
+          RunTime: RunTime,
+          StopTime: StopTime
+        };
+      });
+    });
+    return json;
+  };
+
   var fnMRT$1 = {
     checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
       var lineData = this.getLineData(LineID);
@@ -2362,7 +2448,10 @@
   });
 
   var companyTag$3 = metro.getCompanyTag('tymetro');
-  var mrtPTXFn$2 = new metro.baseMethod(companyTag$3);
+  var mrtPTXFn$2 = new metro.baseMethod(companyTag$3); //修正桃園捷運的 function
+
+  mrtPTXFn$2.catchData.config.Line_S2STravelTime_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'TravelTimes'];
+  mrtPTXFn$2.catchData.config.Line_Frequency_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'ServiceDays', 'OperationTime', 'Headways'];
   var fnMRT$2 = {
     checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
       var lineData = this.getLineData(LineID);
@@ -2724,8 +2813,10 @@
     ptx[k] = combine[k];
   }
 
-  if (inBrowser && !window.rocptx) {
-    window.rocptx = ptx;
+  if (inBrowser) {
+    if (!window.rocptx) window.rocptx = ptx;
+    if (!window.$trainTaiwanLib) window.$trainTaiwanLib = {};
+    if (!window.$trainTaiwanLib.ptx) window.$trainTaiwanLib.ptx = ptx;
     if (!window.Promise) console.log("PTX library need Promise, please include a Promise polyfill.");
   }
 

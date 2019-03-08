@@ -5,6 +5,40 @@ import metro from './metro.js';
 
 const companyTag = metro.getCompanyTag('krtc');
 var mrtPTXFn = new metro.baseMethod(companyTag);
+//Catch Data 資料預處理
+mrtPTXFn.catchData.config.Line_callback = function(json){
+    json.forEach((Line)=>{
+        let TravelTime = Line.TravelTime, tmpA, tmpB, tmpC;
+        Line.Route.forEach((Route)=>{
+            tmpA = TravelTime.find((rr)=>{ return !!(rr.RouteID==Route.RouteID)});
+            //高雄捷運 TravelTimes 有重複值要先濾除
+            let alreadyWriteStation = [], aryTravelTimes = [];
+            tmpA.TravelTimes.forEach(function(c, idx, arr){
+                if(alreadyWriteStation.indexOf(c.FromTo[0])==-1){
+                    if(c.FromTo[0]=='R11' && alreadyWriteStation.indexOf('R10')==-1){//PTX Bug : 高雄紅線 Travel Time 漏掉 R10 to R11 
+                        aryTravelTimes.push({RunTime:180, StopTime:40})
+                    }
+                    aryTravelTimes.push(c);
+                    alreadyWriteStation.push(c.FromTo[0]);
+                }
+            })
+            let sameDir = !!(aryTravelTimes[0].FromTo[0] == Route.Stations[0]);
+            let RunTime = [], StopTime = [];
+            for(var i=0; i<Route.Stations.length; i++){
+                tmpB = aryTravelTimes[i] || {RunTime:0, StopTime:0}
+                RunTime.push(tmpB.RunTime);
+                StopTime.push(tmpB.StopTime);
+            }
+            if(!sameDir){//與 Route 同方向時，每一站同一 index , RunTime 儲存本站到下一站要開多久 , StopTime 儲存本站要停多久 ; 不同時反轉陣列，RunTime 位移一站再補終站 0
+                RunTime.reverse().shift();
+                RunTime.push(0);
+                StopTime.reverse();
+            }
+            Route.TravelTime = {RunTime:RunTime, StopTime:StopTime}
+        })
+    })
+    return json;
+}
 
 var fnMRT = {
     checkRouteIdOnUse: function(RouteID, LineID){
