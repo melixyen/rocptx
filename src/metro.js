@@ -479,6 +479,68 @@ class baseMethod {
                 }).catch(function(res){
                     return res;
                 })
+            },
+            TimeTable: function(progressFn){
+                if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+                progressFn('取得車站中');
+                let stationBackTag = ['StationID'];
+                let aryTime = [];
+                return me._Station({selectField: stationBackTag})
+                .then(function(res){
+                    return promiseCatchLinePredo(res.data, stationBackTag);
+                }).then(function(json){
+                    //依序將所有車站做成 Promise 抓資料，間隔 
+                    function makeCatchStation(StationID){
+                        return function(){
+                            return new Promise(function(resolve){
+                                setTimeout(resolve,100);
+                            }).then(function(){
+                                progressFn('正在讀取 ' + StationID + ' 站的時刻表');
+                                return me.getStationTimeTable(StationID).then(function(objA){
+                                    let rawTime = objA.data;
+                                    if(rawTime && rawTime.length>0) aryTime.push(rawTime);
+                                    return rawTime;
+                                });
+                            });
+                        }
+                    }
+                    let aryStationFn = json.map(c=> {return makeCatchStation(c.StationID)})
+                    return aryStationFn.reduce(function(cur, next){
+                        return cur.then(next);
+                    }, Promise.resolve()).then(function(){
+                        return aryTime;
+                    })
+                }).then(function(pp){
+                    return pp;
+                }).catch(function(res){
+                    return res;
+                })
+            },
+            TimeSimple: function(progressFn){
+                return catchData.TimeTable(progressFn).then(function(json){
+                    progressFn('簡化輸出格式');
+                    json.forEach((station, idx, arr)=>{
+                        let rt = {};
+                        station.forEach((data, didx)=>{
+                            if(didx==0){
+                                rt.StationID = data.StationID;
+                                rt.LineID = data.LineID;
+                                rt.Direction = [[],[]];//Direction 0 與 1 直接分配到陣列的 0 跟 1
+                            }
+                            let weekStr = [data.ServiceDays.Sunday, data.ServiceDays.Monday, data.ServiceDays.Tuesday, data.ServiceDays.Wednesday, data.ServiceDays.Thursday, data.ServiceDays.Friday, data.ServiceDays.Saturday].map((day,idx)=>{return (day) ? idx.toString() : ''}).join('');
+                            let Timetables = data.Timetables.map((time)=>{return time.DepartureTime});
+                            rt.Direction[data.Direction].push({
+                                To: data.DestinationStaionID,
+                                RouteID: data.RouteID,
+                                weekStr: weekStr,
+                                Timetables: Timetables
+                            })
+                            if(data.TrainType) rt.TrainType = data.TrainType;
+                        })
+                        arr[idx] = rt;
+                    })
+                    return json;
+                })
             }
         }
         this.catchData = catchData;

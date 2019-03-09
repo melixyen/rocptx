@@ -8,8 +8,9 @@ var mrtPTXFn = new metro.baseMethod(companyTag);
 //Catch Data 資料預處理
 mrtPTXFn.catchData.config.Line_callback = function(json){
     json.forEach((Line)=>{
-        let TravelTime = Line.TravelTime, tmpA, tmpB, tmpC;
+        let TravelTime = Line.TravelTime, tmpA, tmpB, main = [];
         Line.Route.forEach((Route)=>{
+            if(main.indexOf(Route.RouteID)==-1 && Route.RouteID!='G-3' && Route.RouteID!='R-3') main.push(Route.RouteID);
             tmpA = TravelTime.find((rr)=>{ return !!(rr.RouteID==Route.RouteID)});
             let sameDir = !!(tmpA.TravelTimes[0].FromTo[0] == Route.Stations[0]);
             let RunTime = [], StopTime = [];
@@ -26,6 +27,7 @@ mrtPTXFn.catchData.config.Line_callback = function(json){
             Route.TravelTime = {RunTime:RunTime, StopTime:StopTime}
         })
         delete Line.TravelTime;
+        Line.main = main;
     })
     return json;
 }
