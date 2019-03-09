@@ -4,118 +4,11 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width; initial-scale=1.0" />
-<meta name="description" content="公車運輸 QR CODE 雲端看板" />
-<title>測試抓取用途</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+<meta name="description" content="抓取 PTX 資料工具" />
+<title>抓取 PTX 資料工具</title>
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">-->
+<link rel="stylesheet" href="rocptx_ui.css">
 <style type="text/css">
-@charset "utf-8";
-
-body {
-	font-family: "Arial", "Microsoft JhengHei";
-	font-size: 15px;;
-	margin: 0px;
-	background-color: rgb(192, 244, 247);
-}
-
-.btn1, .btn2, .btn3, .btn4, .btnBW {
-	display: inline-block;
-	padding: 5px 10px;
-	font-size: 18px;
-	border: 2px solid #35A;
-	background-color: #ACE;
-	border-radius: 10px;
-	margin: 2px 5px;
-	cursor: pointer;
-	height: 100%;
-   	-o-user-select:none; -moz-user-select: none; -ms-user-select: none; -webkit-user-select: none; user-select: none;
-}
-.btn2 {
-	border-color: #743; background-color: #fc9d9d;
-}
-.btn3 {
-	border-color: #505806; background-color: #dee97a;
-}
-.btn4 {
-	border-color: #057205; background-color: #a2ec8f;
-}
-.btnBW {
-	border-color: transparent; background-color: #FFF;
-}
-.btnBW.selected {border-color: #222;}
-
-.frame1 {
-	margin: 3px 0;
-	border-top: 1px solid #734;
-	padding: 3px 0;
-	overflow: auto;
-}
-.frameIn{
-	overflow: auto;
-	display: inline-flex;
-}
-.bs_no_select{
-   -o-user-select:none;
-   -moz-user-select: none;
-   -ms-user-select: none;
-   -webkit-user-select: none;
-   user-select: none;
-}
-
-#json_text {
-	max-width: calc(100vw - 20px);
-	width: 1000px;
-	height: calc(100vh - 200px);
-	max-height: 70vh !important;
-	font-size: 12px;
-	font-family: Arial;
-}
-
-.codeArea {
-	max-width: calc(100vw - 20px);
-	width: 1000px;
-	display: inline-block;
-	overflow: auto;
-	height: calc(100vh - 200px);
-	min-height: 400px;
-	font-size: 12px;
-	font-family: Arial;
-	margin-left: 5px;
-	border: 1px solid #222;
-}
-.codeArea pre{ margin:0}
-.codeArea .hljs {
-	background-color: #FFF;
-}
-
-.mask_ui{
-	display: block;
-	position: fixed;
-	left: 0; top: 0; width:100%; height:100%;
-	overflow: hidden;
-	background-color: rgba(230,230,230,0.6);
-	z-index: 1000;
-}
-.mask_text{
-	display: inline-block;
-	padding: 5px 10px;
-	position: absolute;
-	left: 0px;
-	bottom: 0px;
-	font-size: 16px;
-	background-color: #23A;
-	color: #FFF;
-	min-height: 20px;
-}
-
-
-@media screen and (max-width: 679px) {
-	.btn1, .btn2, .btn3, .btn4, .btnBW {
-		font-size: 15px;
-		padding: 3px 6px;
-	}
-}
-
-
 </style>
 
 <!--
@@ -124,7 +17,7 @@ body {
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
 -->
 
-<script type="text/javascript" src="../../railtime/libs/vue.js"></script>
+<script type="text/javascript" src="http://melixyen.github.io/railtime/libs/vue.js"></script>
 <script type="text/javascript">
 Vue.config.productionTip=false;
 </script>
@@ -133,6 +26,7 @@ Vue.config.productionTip=false;
 <script type="text/javascript" src="../../railtime/ttlib/data.js"></script>
 -->
 <script type="text/javascript" src="../dist/ptx.js"></script>
+<script type="text/javascript" src="top_link.js"></script>
 <script type="text/javascript">
 
 
@@ -469,6 +363,7 @@ var ptx = rocptx;
 	BB.initFn = function(){
 		//hljs.initHighlightingOnLoad();
 		var tpl = Vue.compile('<div id="main">' + 
+			'<vcmp_top_link_bar></vcmp_top_link_bar>' +
 			'<vcmp_menu_bar id="menuBar" v-on:showPanelName="changeName"></vcmp_menu_bar>' +
 			'<div id="panel">' +
 				'<vcmp_trtc_panel v-bind:show_trtc="(panelName==\'trtc\')" v-if="(panelName==\'trtc\')" v-on:printj="printJSON" />' +
@@ -486,10 +381,11 @@ var ptx = rocptx;
 				//'<div class="btn2" v-show="!flagShowTextArea" v-on:click="flagShowTextArea=true">顯示文字編輯器</div>' +
 				//'<div class="btn2" v-show="flagShowTextArea" v-on:click="flagShowTextArea=false">顯示程式語法</div>' +
 			'</div>' +
-			'<div id="statusBar"></div>' +
+			'<vcmp_bottom_area_div></vcmp_bottom_area_div>' +
 		'</div>');
 		BB.main = new Vue({
 			render: tpl.render,
+			staticRenderFns: tpl.staticRenderFns,
 			el: '#main',
 			data: {
 				panelName: '',

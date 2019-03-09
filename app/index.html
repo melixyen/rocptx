@@ -1,0 +1,49 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="zh-TW" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+<meta name="description" content="PTX 函式庫導用工具" />
+<title>PTX 函式庫導用工具</title>
+<link rel="stylesheet" href="rocptx_ui.css">
+
+<script type="text/javascript" src="http://melixyen.github.io/railtime/libs/vue.js"></script>
+<script type="text/javascript">
+Vue.config.productionTip=false;
+</script>
+
+<script type="text/javascript" src="../dist/ptx.js"></script>
+<script type="text/javascript" src="top_link.js"></script>
+<script type="text/javascript">
+
+var BB = {
+	initFn: function(){
+		var tpl = Vue.compile('<div id="main">' + 
+			'<vcmp_top_link_bar></vcmp_top_link_bar>' +
+			'<div>這是用來開發 PTX 交通查詢程式的導用工具</div>' +
+			'<vcmp_bottom_area_div></vcmp_bottom_area_div>' +
+		'</div>');
+		BB.main = new Vue({
+			render: tpl.render,
+			staticRenderFns: tpl.staticRenderFns,
+			el: '#main',
+			data: {
+			},
+			methods: {
+			},
+			watch: {
+			}
+		});
+	}
+}
+
+</script>
+<!-- -->
+<!-- -->
+</head>
+<body onload="BB.initFn()">
+	<div id="main"></div>
+	<div id="mask" class="mask"><div class="text"></div></div>
+</body>
+</html>

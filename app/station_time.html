@@ -1,0 +1,262 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="zh-TW" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+<meta name="description" content="抓取 PTX 資料工具" />
+<title>抓取 PTX 資料工具</title>
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">-->
+<link rel="stylesheet" href="rocptx_ui.css">
+
+<script type="text/javascript" src="http://melixyen.github.io/railtime/libs/vue.js"></script>
+<script type="text/javascript">
+Vue.config.productionTip=false;
+</script>
+
+<script type="text/javascript" src="../dist/ptx.js"></script>
+<script type="text/javascript" src="../dist/line_time.js"></script>
+<script type="text/javascript" src="top_link.js"></script>
+<script type="text/javascript">
+
+
+var BB = {
+	panel: {}
+};
+var TT = {ptx: rocptx}
+var ptx = rocptx;
+(function(){
+	var CONST_DEFAULT_LINE_COLOR = "#555555";
+	function loading(cmd, text){
+		var maskID = 'functional_mask_out';
+		var textID = 'functional_mask_text';
+		var dom = false, textDOM = false;
+		if(!document.getElementById(maskID)){
+			dom = document.createElement('div');
+			dom.id = maskID;
+			dom.className = 'mask_ui';
+			document.body.appendChild(dom);
+		}else{
+			dom = document.getElementById(maskID);
+		}
+		if(!document.getElementById(textID)){
+			textDOM = document.createElement('div');
+			textDOM.id = textID;
+			textDOM.className = 'mask_text';
+			dom.appendChild(textDOM);
+		}else{
+			textDOM = document.getElementById(textID);
+		}
+
+		if(cmd==0){
+			dom.style.display = 'none';
+		}else{
+			dom.style.display = '';
+		}
+		if(text){
+			textDOM.innerHTML = text;
+			textDOM.style.display = '';
+		}else{
+			textDOM.innerHTML = '';
+			textDOM.style.display = 'none';
+		}
+	}
+	BB.loading = loading;
+	var menuBarTpl =  Vue.compile('<div id="menuBar" class="bs_no_select">' +
+		'<div class="btn1" v-on:click="changePanel(\'trtc\')">台北捷運</div>' +
+		'<div class="btn1" v-on:click="changePanel(\'krtc\')">高雄捷運</div>' +
+		'<div class="btn1" v-on:click="changePanel(\'tymetro\')">桃園捷運</div>' +
+	'</div>');
+	Vue.component('vcmp_menu_bar', {
+		render: menuBarTpl.render,
+		staticRenderFns: menuBarTpl.staticRenderFns,
+		data: function(){return{
+			flagShowCommTool: false
+		}},
+		methods: {
+			changePanel: function(name){
+				this.$emit('showPanelName',name);
+			}
+		}
+	});
+
+	function makeMrtPanel(compName){
+		var ptxFn = TT.ptx[compName];
+		var datax = TT.ptx.datax[compName];
+		ptxFn.commandPath = 'rocptx.' + compName;
+		var mrt = Vue.extend({
+			template: '<div id="' + compName + '_panel" class="" v-if="show_' + compName + '">' +
+				'<div id="' + compName + '_line" class="frame1">' +
+					'<div class="btnBW" v-for="line in aryLINE" v-bind:style="lineStyle(line)" v-on:click="getStationOfLine(line)">{{ line.LineName.Zh_tw }}</div>' +
+				'</div>' +
+				//===車站陣列===
+				'<div id="' + compName + '_station" class="frame1" v-show="aryStationOfLine.length >0 ">' +
+					'<div class="frameIn">' +
+						'<div class="btnBW" v-for="station in aryStationOfLine" v-bind:style="stationStyle(station)" v-on:click="doStation(station)">{{ station.name }}</div>' +
+					'</div>' +
+				'</div>' +
+				//===選星期===
+				'<div id="' + compName + '_func_station" class="frame1" v-show="nowStationID != \'\'">' +
+					'<div class="frameIn">' +
+						'<div class="btn2" v-on:click="getStationTimeTable(0)">星期日</div>' +
+						'<div class="btn2" v-on:click="getStationTimeTable(1)">星期一</div>' +
+						'<div class="btn2" v-on:click="getStationTimeTable(2)">星期二</div>' +
+						'<div class="btn2" v-on:click="getStationTimeTable(3)">星期三</div>' +
+						'<div class="btn2" v-on:click="getStationTimeTable(4)">星期四</div>' +
+						'<div class="btn2" v-on:click="getStationTimeTable(5)">星期五</div>' +
+						'<div class="btn2" v-on:click="getStationTimeTable(6)">星期六</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>',
+			props: ['show_' + compName + ''],
+			data: function(){
+				return {
+					aryLINE: [],
+					aryStationOfLine: [],
+					lineColor: '',
+					nowLineID: '',
+					nowStationID: '',
+					flagShowPanel: false,
+					flagShowLine: false,
+					flagShowStation: false
+				}
+			},
+			methods: {
+				clearAryData: function(ary){
+					for(var i=0; i<ary.length; i++){
+						this[ary[i]] = [];
+					}
+				},
+				clearBarReset: function(cmd){
+					switch(cmd){
+						case 'line':
+							this.nowStationID = '';
+						break;
+					}
+				},
+				doStation: function(station){
+					this.nowStationID = station.StationID;
+				},
+				doLoad: function(){loading(1);},
+				unload: function(){loading(0);},
+				getStationOfLine: function(line){
+					var LineID = line.LineID;
+					var me = this;
+					me.clearBarReset('line');
+					me.clearAryData(['aryStationOfLine']);
+					me.lineColor = line.LineColor || CONST_DEFAULT_LINE_COLOR;
+					me.nowLineID = line.LineID;
+					
+					var fnID = TT.ptx.metro.getStationOnWhatLineID;
+					var arySt = datax.station.filter(function(c){ return !!(fnID(c.StationID)==LineID)})
+					me.aryStationOfLine = arySt;
+				},
+				getStationTimeTable: function(w){
+					var me = this;
+					//me.doLoad();
+					//me.$emit('printj', res.data);
+				},
+				lineStyle: function(line){
+					var lineColor = line.LineColor || CONST_DEFAULT_LINE_COLOR;
+					var rt = 'color:#FFF; background-color:' + lineColor + ';';
+					if(line.LineID==this.nowLineID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
+					return rt;
+				},
+				stationStyle: function(station){
+					var rt = 'color:#FFF; background-color:' + this.lineColor + ';';
+					if(station.StationID==this.nowStationID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
+					return rt;
+				},
+				readLine: function(){
+					this.aryLINE = datax.line;
+				}
+			},
+			mounted: function() {
+				this.readLine();
+				BB.panel[compName] = this;
+			},
+			destroy: function() {
+			}
+		});
+		return Vue.component('vcmp_' + compName + '_panel', mrt);
+	}
+	var trtcPanel = makeMrtPanel('trtc');
+	var krtcPanel = makeMrtPanel('krtc');
+	var tymetroPanel = makeMrtPanel('tymetro');
+
+	BB.initFn = function(){
+		//hljs.initHighlightingOnLoad();
+		var tpl = Vue.compile('<div id="main">' + 
+			'<vcmp_top_link_bar></vcmp_top_link_bar>' +
+			'<vcmp_menu_bar id="menuBar" v-on:showPanelName="changeName"></vcmp_menu_bar>' +
+			'<div id="panel">' +
+				'<vcmp_trtc_panel v-bind:show_trtc="(panelName==\'trtc\')" v-if="(panelName==\'trtc\')" v-on:printj="printJSON" />' +
+				'<vcmp_krtc_panel v-bind:show_krtc="(panelName==\'krtc\')" v-if="(panelName==\'krtc\')" v-on:printj="printJSON" />' +
+				'<vcmp_tymetro_panel v-bind:show_tymetro="(panelName==\'tymetro\')" v-if="(panelName==\'tymetro\')" v-on:printj="printJSON" />' +
+				'<vcmp_klrt_panel v-bind:show_klrt="(panelName==\'klrt\')" v-if="(panelName==\'klrt\')" v-on:printj="printJSON" />' +
+			'</div>' +
+			'<div id="output">' +
+				'<textarea id="json_text" v-show="flagShowTextArea">{{json_text}}</textarea>' +
+				//'<div class="codeArea" v-show="!flagShowTextArea"><pre><code class="json">{{json_text}}</code></pre></div>' +
+			'</div>' +
+			'<div class="bottom">' +
+				'<div class="btn2" v-on:click="toConsole()">將 Table 印到 console </div>' +
+				'<div class="btn2" v-on:click="toFile()">下載 JSON </div>' +
+				//'<div class="btn2" v-show="!flagShowTextArea" v-on:click="flagShowTextArea=true">顯示文字編輯器</div>' +
+				//'<div class="btn2" v-show="flagShowTextArea" v-on:click="flagShowTextArea=false">顯示程式語法</div>' +
+			'</div>' +
+			'<vcmp_bottom_area_div></vcmp_bottom_area_div>' +
+		'</div>');
+		BB.main = new Vue({
+			render: tpl.render,
+			staticRenderFns: tpl.staticRenderFns,
+			el: '#main',
+			data: {
+				panelName: '',
+				flagShowTextArea: true,
+				json_data: [],
+				json_text: ''
+			},
+			methods: {
+				changeName: function(name){
+					this.panelName = name;
+					BB.jsonFileName = name + '.json';
+				},
+				printJSON: function(json){
+					this.json_data = json;
+					this.json_text = JSON.stringify(json, undefined, 4);
+				},
+				toConsole: function(){
+					console.info(TT.ptx.common.clone(this.json_data));
+				},
+				toFile: function(){
+					var blob = new Blob([JSON.stringify(this.json_data)], { type:"application/json" });
+					var blobUrl = URL.createObjectURL(blob);
+					var fileName = BB.jsonFileName;
+					var a = document.createElement('A');
+					a.href = blobUrl;
+					a.download = fileName;
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+				}
+			},
+			watch: {
+				json_text: function(){
+					//setTimeout(()=>{hljs.initHighlighting.call();},500);
+				}
+			}
+		});
+	}
+	return BB;
+})();
+
+</script>
+<!-- -->
+<!-- -->
+</head>
+<body onload="BB.initFn()">
+	<div id="main"></div>
+	<div id="mask" class="mask"><div class="text"></div></div>
+</body>
+</html>
