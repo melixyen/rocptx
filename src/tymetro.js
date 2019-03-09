@@ -8,7 +8,8 @@ var mrtPTXFn = new metro.baseMethod(companyTag);
 //修正桃園捷運的 function
 mrtPTXFn.catchData.config.Line_S2STravelTime_BackTag = ['LineID','RouteID','TrainType','LineNo','TravelTimes'];
 mrtPTXFn.catchData.config.Line_Frequency_BackTag = ['LineID','RouteID','TrainType','LineNo','ServiceDays','OperationTime','Headways'];
-mrtPTXFn.catchData.config.Line_FirstLastTimetable_BackTag = ['LineID','StationID','TrainType','DestinationStaionID','FirstTrainTime','LastTrainTime'];
+mrtPTXFn.catchData.config.Station_FirstLastTimetable_BackTag = ['LineID','StationID','TrainType','DestinationStaionID','FirstTrainTime','LastTrainTime'];
+mrtPTXFn.catchData.config.Station_Fare_BackTag = ['OriginStationID','DestinationStationID','Fares','TrainType']
 //Catch Data 資料預處理
 mrtPTXFn.catchData.config.Line_callback = function(json){
     json.forEach((Line)=>{

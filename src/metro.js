@@ -99,7 +99,7 @@ function promiseCatchLinePredo(data, backTag, otherDo){
     });
 
 }
-function promiseCatchStationCombine(json, data, combineName, StationID='StationID', mode='array'){
+function promiseCatchStationCombine(json, data, combineName, StationID='StationID', mode='array', otherDo){
     json.forEach(function(c){
         if(mode=='array') c[combineName] = [];
     });
@@ -107,6 +107,7 @@ function promiseCatchStationCombine(json, data, combineName, StationID='StationI
         var Obj = common.findArrayTarget(json, function(item){
             return !!(item.StationID==c[StationID]);
         });
+        if(typeof(otherDo)=='function') c = otherDo(c);
         if(mode=='array') Obj[combineName].push(c);
     })
     return json;
@@ -328,7 +329,8 @@ class baseMethod {
                     return json;
                 },
                 Station_BackTag: ['StationID','StationName','StationPosition'],
-                Line_FirstLastTimetable_BackTag: ['StationID','LineID','DestinationStaionID','FirstTrainTime','LastTrainTime']
+                Station_FirstLastTimetable_BackTag: ['StationID','LineID','DestinationStaionID','FirstTrainTime','LastTrainTime'],
+                Station_Fare_BackTag: ['OriginStationID','DestinationStationID','Fares']
             },
             Line: function(progressFn){
                 if(typeof(progressFn)!='function') progressFn = (msg)=>{};
@@ -418,7 +420,7 @@ class baseMethod {
             },
             Station: function(progressFn){
                 if(typeof(progressFn)!='function') progressFn = (msg)=>{};
-                //路線包抓法 1.Line  2.合併路由和轉乘到 Line  3.合併站間距與班距到路由
+                //車站包抓法  1.取得所有車站資料 2.合併首末班車
                 progressFn('取得車站中');
                 let stationBackTag = catchData.config.Station_BackTag;
                 var atStation = me._Station({selectField: stationBackTag})
@@ -438,17 +440,45 @@ class baseMethod {
                     return json;
                 }).then(function(json){//抓首末班車
                     progressFn('取得首末班車');
-                    let backTag = catchData.config.Line_FirstLastTimetable_BackTag;
+                    let backTag = catchData.config.Station_FirstLastTimetable_BackTag;
                     return me._FirstLastTimetable({selectField:backTag})
                     .then(function(res){//整理
                         return promiseCatchLinePredo(res.data, backTag);
                     }).then(function(data){//合併
-                        return promiseCatchStationCombine(json, data, 'FirstLast');
+                        let json2 = promiseCatchStationCombine(json, data, 'FirstLast','StationID','array', function(time){
+                            let rtObj = {
+                                To: time.DestinationStaionID,
+                                Time: [time.FirstTrainTime, time.LastTrainTime]
+                            }
+                            if(typeof(time.TrainType)!='undefined') rtObj.TrainType = time.TrainType;
+                            return rtObj;
+                        });
+                        return json2
                     }).catch(function(){
                         return json;
                     })
                 })
                 return atStation;
+            },
+            Fare: function(progressFn){
+                if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+                //票價包抓法  1.抓所有 ODFare  2.整理輸出全票票價就好
+                progressFn('取得車站中');
+                let backTag = catchData.config.Station_Fare_BackTag;
+                return me._ODFare({selectField: backTag})
+                .then(function(res){//整理
+                    return promiseCatchLinePredo(res.data, backTag);
+                }).then(function(data){//合併
+                    let json2 = {}
+                    data.forEach(function(st){
+                        if(!json2[st.OriginStationID]) json2[st.OriginStationID] = {}
+                        let tmpA = st.Fares.find((fp)=>{return !!(fp.TicketType==1 && fp.FareClass==1)})
+                        if(tmpA) json2[st.OriginStationID][st.DestinationStationID] = tmpA.Price;
+                    })
+                    return json2
+                }).catch(function(res){
+                    return res;
+                })
             }
         }
         this.catchData = catchData;
