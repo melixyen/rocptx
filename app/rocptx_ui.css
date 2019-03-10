@@ -11,7 +11,7 @@ a {
 	color: rgb(34, 51, 238);
 }
 
-.btn1, .btn2, .btn3, .btn4, .btnBW {
+.btn1, .btn2, .btn3, .btn4, .btnBW, .btnBase{
 	display: inline-block;
 	padding: 5px 10px;
 	font-size: 18px;
@@ -36,6 +36,11 @@ a {
 	border-color: transparent; background-color: #FFF;
 }
 .btnBW.selected {border-color: #222;}
+
+.btnBase.week{border-color: #22A; background-color:#88F;}
+.btnBase.w0{border-color: #A22; background-color:#E77;}
+.btnBase.w6{border-color: #2A2; background-color:#7E7;}
+.btnBase.week.selected, .btnBase.w0.selected, .btnBase.w6.selected{border-color: #f3ef20;}
 
 .frame1 {
 	margin: 3px 0;

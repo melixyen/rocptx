@@ -82,7 +82,7 @@
         rt = parseInt(aryA[0], 10) * 3600 + parseInt(aryA[1], 10) * 60 + parseInt(aryA[2], 10);
       }
 
-      if (offsetTomorrow && rt < TT.fn.transTime2Sec(TT.fn.getDefaultDayLastTime())) {
+      if (offsetTomorrow && rt < this.transTime2Sec(this.defaultCrossDayTime)) {
         rt = rt + 86400;
       }
 
@@ -1586,6 +1586,13 @@
     klrt: 'KLRT',
     krtc: 'KRTC'
   };
+
+  function companyTagFind(str) {
+    return Object.keys(companyTag).find(function (c) {
+      return !!(str == companyTag[c]);
+    });
+  }
+
   var getPTX = ptx.getPromiseURL;
 
   function setDefaultCfg() {
@@ -1719,6 +1726,7 @@
     _classCallCheck(this, baseMethod);
 
     var me = this;
+    var compName = companyTagFind(companyTag);
     this.companyTag = companyTag;
     ptxAutoMetroFunctionKey.forEach(function (fn) {
       _this[fn] = function (cfg) {
@@ -1922,7 +1930,7 @@
 
     for (var k in methodObj) {
       this[k] = methodObj[k];
-    } // ==== 整合抓資料 Function ====
+    } // ==== 整合抓資料 Function 以及抓完後的固定資料存取 Function ====
 
 
     var catchData = {
@@ -1943,6 +1951,169 @@
         Station_BackTag: ['StationID', 'StationName', 'StationPosition'],
         Station_FirstLastTimetable_BackTag: ['StationID', 'LineID', 'DestinationStaionID', 'FirstTrainTime', 'LastTrainTime'],
         Station_Fare_BackTag: ['OriginStationID', 'DestinationStationID', 'Fares']
+      },
+      calcStationDayTimeBySimple: function calcStationDayTimeBySimple(timeObj) {
+        var w = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
+        //運用 TimeSimple Format 計算一個車站每週每日往兩方向的所有班次資訊 , w for weekdays
+        w = w.toString();
+        var regW = new RegExp(w);
+        if (!timeObj) return {
+          error: "No time data"
+        };
+        var mainSub = catchData.getDataXLineMainSub(timeObj.LineID);
+        var hasSubLine = !!(mainSub.sub.length > 0); //如果這路線有分主幹線，要區分主幹線
+        //過濾要找的星期
+        //+++++++++++++++++++++++++++++++++++++++++++特殊排除規則待 PTX Bug Fix++++++++++++++++++++++++
+
+        function specialNeedFilter(Route) {
+          if (w == '6' && /^R-/.test(Route.RouteID) && /0/.test(Route.weekStr)) return true;
+          return false;
+        } //+++++++++++++++++++++++++++++++++++++++++++特殊排除規則待 PTX Bug Fix End++++++++++++++++++++++++
+
+
+        function procTIme(rollTime) {
+          var Full = [],
+              Simple = [];
+          rollTime.forEach(function (c) {
+            c.Timetables.forEach(function (t) {
+              if (Simple.indexOf(t) == -1) {
+                Simple.push(t);
+                var tmpRG = {
+                  RouteID: c.RouteID,
+                  To: c.To,
+                  Time: t,
+                  tt_sortTime: CM.transTime2Sec(t, true)
+                };
+                if (c.TrainType) tmpRG.TrainType = c.TrainType;
+                Full.push(tmpRG);
+              }
+            });
+          });
+          Full.sort(ptx.sortByTTSortTime);
+          Simple = Full.map(function (c) {
+            return c.Time;
+          });
+          return {
+            Route: rollTime,
+            Full: Full,
+            Simple: Simple,
+            isEmpty: !!(rollTime.length == 0)
+          };
+        }
+
+        var SubDirTime = false,
+            isSubOfStation = false;
+        var MainDirTime = timeObj.Direction.map(function (DirTime) {
+          var rollTime = DirTime.filter(function (c) {
+            if (hasSubLine && mainSub.main.indexOf(c.RouteID) == -1) isSubOfStation = true;
+            return mainSub.main.indexOf(c.RouteID) != -1 && regW.test(c.weekStr) && !specialNeedFilter(c);
+          });
+          return procTIme(rollTime);
+        });
+        if (MainDirTime[0].isEmpty && MainDirTime[1].isEmpty) MainDirTime = false;
+
+        if (hasSubLine && isSubOfStation) {
+          SubDirTime = timeObj.Direction.map(function (DirTime) {
+            var backTime = DirTime.filter(function (c) {
+              return mainSub.sub.indexOf(c.RouteID) != -1 && regW.test(c.weekStr) && !specialNeedFilter(c);
+            });
+            return procTIme(backTime);
+          });
+        } //整理目標方向車站
+
+
+        var mainTo = [[], []],
+            subTo = [[], []];
+
+        if (MainDirTime) {
+          MainDirTime[0].Route.forEach(function (c) {
+            if (mainTo[0].indexOf(c.To) == -1) {
+              mainTo[0].push(c.To);
+            }
+          });
+          MainDirTime[1].Route.forEach(function (c) {
+            if (mainTo[1].indexOf(c.To) == -1) {
+              mainTo[1].push(c.To);
+            }
+          });
+        }
+
+        if (SubDirTime) {
+          SubDirTime[0].Route.forEach(function (c) {
+            if (subTo[0].indexOf(c.To) == -1) {
+              subTo[0].push(c.To);
+            }
+          });
+          SubDirTime[1].Route.forEach(function (c) {
+            if (subTo[1].indexOf(c.To) == -1) {
+              subTo[1].push(c.To);
+            }
+          });
+        }
+
+        return {
+          StationID: timeObj.StationID,
+          LineID: timeObj.LineID,
+          main: MainDirTime,
+          sub: SubDirTime,
+          mainTo: mainTo,
+          subTo: subTo,
+          week: w
+        };
+      },
+      getDataXLineObj: function getDataXLineObj(LineID) {
+        return ptx.datax[compName].line.find(function (c) {
+          return !!(c.LineID == LineID);
+        });
+      },
+      getDataXLineMainSub: function getDataXLineMainSub(lineObj) {
+        lineObj = (typeof line === "undefined" ? "undefined" : _typeof(line)) == 'object' ? lineObj : catchData.getDataXLineObj(lineObj);
+        var main = [],
+            sub = [];
+        var aryRouteID = lineObj.Route.map(function (c) {
+          return c.RouteID;
+        }).filter(function (c, idx, arr) {
+          return arr.indexOf(c) == idx;
+        });
+
+        if (lineObj.main) {
+          main = lineObj.main;
+          sub = aryRouteID.filter(function (c) {
+            return main.indexOf(c) == -1;
+          });
+        } else {
+          main = aryRouteID;
+        }
+
+        return {
+          main: main,
+          sub: sub
+        };
+      },
+      getDataXRouteDirectionInfo: function getDataXRouteDirectionInfo(LineID, RouteID, Direction) {
+        var lineObj = catchData.getDataXLineObj(LineID);
+        return lineObj.Route.find(function (c) {
+          return c.RouteID == RouteID && c.Direction == Direction;
+        });
+      },
+      getDataXRouteMainTerminal: function getDataXRouteMainTerminal(LineID) {
+        var lineObj = catchData.getDataXLineObj(LineID);
+        var r = lineObj.Route[0].Stations;
+        return [r[0], r[r.length - 1]];
+      },
+      getDataXStationData: function getDataXStationData(StationID) {
+        return ptx.datax[compName].station.find(function (c) {
+          return !!(c.StationID == StationID);
+        });
+      },
+      getDataXStationName: function getDataXStationName(StationID, isEn) {
+        var st = catchData.getDataXStationData(StationID);
+        return isEn ? st.ename : st.name;
+      },
+      getStationByTimeSimpleArray: function getStationByTimeSimpleArray(StationID, ary) {
+        return ary.find(function (c) {
+          return c.StationID == StationID;
+        });
       },
       Line: function Line(progressFn) {
         if (typeof progressFn != 'function') progressFn = function progressFn(msg) {}; //路線包抓法 1.Line  2.合併路由和轉乘到 Line  3.合併站間距與班距到路由
@@ -2182,16 +2353,20 @@
               var weekStr = [data.ServiceDays.Sunday, data.ServiceDays.Monday, data.ServiceDays.Tuesday, data.ServiceDays.Wednesday, data.ServiceDays.Thursday, data.ServiceDays.Friday, data.ServiceDays.Saturday].map(function (day, idx) {
                 return day ? idx.toString() : '';
               }).join('');
+              var TrainType = undefined;
               var Timetables = data.Timetables.map(function (time) {
+                if (time.TrainType) {
+                  TrainType = time.TrainType;
+                }
                 return time.DepartureTime;
               });
               rt.Direction[data.Direction].push({
                 To: data.DestinationStaionID,
                 RouteID: data.RouteID,
                 weekStr: weekStr,
+                TrainType: TrainType,
                 Timetables: Timetables
               });
-              if (data.TrainType) rt.TrainType = data.TrainType;
             });
             arr[idx] = rt;
           });

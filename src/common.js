@@ -36,7 +36,7 @@ var CM = {
             rt = parseInt(aryA[0],10) * 3600 + parseInt(aryA[1],10) * 60 + parseInt(aryA[2],10);
         }
         
-        if(offsetTomorrow && rt < TT.fn.transTime2Sec(TT.fn.getDefaultDayLastTime())){
+        if(offsetTomorrow && rt < this.transTime2Sec(this.defaultCrossDayTime)){
             rt = rt + 86400;
         }
         return rt;

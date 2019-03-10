@@ -27,6 +27,7 @@ const companyTag = {
     klrt: 'KLRT',
     krtc: 'KRTC'
 }
+function companyTagFind(str){return Object.keys(companyTag).find((c)=>{return !!(str==companyTag[c]);})}
 
 let getPTX = ptx.getPromiseURL;
 
@@ -135,6 +136,7 @@ metro.ptxAutoMetroFunctionKey = ptxAutoMetroFunctionKey;
 class baseMethod {
     constructor(companyTag) {
         var me = this;
+        let compName = companyTagFind(companyTag);
         this.companyTag = companyTag;
         ptxAutoMetroFunctionKey.forEach(fn=>{
             this[fn] = function(cfg){return metro[fn](companyTag, cfg)};
@@ -314,7 +316,7 @@ class baseMethod {
             this[k] = methodObj[k];
         }
 
-        // ==== 整合抓資料 Function ====
+        // ==== 整合抓資料 Function 以及抓完後的固定資料存取 Function ====
         let catchData = {
             config: {
                 Line_BackTag: ['LineID','LineName','LineColor','IsBranch'],
@@ -331,6 +333,105 @@ class baseMethod {
                 Station_BackTag: ['StationID','StationName','StationPosition'],
                 Station_FirstLastTimetable_BackTag: ['StationID','LineID','DestinationStaionID','FirstTrainTime','LastTrainTime'],
                 Station_Fare_BackTag: ['OriginStationID','DestinationStationID','Fares']
+            },
+            calcStationDayTimeBySimple: function(timeObj, w=2){//運用 TimeSimple Format 計算一個車站每週每日往兩方向的所有班次資訊 , w for weekdays
+                w = w.toString();
+                let regW = new RegExp(w);
+                if(!timeObj) return {error: "No time data"};
+                var mainSub = catchData.getDataXLineMainSub(timeObj.LineID);
+                let hasSubLine = !!(mainSub.sub.length>0);//如果這路線有分主幹線，要區分主幹線
+                //過濾要找的星期
+
+                //+++++++++++++++++++++++++++++++++++++++++++特殊排除規則待 PTX Bug Fix++++++++++++++++++++++++
+                function specialNeedFilter(Route){
+                    if(w=='6' && /^R-/.test(Route.RouteID) && /0/.test(Route.weekStr)) return true;
+                    return false;
+                }
+                //+++++++++++++++++++++++++++++++++++++++++++特殊排除規則待 PTX Bug Fix End++++++++++++++++++++++++
+                function procTIme(rollTime){
+                    let Full = [], Simple = [];
+                    rollTime.forEach((c)=>{
+                        c.Timetables.forEach(function(t){
+                            if(Simple.indexOf(t)==-1){
+                                Simple.push(t);
+                                let tmpRG = {
+                                    RouteID: c.RouteID,
+                                    To: c.To,
+                                    Time: t,
+                                    tt_sortTime: common.transTime2Sec(t, true)
+                                }
+                                if(c.TrainType) tmpRG.TrainType = c.TrainType;
+                                Full.push(tmpRG);
+                            }
+                        })
+                    })
+                    Full.sort(ptx.sortByTTSortTime);
+                    Simple = Full.map(c=>c.Time);
+                    return {Route:rollTime, Full:Full, Simple:Simple, isEmpty:!!(rollTime.length==0)}
+                }
+                let SubDirTime = false, isSubOfStation = false;
+                let MainDirTime = timeObj.Direction.map((DirTime)=>{
+                    let rollTime = DirTime.filter((c)=>{
+                        if(hasSubLine && mainSub.main.indexOf(c.RouteID)==-1) isSubOfStation = true;
+                        return mainSub.main.indexOf(c.RouteID)!=-1 && regW.test(c.weekStr) && !specialNeedFilter(c);
+                    })
+                    return procTIme(rollTime);
+                })
+                if(MainDirTime[0].isEmpty && MainDirTime[1].isEmpty) MainDirTime = false;
+                
+                if(hasSubLine && isSubOfStation){
+                    SubDirTime = timeObj.Direction.map((DirTime)=>{
+                        let backTime = DirTime.filter((c)=>{
+                            return mainSub.sub.indexOf(c.RouteID)!=-1 && regW.test(c.weekStr) && !specialNeedFilter(c);
+                        })
+                        return procTIme(backTime);
+                    })
+                }
+                //整理目標方向車站
+                let mainTo = [[],[]], subTo = [[],[]];
+                if(MainDirTime){
+                    MainDirTime[0].Route.forEach((c)=>{if(mainTo[0].indexOf(c.To)==-1){mainTo[0].push(c.To);}})
+                    MainDirTime[1].Route.forEach((c)=>{if(mainTo[1].indexOf(c.To)==-1){mainTo[1].push(c.To);}})
+                }
+                if(SubDirTime){
+                    SubDirTime[0].Route.forEach((c)=>{if(subTo[0].indexOf(c.To)==-1){subTo[0].push(c.To);}})
+                    SubDirTime[1].Route.forEach((c)=>{if(subTo[1].indexOf(c.To)==-1){subTo[1].push(c.To);}})
+                }
+                return {StationID:timeObj.StationID, LineID:timeObj.LineID, main:MainDirTime, sub:SubDirTime, mainTo:mainTo, subTo:subTo, week:w};
+            },
+            getDataXLineObj: function(LineID){
+                return ptx.datax[compName].line.find((c)=>{return !!(c.LineID==LineID)})
+            },
+            getDataXLineMainSub: function(lineObj){
+                lineObj = (typeof(line)=='object') ? lineObj : catchData.getDataXLineObj(lineObj);
+                var main = [], sub = [];
+                var aryRouteID = lineObj.Route.map(c=>{return c.RouteID}).filter((c,idx,arr)=>{return arr.indexOf(c)==idx;});
+                if(lineObj.main){
+                    main = lineObj.main;
+                    sub = aryRouteID.filter((c)=>{return main.indexOf(c)==-1})
+                }else{
+                    main = aryRouteID
+                }
+                return {main:main, sub:sub};
+            },
+            getDataXRouteDirectionInfo: function(LineID, RouteID, Direction){
+                let lineObj = catchData.getDataXLineObj(LineID);
+                return lineObj.Route.find((c)=>{return c.RouteID==RouteID && c.Direction==Direction})
+            },
+            getDataXRouteMainTerminal: function(LineID){
+                let lineObj = catchData.getDataXLineObj(LineID);
+                let r = lineObj.Route[0].Stations;
+                return [r[0], r[r.length-1]];
+            },
+            getDataXStationData: function(StationID){
+                return ptx.datax[compName].station.find((c)=>{return !!(c.StationID==StationID)})
+            },
+            getDataXStationName: function(StationID, isEn){
+                var st = catchData.getDataXStationData(StationID);
+                return (isEn) ? st.ename : st.name;
+            },
+            getStationByTimeSimpleArray: function(StationID, ary){
+                return ary.find((c)=>c.StationID == StationID);
             },
             Line: function(progressFn){
                 if(typeof(progressFn)!='function') progressFn = (msg)=>{};
@@ -528,14 +629,15 @@ class baseMethod {
                                 rt.Direction = [[],[]];//Direction 0 與 1 直接分配到陣列的 0 跟 1
                             }
                             let weekStr = [data.ServiceDays.Sunday, data.ServiceDays.Monday, data.ServiceDays.Tuesday, data.ServiceDays.Wednesday, data.ServiceDays.Thursday, data.ServiceDays.Friday, data.ServiceDays.Saturday].map((day,idx)=>{return (day) ? idx.toString() : ''}).join('');
-                            let Timetables = data.Timetables.map((time)=>{return time.DepartureTime});
+                            let TrainType = undefined;
+                            let Timetables = data.Timetables.map((time)=>{if(time.TrainType){TrainType = time.TrainType;}; return time.DepartureTime});
                             rt.Direction[data.Direction].push({
                                 To: data.DestinationStaionID,
                                 RouteID: data.RouteID,
                                 weekStr: weekStr,
+                                TrainType: TrainType,
                                 Timetables: Timetables
                             })
-                            if(data.TrainType) rt.TrainType = data.TrainType;
                         })
                         arr[idx] = rt;
                     })

@@ -8,6 +8,102 @@
 <title>抓取 PTX 資料工具</title>
 <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">-->
 <link rel="stylesheet" href="rocptx_ui.css">
+<style type="text/css">
+.timetb{
+	width: calc(100vw - 20px);
+	box-sizing: border-box;
+	border: 5px solid transparent;
+}
+.timetb .top{
+	//height: 34px;
+	font-size: 21px;
+	//display: flex;
+	overflow: auto;
+}
+.timetb .top > div{
+	line-height: 24px;
+	box-sizing: border-box;
+	padding: 5px 20px;
+	white-space: nowrap;
+	word-break: keep-all;
+	border-bottom: 2px solid rgba(30,30,30,0.5);
+	border-top: 2px solid transparent;
+	float:left;
+}
+.timetb .top > div.station_name, .timetb .top > div.to_name{
+	color: #FFF;
+}
+.timetb .top > div.week_day{
+	color: #FFF;
+	background-color: #333;
+}
+.timetb .top > div.to_name{
+	border: 2px solid transparent;
+	border-radius: 5px 5px 0px 0px;
+	border-bottom: 2px solid rgba(30,30,30,0.5);
+	cursor: pointer;
+}
+.timetb .top > div.to_name.selected{
+	border: 2px solid rgba(30,30,30,0.5);
+	border-bottom: 2px solid transparent;
+	font-weight: bold;
+}
+
+.timetb .time{
+	display: table;
+	border: 2px solid rgba(30,30,30,0.5);
+	margin-top: -2px;
+	font-size: 19px;
+}
+.timetb .time .hour{
+	display: table-row;
+}
+.timetb .time .hour.deep{
+	background-color: rgba(220,220,250,0.4);
+}
+.timetb .time .show_hour,.timetb .time .show_min{
+	display: table-cell;
+	padding: 10px;
+}
+.timetb .time .hour.deep .show_hour{
+	background-color: rgba(220,220,250,0.8);
+}
+.timetb .time .show_hour{
+	padding: 20px;
+	vertical-align: middle;
+	background-color: rgba(220,220,250,0.8);
+}
+.timetb .time .hour.deep .show_hour{
+	background-color: rgba(194, 194, 245, 0.918);
+}
+.timetb .time .min{
+	float: left;
+	padding: 0px 10px;
+	margin: 10px 0;
+}
+.timetb .time .fast .carMin{
+	color: #CF0AB9;
+}
+.timetb .time .carTo{
+	font-size: 12px;
+}
+.timetb .time .notMain .carTo{
+	color: #27F;
+}
+@media screen and (max-width: 679px) {
+	.timetb .time .show_hour,.timetb .time .show_min{
+		padding: 3px;
+	}
+	.timetb .time .show_hour,.timetb .time .show_min{
+		padding: 2px;
+	}
+	.timetb .time{ font-size: 15px; }
+	.timetb .time .min{
+		padding: 0px 6px;
+		margin: 4px 0px;
+	}
+}
+</style>
 
 <script type="text/javascript" src="http://melixyen.github.io/railtime/libs/vue.js"></script>
 <script type="text/javascript">
@@ -98,13 +194,13 @@ var ptx = rocptx;
 				//===選星期===
 				'<div id="' + compName + '_func_station" class="frame1" v-show="nowStationID != \'\'">' +
 					'<div class="frameIn">' +
-						'<div class="btn2" v-on:click="getStationTimeTable(0)">星期日</div>' +
-						'<div class="btn2" v-on:click="getStationTimeTable(1)">星期一</div>' +
-						'<div class="btn2" v-on:click="getStationTimeTable(2)">星期二</div>' +
-						'<div class="btn2" v-on:click="getStationTimeTable(3)">星期三</div>' +
-						'<div class="btn2" v-on:click="getStationTimeTable(4)">星期四</div>' +
-						'<div class="btn2" v-on:click="getStationTimeTable(5)">星期五</div>' +
-						'<div class="btn2" v-on:click="getStationTimeTable(6)">星期六</div>' +
+						'<div v-bind:class="weekStyle(0)" v-on:click="getStationTimeTable(0)">星期日</div>' +
+						'<div v-bind:class="weekStyle(1)" v-on:click="getStationTimeTable(1)">星期一</div>' +
+						'<div v-bind:class="weekStyle(2)" v-on:click="getStationTimeTable(2)">星期二</div>' +
+						'<div v-bind:class="weekStyle(3)" v-on:click="getStationTimeTable(3)">星期三</div>' +
+						'<div v-bind:class="weekStyle(4)" v-on:click="getStationTimeTable(4)">星期四</div>' +
+						'<div v-bind:class="weekStyle(5)" v-on:click="getStationTimeTable(5)">星期五</div>' +
+						'<div v-bind:class="weekStyle(6)" v-on:click="getStationTimeTable(6)">星期六</div>' +
 					'</div>' +
 				'</div>' +
 			'</div>',
@@ -116,6 +212,7 @@ var ptx = rocptx;
 					lineColor: '',
 					nowLineID: '',
 					nowStationID: '',
+					nowWeek: -1,
 					flagShowPanel: false,
 					flagShowLine: false,
 					flagShowStation: false
@@ -131,13 +228,20 @@ var ptx = rocptx;
 					switch(cmd){
 						case 'line':
 							this.nowStationID = '';
+							this.nowWeek = -1;
+						break;
+						case 'station':
+							this.nowWeek = -1;
 						break;
 					}
 				},
 				doStation: function(station){
 					this.nowStationID = station.StationID;
+					var sendWeek = (this.nowWeek<0 || this.nowWeek>6) ? new Date().getDay() : this.nowWeek;
+					BB.main.routeIndex = 0;
+					this.getStationTimeTable(sendWeek);
 				},
-				doLoad: function(){loading(1);},
+				doLoad: function(){this.clearBarReset('station'); loading(1);},
 				unload: function(){loading(0);},
 				getStationOfLine: function(line){
 					var LineID = line.LineID;
@@ -153,8 +257,10 @@ var ptx = rocptx;
 				},
 				getStationTimeTable: function(w){
 					var me = this;
-					//me.doLoad();
-					//me.$emit('printj', res.data);
+					me.nowWeek = w;
+					var stationTimeObj = ptx[compName].catchData.getStationByTimeSimpleArray(me.nowStationID, ptx.lineTime[compName]);
+					var data = ptx[compName].catchData.calcStationDayTimeBySimple(stationTimeObj, w)
+					me.$emit('printj', data);
 				},
 				lineStyle: function(line){
 					var lineColor = line.LineColor || CONST_DEFAULT_LINE_COLOR;
@@ -167,6 +273,11 @@ var ptx = rocptx;
 					if(station.StationID==this.nowStationID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
 					return rt;
 				},
+				weekStyle: function(w){
+					var rt = 'btnBase week w' + w;
+					if(this.nowWeek==w) rt += ' selected';
+					return rt;
+				},
 				readLine: function(){
 					this.aryLINE = datax.line;
 				}
@@ -174,8 +285,6 @@ var ptx = rocptx;
 			mounted: function() {
 				this.readLine();
 				BB.panel[compName] = this;
-			},
-			destroy: function() {
 			}
 		});
 		return Vue.component('vcmp_' + compName + '_panel', mrt);
@@ -185,7 +294,6 @@ var ptx = rocptx;
 	var tymetroPanel = makeMrtPanel('tymetro');
 
 	BB.initFn = function(){
-		//hljs.initHighlightingOnLoad();
 		var tpl = Vue.compile('<div id="main">' + 
 			'<vcmp_top_link_bar></vcmp_top_link_bar>' +
 			'<vcmp_menu_bar id="menuBar" v-on:showPanelName="changeName"></vcmp_menu_bar>' +
@@ -197,13 +305,35 @@ var ptx = rocptx;
 			'</div>' +
 			'<div id="output">' +
 				'<textarea id="json_text" v-show="flagShowTextArea">{{json_text}}</textarea>' +
-				//'<div class="codeArea" v-show="!flagShowTextArea"><pre><code class="json">{{json_text}}</code></pre></div>' +
+				'<div class="tableArea" v-show="!flagShowTextArea">' +
+					'<div v-if="displayTimes.length==0" style="margin: 20px 5px;">請依序選擇軌道運輸公司、路線、車站，然後可切換要顯示的星期。台北捷運文湖線目前無官方時刻表，無法觀察。</div>' +
+					'<div class="timetb" v-show="!!(station.StationID)">' +
+						'<div class="top">' +
+							'<div class="station_name" v-bind:style="{backgroundColor:station.color}">{{ station.name }}</div>' +
+							'<div class="week_day" v-show="weekString != \'\'">{{ weekString }}</div>' +
+							'<div v-bind:class="toNameClass(tidx)" v-on:click="printTime(terminal, tidx)" v-bind:style="{backgroundColor:station.color}" v-for="(terminal, tidx) in toRoute">{{ getTerminalString(terminal) }}</div>' +
+						'</div>' +
+						'<div class="time">' +
+							'<div v-bind:class="hourClass(hidx)" v-for="(hour, hidx) in displayTimes">' + 
+								'<div class="show_hour">{{ hour.hour }}</div>' +
+								'<div class="show_min">' +
+									'<div class="min" v-for="min in hour.train" v-bind:class="carMinClass(min)">' +
+										'<div class="carMin">{{min.minute}}</div>' +
+										'<div class="carTo">{{ getTrainTo(min) }}</div>' +
+									'</div>' +
+								'</div>' +
+							'</div>' +
+						'</div>' +
+						'<div class="bottom">' +
+						'</div>' +
+					'</div>' +
+				'</div>' +
 			'</div>' +
 			'<div class="bottom">' +
 				'<div class="btn2" v-on:click="toConsole()">將 Table 印到 console </div>' +
 				'<div class="btn2" v-on:click="toFile()">下載 JSON </div>' +
-				//'<div class="btn2" v-show="!flagShowTextArea" v-on:click="flagShowTextArea=true">顯示文字編輯器</div>' +
-				//'<div class="btn2" v-show="flagShowTextArea" v-on:click="flagShowTextArea=false">顯示程式語法</div>' +
+				'<div class="btn2" v-show="!flagShowTextArea" v-on:click="flagShowTextArea=true">顯示原始 JSON</div>' +
+				'<div class="btn2" v-show="flagShowTextArea" v-on:click="flagShowTextArea=false">顯示時刻表</div>' +
 			'</div>' +
 			'<vcmp_bottom_area_div></vcmp_bottom_area_div>' +
 		'</div>');
@@ -213,18 +343,89 @@ var ptx = rocptx;
 			el: '#main',
 			data: {
 				panelName: '',
-				flagShowTextArea: true,
+				flagShowTextArea: false,
 				json_data: [],
+				times: [],
+				displayTimes: [],
+				toRoute: [],
+				station: {},
+				weekString: '',
+				routeIndex: 0,
 				json_text: ''
 			},
 			methods: {
 				changeName: function(name){
+					this.clearTimeData();
 					this.panelName = name;
 					BB.jsonFileName = name + '.json';
+				},
+				clearTimeData: function(){
+						this.times = [];
+						this.station = {};
+						this.toRoute = [];
+						this.weekString = '';
+						this.routeIndex = 0;
+						this.displayTimes = [];
+				},
+				carMinClass: function(car){
+					var LineID = this.json_data.LineID;
+					var fnMRT = TT.ptx[this.panelName];
+					var mainTerminal = fnMRT.catchData.getDataXRouteMainTerminal(LineID);
+					var flagNotMainTerminal = !!(mainTerminal.indexOf(car.To)==-1);
+					var rt = '';
+					if(flagNotMainTerminal) rt += ' notMain';
+					if(this.panelName=='tymetro' && car.TrainType==2) rt += ' fast';
+					return rt;
+				},
+				getTerminalString: function(t){
+					var rt = '往 ';
+					var me = this;
+					var stname = t.stid.map(function(c){return TT.ptx[me.panelName].catchData.getDataXStationName(c);})
+					rt += stname.join('、');
+					if(t.isSub) rt += ' (支線)';
+					return rt;
+				},
+				getTrainTo: function(car){
+					var fnMRT = TT.ptx[this.panelName];
+					return '往' + fnMRT.catchData.getDataXStationName(car.To);
+				},
+				hourClass: function(hidx){
+					var rt = 'hour';
+					if(hidx % 2 == 0) rt += ' deep';
+					return rt;
 				},
 				printJSON: function(json){
 					this.json_data = json;
 					this.json_text = JSON.stringify(json, undefined, 4);
+				},
+				printTime: function(t, idx){
+					this.displayTimes = (function(){
+						var hourTime = [];
+						var hours = [];
+						var tmpA = {};
+						t.time.Full.forEach(function(f){
+							var spa = f.Time.split(':');
+							f.hour = spa[0]; f.minute = spa[1];
+							if(!tmpA[spa[0]]) tmpA[spa[0]] = [];
+							tmpA[spa[0]].push(f);
+							if(hours.indexOf(f.hour)==-1) hours.push(f.hour);
+						})
+						for(var k in tmpA){
+							hourTime.push({
+								hour: k,
+								tt_sortTime: TT.ptx.common.transTime2Sec(k+':00',true),
+								train: tmpA[k]
+							})
+						}
+						hourTime.sort(TT.ptx.sortByTTSortTime);
+						return hourTime;
+					})();
+					this.routeIndex = idx;
+				},
+				toNameClass: function(tidx){
+					var cls = 'to_name';
+					if(tidx == this.routeIndex) cls += ' selected';
+					return cls;
 				},
 				toConsole: function(){
 					console.info(TT.ptx.common.clone(this.json_data));
@@ -244,6 +445,30 @@ var ptx = rocptx;
 			watch: {
 				json_text: function(){
 					//setTimeout(()=>{hljs.initHighlighting.call();},500);
+				},
+				json_data: function(json){
+					if(!json || !json.StationID || json.error){
+						this.clearTimeData();
+						return false;
+					}
+					var me = this;
+					var st = {StationID: json.StationID, LineID: json.LineID}
+					var fnMRT = TT.ptx[this.panelName];
+					st.name = fnMRT.catchData.getDataXStationName(json.StationID);
+					me.weekString = TT.ptx.common.weekStringAry[parseInt(json.week)];
+					st.lineObj = fnMRT.catchData.getDataXLineObj(json.LineID);
+					st.color = st.lineObj.LineColor;
+					var toRoute = [];
+					json.mainTo.forEach(function(c,idx){
+						if(c.length>0) toRoute.push({ stid: c, dir: idx, isMain: true, time: json.main[idx]})
+					})
+					json.subTo.forEach(function(c,idx){
+						if(c.length>0) toRoute.push({ stid: c, dir: idx, isSub: true, time: json.sub[idx]})
+					})
+					me.toRoute = toRoute;
+					//if(st.main)
+					this.station = st;
+					this.printTime(toRoute[this.routeIndex], this.routeIndex);
 				}
 			}
 		});
