@@ -15,6 +15,14 @@ Dynamic public traffic library of Taiwan and Kinmen, Lienchiang
 <!-- 若要最小化檔案可用下方 url -->
 <script type="text/javascript" src="https://melixyen.github.io/rocptx/dist/ptx.min.js"></script>
 ```
+
+設定 key
+```javascript
+//在 include ptx.js 之後請指定你的 PTX ID 與 Key 值，設定方式如下，程式內建 SHA 計算 header
+rocptx.AppID = 'PleAseSeTyoUrAppIDintHIsPlace';
+rocptx.AppKey = 'PleAseSeTyoUrAppKeyintHIsPlace';
+```
+
 操作
 ```javascript
 //ptx.js 為 UMD 格式輸出檔，單獨使用 Global Name 為 rocptx
