@@ -8,14 +8,17 @@
 <title>路線時刻表</title>
 <link rel="stylesheet" href="rocptx_ui.css">
 
-<script type="text/javascript" src="http://melixyen.github.io/railtime/libs/vue.js"></script>
+<script type="text/javascript" src="https://melixyen.github.io/railtime/libs/vue.js"></script>
 <script type="text/javascript">
 Vue.config.productionTip=false;
 </script>
 
 <script type="text/javascript" src="../dist/ptx.js"></script>
+<script type="text/javascript" src="../dist/line_time.js"></script>
 <script type="text/javascript" src="top_link.js"></script>
 <script type="text/javascript">
+var ptx = rocptx;
+var TT = {ptx: rocptx}
 
 var BB = {
 	initFn: function(){

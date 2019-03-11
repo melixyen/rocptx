@@ -1,3 +1,13 @@
+/*
+*   name: rocptx 
+*   description: Dynamic public traffic library of Taiwan and Kinmen, Lienchiang 
+*   version: 0.0.1 
+*   license: MIT 
+*   
+*   Edit by: Melix Yen
+*   E-Mail: melixyen@gmail.com
+*   	
+*/
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
