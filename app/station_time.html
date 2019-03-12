@@ -121,6 +121,9 @@ var BB = {
 };
 var TT = {ptx: rocptx}
 var ptx = rocptx;
+//執行補充文湖線時刻表
+var BRLineTime = ptx.trtc.catchData.calcBRLineTime();
+ptx.lineTime.trtc = ptx.lineTime.trtc.concat(BRLineTime);
 (function(){
 	var CONST_DEFAULT_LINE_COLOR = "#555555";
 	function loading(cmd, text){
@@ -306,7 +309,7 @@ var ptx = rocptx;
 			'<div id="output">' +
 				'<textarea id="json_text" v-show="flagShowTextArea">{{json_text}}</textarea>' +
 				'<div class="tableArea" v-show="!flagShowTextArea">' +
-					'<div v-if="displayTimes.length==0" style="margin: 20px 5px;">請依序選擇軌道運輸公司、路線、車站，然後可切換要顯示的星期。台北捷運文湖線目前無官方時刻表，無法觀察。</div>' +
+					'<div v-if="displayTimes.length==0" style="margin: 20px 5px;">請依序選擇軌道運輸公司、路線、車站，然後可切換要顯示的星期。台北捷運文湖線目前無官方時刻表，時間為首末班車與發車頻率計算結果。</div>' +
 					'<div class="timetb" v-show="!!(station.StationID)">' +
 						'<div class="top">' +
 							'<div class="station_name" v-bind:style="{backgroundColor:station.color}">{{ station.name }}</div>' +

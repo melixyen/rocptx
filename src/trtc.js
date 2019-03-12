@@ -5,6 +5,7 @@ import metro from './metro.js';
 
 const companyTag = metro.getCompanyTag('trtc');
 var mrtPTXFn = new metro.baseMethod(companyTag);
+let catchData = mrtPTXFn.catchData;
 //Catch Data 資料預處理
 mrtPTXFn.catchData.config.Line_callback = function(json){
     json.forEach((Line)=>{
@@ -30,6 +31,65 @@ mrtPTXFn.catchData.config.Line_callback = function(json){
         Line.main = main;
     })
     return json;
+}
+
+catchData.calcBRLineTime = function(){
+    const RouteName = 'BR-1';
+    let LineObj = catchData.getDataXLineObj('BR');
+    let tmpA;
+    //1.抓 Route 排出全線車站在 Direction 0 和 1 的順序
+    let Route = [];
+    Route.push(LineObj.Route.find(c=>c.RouteID==RouteName && c.Direction==0));
+    Route.push(LineObj.Route.find(c=>c.RouteID==RouteName && c.Direction==1));
+    //2.把起站依照間距排出全日時刻表 , 按照 Frequency 數量分出要建立幾組時刻表
+    let startStationTime = [{
+        StationID: Route[0].Stations[0],
+        DepTime: catchData.calcStationTimeByHeadWays(LineObj, Route[0].Stations[0], RouteName, 0)
+    }, {
+        StationID: Route[1].Stations[0],
+        DepTime: catchData.calcStationTimeByHeadWays(LineObj, Route[1].Stations[0], RouteName, 1)
+    }];
+    //3.用 RunTime 與 StopTime 計算全線時刻表
+    let tmpTrainTime = [];
+    startStationTime.forEach((dirObj, Direction)=>{
+        dirObj.DepTime.forEach(c=>{
+            c.trainTime = [];
+            c.stationTime = [];
+            c.time.forEach(t=>{
+                tmpTrainTime = catchData.calcLineTimeByFirstStation(LineObj, dirObj.StationID, t, RouteName, Direction);
+                tmpTrainTime.forEach((stt,stidx)=>{
+                    c.stationTime[stidx] = c.stationTime[stidx] || [Route[Direction].Stations[stidx]];
+                    c.stationTime[stidx].push(stt);
+                })
+                c.trainTime.push(tmpTrainTime);
+            })
+        })
+    })
+    //4.找沿線車站的首班發車時間，早於首站的第一班車且早超過班距最大值時補上該站起始的車到順位最前面，依序算到倒數第二站
+    //先跳過
+    //5.將時間轉化為 TimeSimple 格式
+    let timeBack = Route[0].Stations.map(st=>{
+        return {
+            Direction: [[],[]],
+            LineID: LineObj.LineID,
+            StationID: st
+        }
+    })
+    startStationTime.forEach((dirObj, dir)=>{
+        dirObj.DepTime.forEach((c, cidx)=>{
+            c.stationTime.forEach((stt,stidx)=>{
+                let aryTimes = stt.map(m=>m);
+                let targetStationID = aryTimes.shift()
+                timeBack.find(st=>targetStationID==st.StationID).Direction[dir].push({
+                    RouteID: RouteName,
+                    Timetables: aryTimes,
+                    To: c.stationTime[c.stationTime.length-1][0],
+                    weekStr: c.weekStr
+                })
+            })
+        })
+    })
+    return timeBack;
 }
 
 var fnMRT = {

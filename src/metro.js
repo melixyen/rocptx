@@ -399,6 +399,58 @@ class baseMethod {
                 }
                 return {StationID:timeObj.StationID, LineID:timeObj.LineID, main:MainDirTime, sub:SubDirTime, mainTo:mainTo, subTo:subTo, week:w};
             },
+            calcStationTimeByHeadWays: function(LineObj, StationID, RouteID, Direction){
+                if(typeof(LineObj)=='string') LineObj = catchData.getDataXLineObj(LineObj);
+                let stData = catchData.getDataXStationData(StationID);
+                let ToStationID = LineObj.Route.find(c=>c.RouteID==RouteID && c.Direction==Direction).Stations;
+                ToStationID = ToStationID[ToStationID.length-1];
+                let Frq = stData.FirstLast.find(c=>c.To==ToStationID);
+                let first = Frq.Time[0], last = Frq.Time[1];
+                return LineObj.Frequency.map(c=>{
+                    let Headways = c.Headways;
+                    let time = [], tmpTime = '', startTime = 0, endTime = 0, headWay = false, intTime = 0, intCount = 0, headwayIndex = 0;
+                    while(headwayIndex < Headways.length){
+                        headWay = Headways[headwayIndex];
+                        startTime = (headwayIndex==0) ? common.transTime2Sec(first, true)/60 : common.transTime2Sec(headWay.Time[0], true)/60;
+                        endTime = common.transTime2Sec(headWay.Time[1], true)/60;
+                        intTime = headWay.AveMins + ((endTime - startTime) % headWay.AveMins);
+                        intCount = Math.ceil((endTime - startTime) / intTime);
+                        for(var i=0; i<intCount; i++){
+                            tmpTime = common.transSec2Time((startTime + (i*intTime))*60);
+                            time.push(tmpTime);
+                        }
+                        headwayIndex++;
+                    }
+                    if(time.indexOf(last)==-1) time.push(last);
+                    return{
+                        weekStr: common.weekArray2WeekStr(c.ServiceDays.week),
+                        time: time
+                    }
+                })
+            },
+            calcLineTimeByFirstStation: function(LineObj, FirstStationID, FirstStationTime, RouteID, Direction){
+                if(typeof(LineObj)=='string') LineObj = catchData.getDataXLineObj(LineObj);
+                //let stData = catchData.getDataXStationData(StationID);
+                let Route = LineObj.Route.find(c=>c.RouteID==RouteID && c.Direction==Direction);
+                let Stations = Route.Stations;
+                let ToStationID = Route.Stations[Route.Stations.length-1];
+                let RunTime = Route.TravelTime.RunTime, StopTime = Route.TravelTime.StopTime;
+                let startIndex = Route.Stations.indexOf(FirstStationID);
+                let time = [], 
+                    tmpA, 
+                    nowSec = common.transTime2Sec(FirstStationTime), 
+                    countSec = 0;
+                for(var i=startIndex; i<Stations.length; i++){
+                    tmpA = nowSec + countSec;
+                    time.push(tmpA);
+                    if(i < Stations.length-1){
+                        nowSec = tmpA + RunTime[i];
+                        if(StopTime[i+1]) nowSec += StopTime[i+1];
+                    }
+                }
+
+                return time.map(c=>common.transSec2Time(c))
+            },
             getDataXLineObj: function(LineID){
                 return ptx.datax[compName].line.find((c)=>{return !!(c.LineID==LineID)})
             },

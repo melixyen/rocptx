@@ -23,6 +23,9 @@ var CM = {
         }
         return rt;
     },
+    weekArray2WeekStr: function(week){
+        return week.map((c,i)=>{return (c) ? i : '';}).join('');
+    },
     transTime2Sec: function(str,offsetTomorrow){
         if (str == null || str == '') {
             str = '0';

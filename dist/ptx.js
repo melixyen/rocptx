@@ -76,6 +76,11 @@
 
       return rt;
     },
+    weekArray2WeekStr: function weekArray2WeekStr(week) {
+      return week.map(function (c, i) {
+        return c ? i : '';
+      }).join('');
+    },
     transTime2Sec: function transTime2Sec(str, offsetTomorrow) {
       if (str == null || str == '') {
         str = '0';
@@ -2071,6 +2076,81 @@
           week: w
         };
       },
+      calcStationTimeByHeadWays: function calcStationTimeByHeadWays(LineObj, StationID, RouteID, Direction) {
+        if (typeof LineObj == 'string') LineObj = catchData.getDataXLineObj(LineObj);
+        var stData = catchData.getDataXStationData(StationID);
+        var ToStationID = LineObj.Route.find(function (c) {
+          return c.RouteID == RouteID && c.Direction == Direction;
+        }).Stations;
+        ToStationID = ToStationID[ToStationID.length - 1];
+        var Frq = stData.FirstLast.find(function (c) {
+          return c.To == ToStationID;
+        });
+        var first = Frq.Time[0],
+            last = Frq.Time[1];
+        return LineObj.Frequency.map(function (c) {
+          var Headways = c.Headways;
+          var time = [],
+              tmpTime = '',
+              startTime = 0,
+              endTime = 0,
+              headWay = false,
+              intTime = 0,
+              intCount = 0,
+              headwayIndex = 0;
+
+          while (headwayIndex < Headways.length) {
+            headWay = Headways[headwayIndex];
+            startTime = headwayIndex == 0 ? CM.transTime2Sec(first, true) / 60 : CM.transTime2Sec(headWay.Time[0], true) / 60;
+            endTime = CM.transTime2Sec(headWay.Time[1], true) / 60;
+            intTime = headWay.AveMins + (endTime - startTime) % headWay.AveMins;
+            intCount = Math.ceil((endTime - startTime) / intTime);
+
+            for (var i = 0; i < intCount; i++) {
+              tmpTime = CM.transSec2Time((startTime + i * intTime) * 60);
+              time.push(tmpTime);
+            }
+
+            headwayIndex++;
+          }
+
+          if (time.indexOf(last) == -1) time.push(last);
+          return {
+            weekStr: CM.weekArray2WeekStr(c.ServiceDays.week),
+            time: time
+          };
+        });
+      },
+      calcLineTimeByFirstStation: function calcLineTimeByFirstStation(LineObj, FirstStationID, FirstStationTime, RouteID, Direction) {
+        if (typeof LineObj == 'string') LineObj = catchData.getDataXLineObj(LineObj); //let stData = catchData.getDataXStationData(StationID);
+
+        var Route = LineObj.Route.find(function (c) {
+          return c.RouteID == RouteID && c.Direction == Direction;
+        });
+        var Stations = Route.Stations;
+        var ToStationID = Route.Stations[Route.Stations.length - 1];
+        var RunTime = Route.TravelTime.RunTime,
+            StopTime = Route.TravelTime.StopTime;
+        var startIndex = Route.Stations.indexOf(FirstStationID);
+        var time = [],
+            tmpA,
+            nowSec = CM.transTime2Sec(FirstStationTime),
+            countSec = 0;
+
+        for (var i = startIndex; i < Stations.length; i++) {
+          tmpA = nowSec + countSec;
+          time.push(tmpA);
+
+          if (i < Stations.length - 1) {
+            nowSec = tmpA + RunTime[i];
+            if (StopTime[i + 1]) nowSec += StopTime[i + 1];
+          }
+        }
+
+        return time.map(function (c) {
+          return CM.transSec2Time(c);
+        });
+      },
       getDataXLineObj: function getDataXLineObj(LineID) {
         return ptx.datax[compName].line.find(function (c) {
           return !!(c.LineID == LineID);
@@ -2392,7 +2472,8 @@
   metro.baseMethod = baseMethod;
 
   var companyTag$1 = metro.getCompanyTag('trtc');
-  var mrtPTXFn = new metro.baseMethod(companyTag$1); //Catch Data 資料預處理
+  var mrtPTXFn = new metro.baseMethod(companyTag$1);
+  var catchData = mrtPTXFn.catchData; //Catch Data 資料預處理
 
   mrtPTXFn.catchData.config.Line_callback = function (json) {
     json.forEach(function (Line) {
@@ -2434,6 +2515,72 @@
       Line.main = main;
     });
     return json;
+  };
+
+  catchData.calcBRLineTime = function () {
+    var RouteName = 'BR-1';
+    var LineObj = catchData.getDataXLineObj('BR');
+
+    var Route = [];
+    Route.push(LineObj.Route.find(function (c) {
+      return c.RouteID == RouteName && c.Direction == 0;
+    }));
+    Route.push(LineObj.Route.find(function (c) {
+      return c.RouteID == RouteName && c.Direction == 1;
+    })); //2.把起站依照間距排出全日時刻表 , 按照 Frequency 數量分出要建立幾組時刻表
+
+    var startStationTime = [{
+      StationID: Route[0].Stations[0],
+      DepTime: catchData.calcStationTimeByHeadWays(LineObj, Route[0].Stations[0], RouteName, 0)
+    }, {
+      StationID: Route[1].Stations[0],
+      DepTime: catchData.calcStationTimeByHeadWays(LineObj, Route[1].Stations[0], RouteName, 1)
+    }]; //3.用 RunTime 與 StopTime 計算全線時刻表
+
+    var tmpTrainTime = [];
+    startStationTime.forEach(function (dirObj, Direction) {
+      dirObj.DepTime.forEach(function (c) {
+        c.trainTime = [];
+        c.stationTime = [];
+        c.time.forEach(function (t) {
+          tmpTrainTime = catchData.calcLineTimeByFirstStation(LineObj, dirObj.StationID, t, RouteName, Direction);
+          tmpTrainTime.forEach(function (stt, stidx) {
+            c.stationTime[stidx] = c.stationTime[stidx] || [Route[Direction].Stations[stidx]];
+            c.stationTime[stidx].push(stt);
+          });
+          c.trainTime.push(tmpTrainTime);
+        });
+      });
+    }); //4.找沿線車站的首班發車時間，早於首站的第一班車且早超過班距最大值時補上該站起始的車到順位最前面，依序算到倒數第二站
+    //先跳過
+    //5.將時間轉化為 TimeSimple 格式
+
+    var timeBack = Route[0].Stations.map(function (st) {
+      return {
+        Direction: [[], []],
+        LineID: LineObj.LineID,
+        StationID: st
+      };
+    });
+    startStationTime.forEach(function (dirObj, dir) {
+      dirObj.DepTime.forEach(function (c, cidx) {
+        c.stationTime.forEach(function (stt, stidx) {
+          var aryTimes = stt.map(function (m) {
+            return m;
+          });
+          var targetStationID = aryTimes.shift();
+          timeBack.find(function (st) {
+            return targetStationID == st.StationID;
+          }).Direction[dir].push({
+            RouteID: RouteName,
+            Timetables: aryTimes,
+            To: c.stationTime[c.stationTime.length - 1][0],
+            weekStr: c.weekStr
+          });
+        });
+      });
+    });
+    return timeBack;
   };
 
   var fnMRT = {
