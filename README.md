@@ -136,6 +136,28 @@ trtc._Line().then(function(data){
 })
 ```
 
+## metro config
+ptx function 的 config 在 trtc、krtc與 tymetro 等繼承自 metro 的操作行為部分是相同的
+Name | Format | Description
+-----|------|-------------
+selectField | Array | 要讀取的欄位，例如傳入 ["StationID","LineID","RouteID"] 則回傳值只顯示這些資料，排除不必要訊息縮小傳輸量
+filterBy | String | 過濾條件，如 StationID eq 'BL11'，可用 ptx.filterParam 傳入陣列自動組合篩選條件
+orderBy | String | 傳入欄位與升降冪，如 StationID desc
+top | Number | 數值，一次要讀取的最大筆數
+format | String | 回應格式，預設為 JSON
+```javascript
+//使用 filterParam 組合過濾參數
+
+rocptx.trtc._Line({
+    filterBy: rocptx.filterParam("LineID","==","G"),//只回傳松山信義線
+    selecteField: ['LineID','LineName']//只許 ID 和路線名稱
+}).then(e=>{console.info(e.data)})
+
+rocptx.trtc._Line({
+    filterBy: rocptx.filterParam("LineID","==",["BR","BL"], "or")//回傳文湖線與板南線
+}).then(e=>{console.info(e.data)})
+```
+
 # trtc (or krtc / tymetro)
 
 使用 new rocptx.metro.baseMethod 後除產生對應 urls 的低階 PTX API 外還會增加對應各公司操作之 API
