@@ -44,7 +44,7 @@ var CM = {
         }
         return rt;
     },
-    transSec2Time: function(sec){
+    transSec2Time: function(sec, doNotTransOver24){
         var tih = 0,
             tim = 0,
             tis = 0;
@@ -53,6 +53,8 @@ var CM = {
             return '';
         }else if(parseInt(sec,10) < 0){
             sec = 86400 + sec;
+        }else if(parseInt(sec)>=86400 && !doNotTransOver24){
+            sec = sec - 86400;
         }
         
         sec = parseInt(sec,10);

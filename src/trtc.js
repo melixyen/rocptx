@@ -51,18 +51,43 @@ catchData.calcBRLineTime = function(){
     }];
     //3.用 RunTime 與 StopTime 計算全線時刻表
     let tmpTrainTime = [];
-    startStationTime.forEach((dirObj, Direction)=>{
-        dirObj.DepTime.forEach(c=>{
+    startStationTime.forEach((dirObj, Direction)=>{//分方向
+        dirObj.DepTime.forEach(c=>{//分星期幾運行
             c.trainTime = [];
             c.stationTime = [];
-            c.time.forEach(t=>{
+            c.stationList = [];
+            c.time.forEach(t=>{//算全線時間
                 tmpTrainTime = catchData.calcLineTimeByFirstStation(LineObj, dirObj.StationID, t, RouteName, Direction);
                 tmpTrainTime.forEach((stt,stidx)=>{
-                    c.stationTime[stidx] = c.stationTime[stidx] || [Route[Direction].Stations[stidx]];
+                    c.stationTime[stidx] = c.stationTime[stidx] || [];
                     c.stationTime[stidx].push(stt);
+                    c.stationList.push(Route[Direction].Stations[stidx]);
                 })
                 c.trainTime.push(tmpTrainTime);
             })
+            c.To = c.stationList[c.stationList.length-1];
+            let firstTrainTime = c.trainTime[0];
+            let otherStationStartTrainTime = [];
+            c.stationList.forEach((stid,stidx)=>{
+                let stObj = catchData.getDataXStationData(stid);
+                let firstLastInfo = stObj.FirstLast.find(fs=>fs.To==c.To);
+                let advBackTime = false, tmpAdvRealTime = [];
+                if(firstLastInfo){
+                    let firstTime = firstLastInfo.Time[0];
+                    if(common.transTime2Sec(firstTime) + 60 < common.transTime2Sec(firstTrainTime[stidx])){
+                        tmpAdvRealTime = catchData.calcLineTimeByFirstStation(LineObj, stid, firstTime, RouteName, Direction);
+                        advBackTime = new Array(stidx).concat(tmpAdvRealTime);
+                        firstTrainTime = advBackTime;
+                        otherStationStartTrainTime.push(advBackTime);
+                        advBackTime.forEach((stt,stidx)=>{
+                            if(stt){
+                                c.stationTime[stidx].push(stt);
+                            }
+                        })
+                    }
+                }
+            })
+            c.trainTime = c.trainTime.concat(otherStationStartTrainTime);
         })
     })
     //4.找沿線車站的首班發車時間，早於首站的第一班車且早超過班距最大值時補上該站起始的車到順位最前面，依序算到倒數第二站
@@ -79,11 +104,11 @@ catchData.calcBRLineTime = function(){
         dirObj.DepTime.forEach((c, cidx)=>{
             c.stationTime.forEach((stt,stidx)=>{
                 let aryTimes = stt.map(m=>m);
-                let targetStationID = aryTimes.shift()
+                let targetStationID = c.stationList[stidx];
                 timeBack.find(st=>targetStationID==st.StationID).Direction[dir].push({
                     RouteID: RouteName,
                     Timetables: aryTimes,
-                    To: c.stationTime[c.stationTime.length-1][0],
+                    To: c.stationList[c.stationList.length-1],
                     weekStr: c.weekStr
                 })
             })

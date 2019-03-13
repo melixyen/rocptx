@@ -103,7 +103,7 @@
 
       return rt;
     },
-    transSec2Time: function transSec2Time(sec) {
+    transSec2Time: function transSec2Time(sec, doNotTransOver24) {
       var tih = 0,
           tim = 0,
           tis = 0;
@@ -112,6 +112,8 @@
         return '';
       } else if (parseInt(sec, 10) < 0) {
         sec = 86400 + sec;
+      } else if (parseInt(sec) >= 86400 && !doNotTransOver24) {
+        sec = sec - 86400;
       }
 
       sec = parseInt(sec, 10);
@@ -2539,17 +2541,50 @@
 
     var tmpTrainTime = [];
     startStationTime.forEach(function (dirObj, Direction) {
+      //分方向
       dirObj.DepTime.forEach(function (c) {
+        //分星期幾運行
         c.trainTime = [];
         c.stationTime = [];
+        c.stationList = [];
         c.time.forEach(function (t) {
+          //算全線時間
           tmpTrainTime = catchData.calcLineTimeByFirstStation(LineObj, dirObj.StationID, t, RouteName, Direction);
           tmpTrainTime.forEach(function (stt, stidx) {
-            c.stationTime[stidx] = c.stationTime[stidx] || [Route[Direction].Stations[stidx]];
+            c.stationTime[stidx] = c.stationTime[stidx] || [];
             c.stationTime[stidx].push(stt);
+            c.stationList.push(Route[Direction].Stations[stidx]);
           });
           c.trainTime.push(tmpTrainTime);
         });
+        c.To = c.stationList[c.stationList.length - 1];
+        var firstTrainTime = c.trainTime[0];
+        var otherStationStartTrainTime = [];
+        c.stationList.forEach(function (stid, stidx) {
+          var stObj = catchData.getDataXStationData(stid);
+          var firstLastInfo = stObj.FirstLast.find(function (fs) {
+            return fs.To == c.To;
+          });
+          var advBackTime = false,
+              tmpAdvRealTime = [];
+
+          if (firstLastInfo) {
+            var firstTime = firstLastInfo.Time[0];
+
+            if (CM.transTime2Sec(firstTime) + 60 < CM.transTime2Sec(firstTrainTime[stidx])) {
+              tmpAdvRealTime = catchData.calcLineTimeByFirstStation(LineObj, stid, firstTime, RouteName, Direction);
+              advBackTime = new Array(stidx).concat(tmpAdvRealTime);
+              firstTrainTime = advBackTime;
+              otherStationStartTrainTime.push(advBackTime);
+              advBackTime.forEach(function (stt, stidx) {
+                if (stt) {
+                  c.stationTime[stidx].push(stt);
+                }
+              });
+            }
+          }
+        });
+        c.trainTime = c.trainTime.concat(otherStationStartTrainTime);
       });
     }); //4.找沿線車站的首班發車時間，早於首站的第一班車且早超過班距最大值時補上該站起始的車到順位最前面，依序算到倒數第二站
     //先跳過
@@ -2568,13 +2603,13 @@
           var aryTimes = stt.map(function (m) {
             return m;
           });
-          var targetStationID = aryTimes.shift();
+          var targetStationID = c.stationList[stidx];
           timeBack.find(function (st) {
             return targetStationID == st.StationID;
           }).Direction[dir].push({
             RouteID: RouteName,
             Timetables: aryTimes,
-            To: c.stationTime[c.stationTime.length - 1][0],
+            To: c.stationList[c.stationList.length - 1],
             weekStr: c.weekStr
           });
         });
