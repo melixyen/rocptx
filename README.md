@@ -138,6 +138,7 @@ trtc._Line().then(function(data){
 
 ## metro config
 ptx function 的 config 在 trtc、krtc與 tymetro 等繼承自 metro 的操作行為部分是相同的
+
 Name | Format | Description
 -----|------|-------------
 selectField | Array | 要讀取的欄位，例如傳入 ["StationID","LineID","RouteID"] 則回傳值只顯示這些資料，排除不必要訊息縮小傳輸量
