@@ -26,6 +26,16 @@ var CM = {
     weekArray2WeekStr: function(week){
         return week.map((c,i)=>{return (c) ? i : '';}).join('');
     },
+    appendNumber0: function(str, len=2){
+        str = str.toString();
+        if(str.length < len){
+            var pr = len - str.length;
+            for(var i=0; i<pr; i++){
+                str = '0' + str;
+            }
+        }
+        return str;
+    },
     transTime2Sec: function(str,offsetTomorrow){
         if (str == null || str == '') {
             str = '0';
@@ -86,7 +96,7 @@ CM.v2url = 'https://ptx.transportdata.tw/MOTC/v2';
 CM.ptxURL = CM.v2url;
 CM.metroURL = CM.ptxURL + '/Rail/Metro';
 CM.busURL = CM.ptxURL + '/Bus'
-CM.traURL = '/Rail/TRA';
+CM.traURL = CM.ptxURL + '/Rail/TRA';
 CM.ptxMRTWeekStr = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 CM.defaultCrossDayTimeSec = CM.transTime2Sec(CM.defaultCrossDayTime);
 

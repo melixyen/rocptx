@@ -51,6 +51,7 @@ import trtc from './trtc.js';//繼承自 metro 對台北捷運的操作
 import krtc from './krtc.js';//繼承自 metro 對高雄捷運的操作
 import tymetro from './tymetro.js';//繼承自 metro 對桃園捷運的操作
 import klrt from './klrt.js';//繼承自 metro 對高雄輕軌的操作
+import tra from './tra.js';//台鐵
 import jsSHA from './jsSHA';
 var combine = {
 	data: data,
@@ -61,6 +62,7 @@ var combine = {
 	krtc: krtc,
 	tymetro: tymetro,
 	klrt: klrt,
+	tra: tra,
 	jsSHA: jsSHA,
 	common: common
 }
@@ -213,6 +215,81 @@ Station | Station(progressFn) | 向 PTX API 下載所有車站資料，可傳入
 TimeTable | TimeTable(progressFn) | 向 PTX API 下載所有車站時刻表，可傳入 progressFn 監看進度
 TimeSimple | TimeSimple(progressFn) | 向 PTX API 下載所有車站時刻表精簡資料，可傳入 progressFn 監看進度
 Fare | Fare(progressFn) | 向 PTX API 下載所有車站票價資料，可傳入 progressFn 監看進度
+
+
+# tra
+台灣鐵路局火車的相關操作
+
+```javascript
+rocptx.tra.{功能或變數名稱}
+```
+Name | Type | Description
+-----|------|-------------
+urls | String | 對應 PTX 操作之 API 位置
+_{ urls.Name } | String | (cfg) 操作無變數之 API，用底線加上 urls 名稱組合，回傳均為一個 Promise
+_{ urls.Name } | String | (arg1, arg2,...,cfg) 操作有變數之 API，用底線加上 urls 名稱組合，變數按照 PTX 組合 API 的順序依序傳入，最後一個參數為設定檔，回傳均為一個 Promise
+
+#### urls 對應位置及動態參數傳遞方式
+```javascript
+const urls = {
+    Network: traURL + '/Network', //取得臺鐵路網資料
+    Line: traURL + '/Line/', //取得路線基本資料
+    Station: traURL + '/Station/', //取得車站基本資料
+    StationOfLine: traURL + '/StationOfLine/', //取得路線車站基本資料
+    TrainType: traURL + '/TrainType',//取得所有列車車種資料
+    ODFare: traURL + '/ODFare/', //取得票價資料
+    Shape: traURL + '/Shape/', //取得指定營運業者之軌道路網實體路線圖資資料
+    GeneralTrainInfo: traURL + '/GeneralTrainInfo/', //取得所有車次的定期車次資料
+    GeneralTimetable: traURL + '/GeneralTimetable/', //取得所有車次的定期時刻表資料
+    DailyTrainInfo_Today: traURL + '/DailyTrainInfo/Today/', //取得當天所有車次的車次資料
+    DailyTimetable_Today: traURL + '/DailyTimetable/Today/', //取得當天所有車次的時刻表資料
+    LiveBoard: traURL + '/LiveBoard/', //取得車站別列車即時到離站電子看板
+    LiveTrainDelay: traURL + '/LiveTrainDelay/', //取得列車即時準點/延誤時間資料
+    //以下為帶有變數的 API
+    ODFareFromTo: traURL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
+    GeneralTrainInfo_TrainNo: traURL + '/GeneralTrainInfo/TrainNo/{TrainNo}', //取得指定[車次]的定期車次資料
+    GeneralTimetable_TrainNo: traURL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料
+    DailyTrainInfo_Today_TrainNo: traURL + '/DailyTrainInfo/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的車次資料
+    DailyTrainInfo_TrainDate: traURL + '/DailyTrainInfo/TrainDate/{TrainDate}', //取得指定[日期]所有車次的車次資料 yyyy-MM-dd
+    DailyTrainInfo_TrainNo_TrainDate: traURL + '/DailyTrainInfo/TrainNo/{TrainNo}/TrainDate/{TrainDate}', //取得指定[日期]與[車次]的車次資料
+    DailyTimetable_Today_TrainNo: traURL + '/DailyTimetable/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的時刻表資料
+    DailyTimetable_TrainDate_TrainNo: traURL + '/DailyTimetable/TrainDate/{TrainDate}', //取得指定[日期]所有車次的時刻表資料
+    DailyTimetable_TrainNo_TrainDate: traURL + '/DailyTimetable/TrainNo/{TrainNo}/TrainDate/{TrainDate}', //取得指定[日期],[車次]的時刻表資料
+    DailyTimetable_Station_TrainDate: traURL + '/DailyTimetable/Station/{StationID}/{TrainDate}', //取得指定[日期],[車站]的站別時刻表資料
+    DailyTimetable_OD_TrainDate: traURL + '/DailyTimetable/OD/{OriginStationID}/to/{DestinationStationID}/{TrainDate}',//取得指定[日期],[起迄站間]之站間時刻表資料
+    LiveBoard_Station: traURL + '/LiveBoard/Station/{StationID}' //取得指定[車站]列車即時到離站電子看板(動態前後30分鐘的車次)
+}
+
+```
+
+#### 呼叫範例
+```javascript
+//呼叫無參數 API 方法，以 Line 為例
+rocptx.tra._Line().then(function(data){
+    console.info(data);
+})
+
+//呼叫有參數 API 方法
+rocptx.tra._DailyTimetable_OD_TrainDate('1005','1120','2019-03-30',{top:20}).then(function(data){
+    console.info(data);
+})
+
+rocptx.tra._DailyTrainInfo_TrainDate('2019-03-30').then(function(data){
+    console.info(data);
+})
+```
+
+#### 操作方法
+
+Name | Method | Description
+-----|------|-------------
+getStationOfLine | getStationOfLine(LineID, cfg) 回應 Promise。 | 取得該路線的車站列表。
+getFromToFare | getFromToFare(fromID, toID, cfg) 回應 Promise。 | 取得兩個 StationID 間的車資
+getStation | getStation(StationID, cfg) 回應 Promise。 | 取得車站資料。
+getStationTodayTimeTable | getStationTodayTimeTable(StationID, cfg) 回應 Promise。 | 取得該站今天時刻表。
+getStationFare | getStationFare(StationID, cfg) 回應 Promise。 | 取得該站至所有車站的票價。
+getStationLiveBoard | getStationLiveBoard(StationID, cfg) 回應 Promise。 | 取得車站看板資料。
+
 
 
 # 實作 Web App

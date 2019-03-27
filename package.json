@@ -1,10 +1,12 @@
 {
     "name": "rocptx",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Dynamic public traffic library of Taiwan and Kinmen, Lienchiang",
     "main": "dist/rocptx.js",
     "module": "src/main.js",
     "scripts": {
+        "dev": "rollup -f umd --config rollup.config.js -o distdev/ptx.js -m inline",
+        "devwatch": "rollup -f umd --config rollup.config.js --watch -o distdev/ptx.js",
         "umd": "rollup -f umd --config rollup.config.js",
         "umd2": "rollup -f umd --config rollup.config.js --flag-use-banner",
         "umd3": "rollup -f umd --config rollup.config.js -o dist/ptx.js --flag-use-banner",
