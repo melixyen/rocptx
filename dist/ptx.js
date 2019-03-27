@@ -1,7 +1,7 @@
 /*
 *   name: rocptx 
 *   description: Dynamic public traffic library of Taiwan and Kinmen, Lienchiang 
-*   version: 0.0.1 
+*   version: 0.0.2 
 *   license: MIT 
 *   
 *   Edit by: Melix Yen
@@ -81,6 +81,20 @@
         return c ? i : '';
       }).join('');
     },
+    appendNumber0: function appendNumber0(str) {
+      var len = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
+      str = str.toString();
+
+      if (str.length < len) {
+        var pr = len - str.length;
+
+        for (var i = 0; i < pr; i++) {
+          str = '0' + str;
+        }
+      }
+
+      return str;
+    },
     transTime2Sec: function transTime2Sec(str, offsetTomorrow) {
       if (str == null || str == '') {
         str = '0';
@@ -141,7 +155,7 @@
   CM.ptxURL = CM.v2url;
   CM.metroURL = CM.ptxURL + '/Rail/Metro';
   CM.busURL = CM.ptxURL + '/Bus';
-  CM.traURL = '/Rail/TRA';
+  CM.traURL = CM.ptxURL + '/Rail/TRA';
   CM.ptxMRTWeekStr = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   CM.defaultCrossDayTimeSec = CM.transTime2Sec(CM.defaultCrossDayTime);
   CM.pui = {
@@ -3394,6 +3408,191 @@
     fnMRT$3[k] = mrtPTXFn$3[k];
   });
 
+  var traURL$1 = CM.traURL;
+  var urls$1 = {
+    Network: traURL$1 + '/Network',
+    //取得臺鐵路網資料
+    Line: traURL$1 + '/Line/',
+    //取得路線基本資料
+    Station: traURL$1 + '/Station/',
+    //取得車站基本資料
+    StationOfLine: traURL$1 + '/StationOfLine/',
+    //取得路線車站基本資料
+    TrainType: traURL$1 + '/TrainType',
+    //取得所有列車車種資料
+    ODFare: traURL$1 + '/ODFare/',
+    //取得票價資料
+    Shape: traURL$1 + '/Shape/',
+    //取得指定營運業者之軌道路網實體路線圖資資料
+    GeneralTrainInfo: traURL$1 + '/GeneralTrainInfo/',
+    //取得所有車次的定期車次資料
+    GeneralTimetable: traURL$1 + '/GeneralTimetable/',
+    //取得所有車次的定期時刻表資料
+    DailyTrainInfo_Today: traURL$1 + '/DailyTrainInfo/Today/',
+    //取得當天所有車次的車次資料
+    DailyTimetable_Today: traURL$1 + '/DailyTimetable/Today/',
+    //取得當天所有車次的時刻表資料
+    LiveBoard: traURL$1 + '/LiveBoard/',
+    //取得車站別列車即時到離站電子看板
+    LiveTrainDelay: traURL$1 + '/LiveTrainDelay/',
+    //取得列車即時準點/延誤時間資料
+    //以下為帶有變數的 API
+    ODFareFromTo: traURL$1 + '/ODFare/{OriginStationID}/to/{DestinationStationID}',
+    //取得指定[起訖站間]之票價資料
+    GeneralTrainInfo_TrainNo: traURL$1 + '/GeneralTrainInfo/TrainNo/{TrainNo}',
+    //取得指定[車次]的定期車次資料
+    GeneralTimetable_TrainNo: traURL$1 + '/GeneralTimetable/TrainNo/{TrainNo}',
+    //取得指定[車次]的定期時刻表資料
+    DailyTrainInfo_Today_TrainNo: traURL$1 + '/DailyTrainInfo/Today/TrainNo/{TrainNo}',
+    //取得當天指定[車次]的車次資料
+    DailyTrainInfo_TrainDate: traURL$1 + '/DailyTrainInfo/TrainDate/{TrainDate}',
+    //取得指定[日期]所有車次的車次資料 yyyy-MM-dd
+    DailyTrainInfo_TrainNo_TrainDate: traURL$1 + '/DailyTrainInfo/TrainNo/{TrainNo}/TrainDate/{TrainDate}',
+    //取得指定[日期]與[車次]的車次資料
+    DailyTimetable_Today_TrainNo: traURL$1 + '/DailyTimetable/Today/TrainNo/{TrainNo}',
+    //取得當天指定[車次]的時刻表資料
+    DailyTimetable_TrainDate_TrainNo: traURL$1 + '/DailyTimetable/TrainDate/{TrainDate}',
+    //取得指定[日期]所有車次的時刻表資料
+    DailyTimetable_TrainNo_TrainDate: traURL$1 + '/DailyTimetable/TrainNo/{TrainNo}/TrainDate/{TrainDate}',
+    //取得指定[日期],[車次]的時刻表資料
+    DailyTimetable_Station_TrainDate: traURL$1 + '/DailyTimetable/Station/{StationID}/{TrainDate}',
+    //取得指定[日期],[車站]的站別時刻表資料
+    DailyTimetable_OD_TrainDate: traURL$1 + '/DailyTimetable/OD/{OriginStationID}/to/{DestinationStationID}/{TrainDate}',
+    //取得指定[日期],[起迄站間]之站間時刻表資料
+    LiveBoard_Station: traURL$1 + '/LiveBoard/Station/{StationID}' //取得指定[車站]列車即時到離站電子看板(動態前後30分鐘的車次)
+
+  };
+  var vars = {
+    queryCount: 10000,
+    format: 'JSON'
+  };
+  var getPTX$1 = ptx.getPromiseURL;
+
+  function setDefaultCfg$1() {
+    var cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    if (typeof cfg == 'string') cfg = {
+      paramDirectlyUse: cfg
+    }; //若傳入的為字串代表直接用於最後的參數不需再調整
+
+    cfg.cbFn = cfg.cbFn || function (data, e) {};
+
+    cfg.top = cfg.top || vars.queryCount;
+    cfg.format = vars.format;
+    return cfg;
+  }
+
+  function processCfg$1(cfg) {
+    //將 cfg 轉為對應的參數
+    if (cfg.paramDirectlyUse) return cfg.paramDirectlyUse;
+    var aryParam = [];
+    if (cfg.selectField) aryParam.push(ptx.selectFieldFn(cfg.selectField));
+    if (cfg.filterBy) aryParam.push(ptx.filterFn(cfg.filterBy));
+
+    if (cfg.orderBy) {
+      var dir = cfg.orderDir || false;
+      aryParam.push(ptx.orderByFn(cfg.orderBy, dir));
+    }
+
+    aryParam.push(ptx.topFn(cfg.top, cfg.format)); //最後加這個
+
+    return '?' + aryParam.join('&');
+  }
+
+  function useLineID2filterBy(LineID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg.filterBy = cfg.filterBy || '';
+    cfg.filterBy += ptx.filterParam('LineID', '==', LineID);
+    return cfg;
+  }
+
+  function useStationID2filterBy(StationID) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    cfg.filterBy = cfg.filterBy || '';
+    cfg.filterBy += ptx.filterParam('StationID', '==', StationID);
+    return cfg;
+  }
+
+  var tra = {
+    companyTag: 'TRA',
+    urls: urls$1,
+    vars: vars,
+    getStationOfLine: function getStationOfLine(LineID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useLineID2filterBy(LineID, cfg);
+      return tra._StationOfLine(cfg);
+    },
+    getStation: function getStation(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useStationID2filterBy(StationID, cfg);
+      return tra._Station(cfg);
+    },
+    getStationFare: function getStationFare(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg.filterBy = cfg.filterBy || '';
+      cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+      return tra._ODFare(cfg);
+    },
+    getStationTodayTimeTable: function getStationTodayTimeTable(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var date = new Date();
+      var dateStr = date.getFullYear() + '-' + CM.appendNumber0(date.getMonth() + 1) + '-' + CM.appendNumber0(date.getDate());
+      return tra._DailyTimetable_Station_TrainDate(StationID, dateStr, cfg);
+    } //自動產生 Function
+
+  };
+
+  function makePTX_func$1(cmd, cfg) {
+    cfg = setDefaultCfg$1(cfg);
+    var param = processCfg$1(cfg);
+    return getPTX$1(urls$1[cmd] + param, cfg);
+  }
+
+  var aryMakeFunction$1 = Object.keys(urls$1);
+  var ptxAutoTRAFunctionKey = [];
+  aryMakeFunction$1.forEach(function (fn) {
+    if (!/\{/.test(urls$1[fn])) {
+      //排除要傳參數組 URL 的
+      tra['_' + fn] = function (cfg) {
+        return makePTX_func$1(fn, cfg);
+      };
+
+      ptxAutoTRAFunctionKey.push('_' + fn);
+    } else {
+      //處理有動態參數的
+      var urlAry = urls$1[fn].split('/');
+      var paramCount = 0;
+      var paramAry = [];
+      urlAry.forEach(function (c) {
+        if (/^\{/.test(c)) {
+          paramCount++;
+          paramAry.push(c);
+        }
+      });
+
+      tra['_' + fn] = function () {
+        var ptr = 0;
+        var arg = arguments;
+        if (arg.length < paramCount) throw 'Lose parameter, need ' + paramAry.join();
+        var url = urlAry.map(function (c) {
+          if (/^\{/.test(c)) {
+            c = arg[ptr];
+            ptr++;
+          }
+
+          return c;
+        }).join('/');
+        var cfg = arguments[paramCount];
+        cfg = setDefaultCfg$1(cfg);
+        var param = processCfg$1(cfg);
+        return getPTX$1(url + param, cfg);
+      };
+    }
+  });
+  tra.ptxAutoTRAFunctionKey = ptxAutoTRAFunctionKey;
+  tra.getStationLiveBoard = tra._LiveBoard_Station; //alias
+
+  tra.getFromToFare = tra._ODFareFromTo; //alias
+
   var inBrowser = CM.inBrowser;
   var combine = {
     data: pData,
@@ -3404,6 +3603,7 @@
     krtc: fnMRT$1,
     tymetro: fnMRT$2,
     klrt: fnMRT$3,
+    tra: tra,
     jsSHA: jsSHA,
     common: CM
   };
