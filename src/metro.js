@@ -341,13 +341,6 @@ class baseMethod {
                 var mainSub = catchData.getDataXLineMainSub(timeObj.LineID);
                 let hasSubLine = !!(mainSub.sub.length>0);//如果這路線有分主幹線，要區分主幹線
                 //過濾要找的星期
-
-                //+++++++++++++++++++++++++++++++++++++++++++特殊排除規則待 PTX Bug Fix++++++++++++++++++++++++
-                function specialNeedFilter(Route){
-                    if(w=='6' && /^R-/.test(Route.RouteID) && /0/.test(Route.weekStr)) return true;
-                    return false;
-                }
-                //+++++++++++++++++++++++++++++++++++++++++++特殊排除規則待 PTX Bug Fix End++++++++++++++++++++++++
                 function procTIme(rollTime){
                     let Full = [], Simple = [];
                     rollTime.forEach((c)=>{
@@ -373,7 +366,7 @@ class baseMethod {
                 let MainDirTime = timeObj.Direction.map((DirTime)=>{
                     let rollTime = DirTime.filter((c)=>{
                         if(hasSubLine && mainSub.main.indexOf(c.RouteID)==-1) isSubOfStation = true;
-                        return mainSub.main.indexOf(c.RouteID)!=-1 && regW.test(c.weekStr) && !specialNeedFilter(c);
+                        return mainSub.main.indexOf(c.RouteID)!=-1 && regW.test(c.weekStr)
                     })
                     return procTIme(rollTime);
                 })
@@ -382,7 +375,7 @@ class baseMethod {
                 if(hasSubLine && isSubOfStation){
                     SubDirTime = timeObj.Direction.map((DirTime)=>{
                         let backTime = DirTime.filter((c)=>{
-                            return mainSub.sub.indexOf(c.RouteID)!=-1 && regW.test(c.weekStr) && !specialNeedFilter(c);
+                            return mainSub.sub.indexOf(c.RouteID)!=-1 && regW.test(c.weekStr)
                         })
                         return procTIme(backTime);
                     })

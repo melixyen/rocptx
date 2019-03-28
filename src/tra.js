@@ -95,6 +95,75 @@ var tra = {
         return tra._DailyTimetable_Station_TrainDate(StationID, dateStr, cfg);
     }
 }
+
+//產生整包抓取 Function
+let catchData = {
+    config: {
+        Line_callback: (json)=>{//通用預處理
+            return json;
+        },
+        Line_callback_final: (json)=>{//私用預處理
+            return json;
+        }
+    },
+    GeneralTimetable: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        //定期時刻表抓法  1.執行 tra._GeneralTimetable
+        progressFn('取得時刻中');
+        var atTime = tra._GeneralTimetable()
+        .then(function(res){
+            return res.data.map(function(c){
+                c.GeneralTimetable.UpdateTime = c.UpdateTime;
+                c.GeneralTimetable.VersionID = c.VersionID;
+                return c.GeneralTimetable;
+            })
+        }).catch(function(res){
+            return res;
+        })
+        return atTime;
+    },
+    SimpleTimetable: function(progressFn){
+        return catchData.GeneralTimetable(progressFn)
+        .then(function(json){
+            json.forEach((data,didx)=>{
+                let weekStr = [data.ServiceDay.Sunday, data.ServiceDay.Monday, data.ServiceDay.Tuesday, data.ServiceDay.Wednesday, data.ServiceDay.Thursday, data.ServiceDay.Friday, data.ServiceDay.Saturday].map((day,idx)=>{return (day) ? idx.toString() : ''}).join('');
+                data.weekStr = weekStr;
+                delete data.ServiceDay;
+
+                data.StopTimes.sort(function(a,b){
+                    return (a.StopSequence > b.StopSequence) ? 1 : -1;
+                })
+
+                data.stopTime = data.StopTimes.map(c=>{
+                    return {
+                        Arr: c.ArrivalTime,
+                        Dep: c.DepartureTime,
+                        ID: c.StationID,
+                        name: c.StationName.Zh_tw
+                    }
+                })
+                delete data.StopTimes;
+
+                data.info = {};
+                let deleteKey = ['EndingStationName','StartingStationName','TrainTypeName'];
+                for(var k in data.GeneralTrainInfo){
+                    if(deleteKey.indexOf(k)==-1){
+                        data.info[k] = data.GeneralTrainInfo[k];
+                    }
+                }
+                delete data.GeneralTrainInfo;
+
+                if(didx>0){
+                    delete data.UpdateTime;
+                    delete data.VersionID;
+                }
+            })
+            return json;
+        })
+    }
+}
+tra.catchData = catchData;
+
 //自動產生 Function
 function makePTX_func(cmd, cfg){
     cfg = setDefaultCfg(cfg);

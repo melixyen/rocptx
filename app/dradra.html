@@ -26,6 +26,7 @@ Vue.config.productionTip=false;
 <script type="text/javascript" src="../../railtime/ttlib/data.js"></script>
 -->
 <script type="text/javascript" src="../dist/ptx.js"></script>
+<script type="text/javascript" src="../distdev/ptx.js"></script>
 <script type="text/javascript" src="top_link.js"></script>
 <script type="text/javascript">
 
@@ -371,8 +372,8 @@ var ptx = rocptx;
 					//'<div class="btn4" v-on:click="catchLine()">路線包</div>' +
 					//'<div class="btn4" v-on:click="catchStation()">車站包</div>' +
 					//'<div class="btn4" v-on:click="catchFare()">票價包</div>' +
-					//'<div class="btn4" v-on:click="catchTimeTable()">時刻表包</div>' +
-					//'<div class="btn4" v-on:click="catchTimeSimple()">時刻簡易包</div>' +
+					'<div class="btn4" v-on:click="catchTimeTable()">時刻表包</div>' +
+					'<div class="btn4" v-on:click="catchTimeSimple()">時刻簡易包</div>' +
 				'</div>' +
 				//===路線相關功能===
 				'<div id="' + compName + '_func_line" class="frame1" v-show="nowLineID != \'\'">' +
@@ -529,12 +530,12 @@ var ptx = rocptx;
 						console.info(res);;
 					})
 					BB.jsonFileName = compName + '.fare.json';
-				},
+				},*/
 				catchTimeTable: function(){
 					var me = this;
 					me.doLoad();
 					var fnMsg = function(str){loading(1,str);}
-					ptxFn.catchData.TimeTable(fnMsg).then(function(data){
+					ptxFn.catchData.GeneralTimetable(fnMsg).then(function(data){
 						me.$emit('printj', data);
 						me.unload();
 					}).catch(function(res){
@@ -547,7 +548,7 @@ var ptx = rocptx;
 					var me = this;
 					me.doLoad();
 					var fnMsg = function(str){loading(1,str);}
-					ptxFn.catchData.TimeSimple(fnMsg).then(function(data){
+					ptxFn.catchData.SimpleTimetable(fnMsg).then(function(data){
 						me.$emit('printj', data);
 						me.unload();
 					}).catch(function(res){
@@ -555,7 +556,7 @@ var ptx = rocptx;
 						console.info(res);;
 					})
 					BB.jsonFileName = compName + '.time.json';
-				}*/
+				}
 			},
 			mounted: function() {
 				this.getLINE();

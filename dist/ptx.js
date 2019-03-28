@@ -1994,13 +1994,6 @@
         var mainSub = catchData.getDataXLineMainSub(timeObj.LineID);
         var hasSubLine = !!(mainSub.sub.length > 0); //如果這路線有分主幹線，要區分主幹線
         //過濾要找的星期
-        //+++++++++++++++++++++++++++++++++++++++++++特殊排除規則待 PTX Bug Fix++++++++++++++++++++++++
-
-        function specialNeedFilter(Route) {
-          if (w == '6' && /^R-/.test(Route.RouteID) && /0/.test(Route.weekStr)) return true;
-          return false;
-        } //+++++++++++++++++++++++++++++++++++++++++++特殊排除規則待 PTX Bug Fix End++++++++++++++++++++++++
-
 
         function procTIme(rollTime) {
           var Full = [],
@@ -2037,7 +2030,7 @@
         var MainDirTime = timeObj.Direction.map(function (DirTime) {
           var rollTime = DirTime.filter(function (c) {
             if (hasSubLine && mainSub.main.indexOf(c.RouteID) == -1) isSubOfStation = true;
-            return mainSub.main.indexOf(c.RouteID) != -1 && regW.test(c.weekStr) && !specialNeedFilter(c);
+            return mainSub.main.indexOf(c.RouteID) != -1 && regW.test(c.weekStr);
           });
           return procTIme(rollTime);
         });
@@ -2046,7 +2039,7 @@
         if (hasSubLine && isSubOfStation) {
           SubDirTime = timeObj.Direction.map(function (DirTime) {
             var backTime = DirTime.filter(function (c) {
-              return mainSub.sub.indexOf(c.RouteID) != -1 && regW.test(c.weekStr) && !specialNeedFilter(c);
+              return mainSub.sub.indexOf(c.RouteID) != -1 && regW.test(c.weekStr);
             });
             return procTIme(backTime);
           });
@@ -3537,9 +3530,78 @@
       var date = new Date();
       var dateStr = date.getFullYear() + '-' + CM.appendNumber0(date.getMonth() + 1) + '-' + CM.appendNumber0(date.getDate());
       return tra._DailyTimetable_Station_TrainDate(StationID, dateStr, cfg);
-    } //自動產生 Function
+    } //產生整包抓取 Function
 
   };
+  var catchData$1 = {
+    config: {
+      Line_callback: function Line_callback(json) {
+        //通用預處理
+        return json;
+      },
+      Line_callback_final: function Line_callback_final(json) {
+        //私用預處理
+        return json;
+      }
+    },
+    GeneralTimetable: function GeneralTimetable(progressFn) {
+      if (typeof progressFn != 'function') progressFn = function progressFn(msg) {}; //定期時刻表抓法  1.執行 tra._GeneralTimetable
+
+      progressFn('取得時刻中');
+
+      var atTime = tra._GeneralTimetable().then(function (res) {
+        return res.data.map(function (c) {
+          c.GeneralTimetable.UpdateTime = c.UpdateTime;
+          c.GeneralTimetable.VersionID = c.VersionID;
+          return c.GeneralTimetable;
+        });
+      }).catch(function (res) {
+        return res;
+      });
+
+      return atTime;
+    },
+    SimpleTimetable: function SimpleTimetable(progressFn) {
+      return catchData$1.GeneralTimetable(progressFn).then(function (json) {
+        json.forEach(function (data, didx) {
+          var weekStr = [data.ServiceDay.Sunday, data.ServiceDay.Monday, data.ServiceDay.Tuesday, data.ServiceDay.Wednesday, data.ServiceDay.Thursday, data.ServiceDay.Friday, data.ServiceDay.Saturday].map(function (day, idx) {
+            return day ? idx.toString() : '';
+          }).join('');
+          data.weekStr = weekStr;
+          delete data.ServiceDay;
+          data.StopTimes.sort(function (a, b) {
+            return a.StopSequence > b.StopSequence ? 1 : -1;
+          });
+          data.stopTime = data.StopTimes.map(function (c) {
+            return {
+              Arr: c.ArrivalTime,
+              Dep: c.DepartureTime,
+              ID: c.StationID,
+              name: c.StationName.Zh_tw
+            };
+          });
+          delete data.StopTimes;
+          data.info = {};
+          var deleteKey = ['EndingStationName', 'StartingStationName', 'TrainTypeName'];
+
+          for (var k in data.GeneralTrainInfo) {
+            if (deleteKey.indexOf(k) == -1) {
+              data.info[k] = data.GeneralTrainInfo[k];
+            }
+          }
+
+          delete data.GeneralTrainInfo;
+
+          if (didx > 0) {
+            delete data.UpdateTime;
+            delete data.VersionID;
+          }
+        });
+        return json;
+      });
+    }
+  };
+  tra.catchData = catchData$1; //自動產生 Function
 
   function makePTX_func$1(cmd, cfg) {
     cfg = setDefaultCfg$1(cfg);
