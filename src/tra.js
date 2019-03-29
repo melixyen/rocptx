@@ -106,6 +106,17 @@ let catchData = {
             return json;
         }
     },
+    Line: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        progressFn('取得路線中');
+        var atLine = tra._StationOfLine()
+        .then(function(res){
+            return res.data
+        }).catch(function(res){
+            return res;
+        })
+        return atLine;
+    },
     GeneralTimetable: function(progressFn){
         if(typeof(progressFn)!='function') progressFn = (msg)=>{};
         //定期時刻表抓法  1.執行 tra._GeneralTimetable
@@ -121,6 +132,76 @@ let catchData = {
             return res;
         })
         return atTime;
+    },
+    Station: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        progressFn('取得車站中');
+        return tra._Station()
+        .then(function(res){
+            return res.data.map(function(c){
+                return {
+                    StationID: c.StationID,
+                    lat: c.StationPosition.PositionLat,
+                    lon: c.StationPosition.PositionLon,
+                    name: c.StationName.Zh_tw,
+                    ename: c.StationName.En
+                }
+            })
+        }).catch(function(res){
+            return res;
+        })
+    },
+    TrainType: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        progressFn('取得車種中');
+        return tra._TrainType()
+        .then(function(res){
+            return res.data.map(function(c){
+                let nameAry = c.TrainTypeName.Zh_tw.split('(');
+                if(nameAry[1]) nameAry[1] = nameAry[1].replace(')','');
+                return {
+                    TrainTypeID: c.TrainTypeID,
+                    TrainTypeCode: c.TrainTypeCode,
+                    note: nameAry[1] || '',
+                    name: nameAry[0],
+                    ename: c.TrainTypeName.En
+                }
+            })
+        }).catch(function(res){
+            return res;
+        })
+    },
+    SimpleLine: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        //區分要抓的 line 在資料中是順時針或逆時針方向
+        let recordLineDir0 = ['CZ','YL','NL','TT','PX','NW','LJ'];
+        let recordLineDir1 = ['TL-N','TL-M','TL-C','TL-S','PL','SL','SA','JJ','SH'];
+        let lineCfg = {
+            filterBy: ptx.filterParam('LineID', '==', recordLineDir0.concat(recordLineDir1), 'or')
+        }
+        progressFn('取得路線中');
+        var atLine = tra._StationOfLine(lineCfg)
+        .then(function(res){
+            return res.data.map(c=>{
+                let stAry = c.Stations.sort((a,b)=>{
+                    return (a.Sequence > b.Sequence) ? 1 : -1;
+                }).map(st=>{
+                    return {
+                        name: st.StationName,
+                        ID: st.StationID,
+                        TD: st.TraveledDistance
+                    }
+                })
+                return {
+                    dir: (recordLineDir0.indexOf(c.LineID)!=-1) ? 0 : 1,
+                    LineID: c.LineID,
+                    station: stAry
+                }
+            });
+        }).catch(function(res){
+            return res;
+        })
+        return atLine;
     },
     SimpleTimetable: function(progressFn){
         return catchData.GeneralTimetable(progressFn)

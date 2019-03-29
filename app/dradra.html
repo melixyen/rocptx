@@ -369,8 +369,10 @@ var ptx = rocptx;
 			template: '<div id="' + compName + '_panel" class="" v-if="show_' + compName + '">' +
 				'<div id="' + compName + '_line" class="frame1">' +
 					'<div class="btnBW" v-for="line in aryLINE" v-bind:style="lineStyle(line)" v-on:click="getStationOfLine(line)">{{ line.LineNameZh }}</div>' +
-					//'<div class="btn4" v-on:click="catchLine()">路線包</div>' +
-					//'<div class="btn4" v-on:click="catchStation()">車站包</div>' +
+					'<div class="btn4" v-on:click="catchLine()">路線包</div>' +
+					'<div class="btn4" v-on:click="catchLineSimple()">路線簡易包</div>' +
+					'<div class="btn4" v-on:click="catchStation()">車站包</div>' +
+					'<div class="btn4" v-on:click="catchTrainType()">車種包</div>' +
 					//'<div class="btn4" v-on:click="catchFare()">票價包</div>' +
 					'<div class="btn4" v-on:click="catchTimeTable()">時刻表包</div>' +
 					'<div class="btn4" v-on:click="catchTimeSimple()">時刻簡易包</div>' +
@@ -492,11 +494,24 @@ var ptx = rocptx;
 					return rt;
 				},
 				//Catch Data Function
-				/*catchLine: function(){
+				catchLine: function(){
 					var me = this;
 					me.doLoad();
 					var fnMsg = function(str){loading(1,str);}
 					ptxFn.catchData.Line(fnMsg).then(function(data){
+						me.$emit('printj', data);
+						me.unload();
+					}).catch(function(res){
+						me.unload();
+						console.info(res);;
+					})
+					BB.jsonFileName = compName + '.line.json';
+				},
+				catchLineSimple: function(){
+					var me = this;
+					me.doLoad();
+					var fnMsg = function(str){loading(1,str);}
+					ptxFn.catchData.SimpleLine(fnMsg).then(function(data){
 						me.$emit('printj', data);
 						me.unload();
 					}).catch(function(res){
@@ -518,7 +533,20 @@ var ptx = rocptx;
 					})
 					BB.jsonFileName = compName + '.station.json';
 				},
-				catchFare: function(){
+				catchTrainType: function(){
+					var me = this;
+					me.doLoad();
+					var fnMsg = function(str){loading(1,str);}
+					ptxFn.catchData.TrainType(fnMsg).then(function(data){
+						me.$emit('printj', data);
+						me.unload();
+					}).catch(function(res){
+						me.unload();
+						console.info(res);;
+					})
+					BB.jsonFileName = compName + '.train.json';
+				},
+				/*catchFare: function(){
 					var me = this;
 					me.doLoad();
 					var fnMsg = function(str){loading(1,str);}
