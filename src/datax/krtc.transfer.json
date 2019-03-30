@@ -1,0 +1,1 @@
+[{"FromLineID":"R","FromStationID":"R10","ToLineID":"O","ToStationID":"O5","TransferTime":3,"name":"美麗島","ename":"Formosa Boulevard"},{"FromLineID":"O","FromStationID":"O5","ToLineID":"R","ToStationID":"R10","TransferTime":3,"name":"美麗島","ename":"Formosa Boulevard"}]

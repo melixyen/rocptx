@@ -106,6 +106,54 @@ let catchData = {
             return json;
         }
     },
+    getDataXLineObj: function(LineID){
+        var rt = ptx.datax['tra'].line.find((c)=>{return !!(c.LineID==LineID)})
+        if(rt){
+            var dt = ptx.data.tra.line.find(c=> !!(c.LineID==LineID))
+            for(var k in dt){
+                if(!rt[k]){
+                    rt[k] = dt[k];
+                }else{
+                    rt['data_' + k] = dt[k];
+                }
+            }
+        }
+        return rt;
+    },
+    getDataXStationData: function(StationID){
+        var rt = ptx.datax['tra'].station.find((c)=>{return !!(c.StationID==StationID)})
+        if(rt){
+            var dt = ptx.data.tra.station_ary.find(c=> !!(c.id==StationID))
+            for(var k in dt){
+                if(k=='id'){
+                    rt['ttid'] = 'tra_' + dt[k];
+                }else if(!rt[k]){
+                    rt[k] = dt[k];
+                }else{
+                    rt['data_' + k] = dt[k];
+                }
+            }
+        }
+        return rt;
+    },
+    getDataXTrain: function(id){
+        var rt = ptx.datax['tra'].train.find((c)=>{return !!(c.TrainTypeID==id)})
+        if(rt){
+            var dt = ptx.data.tra["CarClass"].find(c=> !!(c.id==id))
+            for(var k in dt){
+                if(!rt[k]){
+                    rt[k] = dt[k];
+                }else{
+                    rt['data_' + k] = dt[k];
+                }
+            }
+        }
+        return rt;
+    },
+    getDataXStationName: function(StationID, isEn){
+        var st = catchData.getDataXStationData(StationID);
+        return (isEn) ? st.ename : st.name;
+    },
     Line: function(progressFn){
         if(typeof(progressFn)!='function') progressFn = (msg)=>{};
         progressFn('取得路線中');

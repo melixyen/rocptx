@@ -202,6 +202,8 @@ getDataXRouteDirectionInfo | getDataXRouteDirectionInfo(LineID, RouteID, Directi
 getDataXRouteMainTerminal | getDataXRouteMainTerminal(LineID) | 回傳一個幹線起迄點陣列
 getDataXStationData | getDataXStationData(StationID) | 取得車站基本資料
 getDataXStationName | getDataXStationName(StationID, isEn) | 取得車站名稱，isEn == true 時回傳英文站名
+getDataXTransferOfLine | getDataXTransferOfLine(LineID) | 取得該線上的轉乘站
+getDataXTransferStation | getDataXTransferStation(FromLineID, ToLineID) | 取得兩線間的轉乘站
 
 
 ```javascript
@@ -289,6 +291,20 @@ getStation | getStation(StationID, cfg) 回應 Promise。 | 取得車站資料�
 getStationTodayTimeTable | getStationTodayTimeTable(StationID, cfg) 回應 Promise。 | 取得該站今天時刻表。
 getStationFare | getStationFare(StationID, cfg) 回應 Promise。 | 取得該站至所有車站的票價。
 getStationLiveBoard | getStationLiveBoard(StationID, cfg) 回應 Promise。 | 取得車站看板資料。
+catchData | catchData.{Object functions} | 抓資料及讀取已嵌入 datax 之固定資料的 Function 集合。
+
+
+#### catchData
+```javascript
+rocptx.tra.catchData.getDataXLineObj('TL-N');
+//取回值為 rocptx library 內台鐵西部幹線北段的基本資料，不會連到 PTX API
+```
+Name | Method | Description
+-----|------|-------------
+getDataXLineObj | getDataXLineObj(LineID) | 取得路線基本資料
+getDataXStationData | getDataXStationData(StationID) | 取得車站基本資料
+getDataXStationName | getDataXStationName(StationID, isEn) | 取得車站名稱，isEn == true 時回傳英文站名
+getDataXTrain | getDataXTrain(TrainTypeID) | 取得車種基本資料
 
 
 

@@ -943,6 +943,7 @@
   };
 
   var pData = {
+    sect_ary: ['pingdong', 'kaohsiung', 'tainan', 'chiayi', 'yunlin', 'changhua', 'taichung', 'miaoli', 'hsinchu', 'taoyuan', 'taipei', 'keelung', 'northeast', 'yilan', 'beihui', 'hualian', 'taidong'],
     bus: {
       city: [{
         name: '臺北市',
@@ -1431,6 +1432,2008 @@
           }]
         }]
       }]
+    },
+    tymetro: {
+      defined: {
+        "CarClass": [{
+          "id": "directly",
+          "name": "直達車",
+          "ename": "Express",
+          "color": "#A1A"
+        }, {
+          "id": "normal",
+          "name": "普通車",
+          "ename": "Local",
+          "color": "#33F"
+        }]
+      },
+      sect_ary: ['taoyuan', 'taipei'],
+      station_ary: [//Airport Line
+      {
+        id: "A1",
+        name: "臺北車站",
+        estring: "taipeichezhantaipeimainstation",
+        sect: 'taipei',
+        big: 'd'
+      }, {
+        id: "A2",
+        name: "三重",
+        estring: "sanchong",
+        sect: 'taipei'
+      }, {
+        id: "A3",
+        name: "新北產業園區",
+        estring: "xinbeichanyeyuanqui",
+        sect: 'taipei',
+        big: 'd'
+      }, {
+        id: "A4",
+        name: "新莊副都心",
+        estring: "xinzhungfuduxin",
+        sect: 'taipei'
+      }, {
+        id: "A5",
+        name: "泰山",
+        estring: "taishan",
+        sect: 'taipei'
+      }, {
+        id: "A6",
+        name: "泰山貴和",
+        estring: "taishanguehe",
+        sect: 'taipei'
+      }, {
+        id: "A7",
+        name: "體育大學",
+        estring: "tiyvdaxue",
+        sect: 'taipei'
+      }, {
+        id: "A8",
+        name: "長庚醫院",
+        estring: "changgengyiyuan",
+        sect: 'taoyuan',
+        big: 'd'
+      }, {
+        id: "A9",
+        name: "林口",
+        estring: "linkou",
+        sect: 'taoyuan'
+      }, {
+        id: "A10",
+        name: "山鼻",
+        estring: "shanbi",
+        sect: 'taoyuan'
+      }, {
+        id: "A11",
+        name: "坑口",
+        estring: "kengkou",
+        sect: 'taoyuan'
+      }, {
+        id: "A12",
+        name: "機場第一航廈",
+        estring: "terminal1",
+        sect: 'taoyuan',
+        big: 'd'
+      }, {
+        id: "A13",
+        name: "機場第二航廈",
+        estring: "terminal2",
+        sect: 'taoyuan',
+        big: 'd'
+      }, {
+        id: "A14a",
+        name: "機場旅館",
+        estring: "airporthotel",
+        sect: 'taoyuan'
+      }, {
+        id: "A15",
+        name: "大園",
+        estring: "dayuan",
+        sect: 'taoyuan'
+      }, {
+        id: "A16",
+        name: "橫山",
+        estring: "hengshan",
+        sect: 'taoyuan'
+      }, {
+        id: "A17",
+        name: "領航",
+        estring: "linghang",
+        sect: 'taoyuan'
+      }, {
+        id: "A18",
+        name: "高鐵桃園站",
+        estring: "gaotietaoyuanzhan",
+        sect: 'taoyuan'
+      }, {
+        id: "A19",
+        name: "桃園體育園區",
+        estring: "taoyuantiyuyuanqui",
+        sect: 'taoyuan'
+      }, {
+        id: "A20",
+        name: "興南",
+        estring: "xingnan",
+        sect: 'taoyuan'
+      }, {
+        id: "A21",
+        name: "環北",
+        estring: "huanbei",
+        sect: 'taoyuan'
+      }],
+      line: [{
+        id: "tymetro_1",
+        name: "機場捷運",
+        trainSect: ["taipei", "taoyuan"],
+        color: "#8e47ad",
+        dir: "1",
+        station: ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14a", "A15", "A16", "A17", "A18", "A19", "A20", "A21"]
+      }]
+    },
+    tra: {
+      "CarClass": [{
+        "id": "1100",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "1101",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "1102",
+        "code": 1,
+        "name": "太魯閣號",
+        "ename": "Tze-Chiang Limited Express(Tarko)",
+        "color": "#FD8A10"
+      }, {
+        "id": "1103",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "1106",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "1107",
+        "code": 2,
+        "name": "普悠瑪號",
+        "ename": "Tze-Chiang Limited Express(Puyuma)",
+        "color": "#ff0030"
+      }, {
+        "id": "1108",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "1109",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "110A",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "110B",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "110C",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "110D",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "110E",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "110F",
+        "code": 3,
+        "name": "自強號",
+        "ename": "Tze-Chiang Limited Express",
+        "color": "#fd7a10"
+      }, {
+        "id": "1110",
+        "code": 4,
+        "name": "莒光號",
+        "ename": "Chu-Kuang Express",
+        "color": "#ff1070"
+      }, {
+        "id": "1111",
+        "code": 4,
+        "name": "莒光號",
+        "ename": "Chu-Kuang Express",
+        "color": "#ff1070"
+      }, {
+        "id": "1114",
+        "code": 4,
+        "name": "莒光號",
+        "ename": "Chu-Kuang Express",
+        "color": "#ff1070"
+      }, {
+        "id": "1115",
+        "code": 4,
+        "name": "莒光號",
+        "ename": "Chu-Kuang Express",
+        "color": "#ff1070"
+      }, {
+        "id": "1120",
+        "code": 5,
+        "name": "復興號",
+        "ename": "Fu-Hsing Semi Express",
+        "color": "#32CFBC"
+      }, {
+        "id": "1130",
+        "code": 6,
+        "name": "電車號",
+        "ename": "Electric Multiple Unit"
+      }, {
+        "id": "1131",
+        "code": 6,
+        "name": "區間車",
+        "ename": "Local Train",
+        "color": "#0D46A2"
+      }, {
+        "id": "1132",
+        "code": 6,
+        "name": "區間快",
+        "ename": "Fast Local Train",
+        "color": "#32CFBC"
+      }, {
+        "id": "1140",
+        "code": 7,
+        "name": "普快車",
+        "ename": "Ordinary train"
+      }, {
+        "id": "1141",
+        "code": 7,
+        "name": "柴快車",
+        "ename": "Disel Rail Car"
+      }, {
+        "id": "1150",
+        "code": 7,
+        "name": "柴油車",
+        "ename": "na"
+      }],
+      station_ary: [//big: e for big station of east(dongbu), w for big station of west(xibu), s for south link(nanhuei)
+      {
+        id: "1001",
+        name: "基隆",
+        estring: "keelung",
+        sect: "keelung"
+      }, {
+        id: "1029",
+        name: "三坑",
+        estring: "sankeng",
+        sect: "keelung"
+      }, {
+        id: "1002",
+        name: "八堵",
+        estring: "badu",
+        sect: "keelung",
+        big: 'e'
+      }, {
+        id: "1003",
+        name: "七堵",
+        estring: "qidu",
+        sect: "keelung",
+        big: 'ew'
+      }, {
+        id: "1030",
+        name: "百福",
+        estring: "baifu",
+        sect: "keelung"
+      }, {
+        id: "1004",
+        name: "五堵",
+        estring: "wudu",
+        sect: "taipei"
+      }, {
+        id: "1005",
+        name: "汐止",
+        estring: "xizhisijhih",
+        sect: "taipei"
+      }, {
+        id: "1031",
+        name: "汐科",
+        estring: "xikesike",
+        sect: "taipei"
+      }, {
+        id: "1006",
+        name: "南港",
+        estring: "nangang",
+        sect: "taipei"
+      }, {
+        id: "1007",
+        name: "松山",
+        estring: "songshan",
+        sect: "taipei",
+        big: 'ew',
+        bigMaster: true
+      }, {
+        id: "1008",
+        name: "台北",
+        estring: "taipeitaibei",
+        sect: "taipei",
+        big: 'ew',
+        bigMaster: true
+      }, {
+        id: "1009",
+        name: "萬華",
+        estring: "wanhua",
+        sect: "taipei"
+      }, {
+        id: "1011",
+        name: "板橋",
+        estring: "banqiao",
+        sect: "taipei",
+        big: 'ew',
+        bigMaster: true
+      }, {
+        id: "1032",
+        name: "浮洲",
+        estring: "fuzhou",
+        sect: "taipei"
+      }, {
+        id: "1012",
+        name: "樹林",
+        estring: "shulin",
+        sect: "taipei",
+        big: 'e'
+      }, {
+        id: "1034",
+        name: "南樹林",
+        estring: "nanshulin",
+        sect: "taipei"
+      }, {
+        id: "1013",
+        name: "山佳",
+        estring: "shanjia",
+        sect: "taipei"
+      }, {
+        id: "1014",
+        name: "鶯歌",
+        estring: "yingge",
+        sect: "taipei"
+      }, {
+        id: "1015",
+        name: "桃園",
+        estring: "taoyuan",
+        sect: "taoyuan",
+        big: 'w'
+      }, {
+        id: "1016",
+        name: "內壢",
+        estring: "neili",
+        sect: "taoyuan"
+      }, {
+        id: "1017",
+        name: "中壢",
+        estring: "zhongli",
+        sect: "taoyuan",
+        big: 'w'
+      }, {
+        id: "1018",
+        name: "埔心",
+        estring: "puxin",
+        sect: "taoyuan"
+      }, {
+        id: "1019",
+        name: "楊梅",
+        estring: "yangmei",
+        sect: "taoyuan"
+      }, {
+        id: "1020",
+        name: "富岡",
+        estring: "fugan",
+        sect: "taoyuan"
+      }, {
+        id: "1036",
+        name: "新富",
+        estring: "xinfu",
+        sect: "taoyuan"
+      }, {
+        id: "1033",
+        name: "北湖",
+        estring: "beihu",
+        sect: "hsinchu"
+      }, {
+        id: "1021",
+        name: "湖口",
+        estring: "hukou",
+        sect: "hsinchu"
+      }, {
+        id: "1022",
+        name: "新豐",
+        estring: "xinfeng",
+        sect: "hsinchu"
+      }, {
+        id: "1023",
+        name: "竹北",
+        estring: "zhubei",
+        sect: "hsinchu"
+      }, {
+        id: "1024",
+        name: "北新竹",
+        estring: "northhsinchubeixinzhu",
+        sect: "hsinchu"
+      }, {
+        id: "1025",
+        name: "新竹",
+        estring: "hsinchuxinzhu",
+        sect: "hsinchu",
+        big: 'w'
+      }, {
+        id: "1035",
+        name: "三姓橋",
+        estring: "sanxingqiao",
+        sect: "hsinchu"
+      }, {
+        id: "1026",
+        name: "香山",
+        estring: "xiangshan",
+        sect: "hsinchu"
+      }, {
+        id: "1027",
+        name: "崎頂",
+        estring: "jidingciding",
+        sect: "hsinchu"
+      }, {
+        id: "1028",
+        name: "竹南",
+        estring: "zhunan",
+        sect: "hsinchu",
+        big: 'w'
+      }, {
+        id: "1302",
+        name: "造橋",
+        estring: "zaoqiao",
+        sect: "miaoli"
+      }, {
+        id: "1304",
+        name: "豐富",
+        estring: "fengfu",
+        sect: "miaoli"
+      }, {
+        id: "1305",
+        name: "苗栗",
+        estring: "miaoli",
+        sect: "miaoli",
+        big: 'w'
+      }, {
+        id: "1307",
+        name: "南勢",
+        estring: "nanshi",
+        sect: "miaoli"
+      }, {
+        id: "1308",
+        name: "銅鑼",
+        estring: "tongluo",
+        sect: "miaoli"
+      }, {
+        id: "1310",
+        name: "三義",
+        estring: "sanyi",
+        sect: "miaoli"
+      }, {
+        id: "1314",
+        name: "泰安",
+        estring: "taian",
+        sect: "miaoli"
+      }, {
+        id: "1315",
+        name: "后里",
+        estring: "houli",
+        sect: "taichung"
+      }, {
+        id: "1317",
+        name: "豐原",
+        estring: "fengyuan",
+        sect: "taichung",
+        big: 'w'
+      }, {
+        id: "1325",
+        name: "栗林",
+        estring: "lilin",
+        sect: "taichung"
+      }, {
+        id: "1318",
+        name: "潭子",
+        estring: "tanzi",
+        sect: "taichung"
+      }, {
+        id: "1326",
+        name: "頭家厝",
+        estring: "toujiacuo",
+        sect: "taichung"
+      }, {
+        id: "1327",
+        name: "松竹",
+        estring: "toujiacuo",
+        sect: "songzhu"
+      }, {
+        id: "1323",
+        name: "太原",
+        estring: "taiyuan",
+        sect: "taichung"
+      }, {
+        id: "1328",
+        name: "精武",
+        estring: "jingwu",
+        sect: "taichung"
+      }, {
+        id: "1319",
+        name: "台中",
+        estring: "taizhongtaichung",
+        sect: "taichung",
+        big: 'w'
+      }, {
+        id: "1329",
+        name: "五權",
+        estring: "wuquan",
+        sect: "taichung"
+      }, {
+        id: "1322",
+        name: "大慶",
+        estring: "daqing",
+        sect: "taichung"
+      }, {
+        id: "1320",
+        name: "烏日",
+        estring: "wuri",
+        sect: "taichung"
+      }, {
+        id: "1324",
+        name: "新烏日",
+        estring: "xinwuri",
+        sect: "taichung"
+      }, {
+        id: "1321",
+        name: "成功",
+        estring: "chenggong",
+        sect: "taichung"
+      }, {
+        id: "1120",
+        name: "彰化",
+        estring: "zhanghuachanghua",
+        sect: "changhua",
+        big: 'w'
+      }, {
+        id: "1202",
+        name: "花壇",
+        estring: "huatan",
+        sect: "changhua"
+      }, {
+        id: "1240",
+        name: "大村",
+        estring: "dacundatsun",
+        sect: "changhua"
+      }, {
+        id: "1203",
+        name: "員林",
+        estring: "yuanlin",
+        sect: "changhua",
+        big: 'w'
+      }, {
+        id: "1204",
+        name: "永靖",
+        estring: "yongjing",
+        sect: "changhua"
+      }, {
+        id: "1205",
+        name: "社頭",
+        estring: "shetou",
+        sect: "changhua"
+      }, {
+        id: "1206",
+        name: "田中",
+        estring: "tianzhong",
+        sect: "changhua"
+      }, {
+        id: "1207",
+        name: "二水",
+        estring: "ershuei",
+        sect: "changhua"
+      }, {
+        id: "1208",
+        name: "林內",
+        estring: "linnei",
+        sect: "yunlin"
+      }, {
+        id: "1209",
+        name: "石榴",
+        estring: "shilioushihliou",
+        sect: "yunlin"
+      }, {
+        id: "1210",
+        name: "斗六",
+        estring: "douliou",
+        sect: "yunlin",
+        big: 'w'
+      }, {
+        id: "1211",
+        name: "斗南",
+        estring: "dounan",
+        sect: "yunlin"
+      }, {
+        id: "1212",
+        name: "石龜",
+        estring: "shigueishihguei",
+        sect: "yunlin"
+      }, {
+        id: "1213",
+        name: "大林",
+        estring: "dalin",
+        sect: "yunlin"
+      }, {
+        id: "1214",
+        name: "民雄",
+        estring: "minxiong",
+        sect: "chiayi"
+      }, {
+        id: "1241",
+        name: "嘉北",
+        estring: "jiabei",
+        sect: "chiayi"
+      }, {
+        id: "1215",
+        name: "嘉義",
+        estring: "jiayichiayi",
+        sect: "chiayi",
+        big: 'w'
+      }, {
+        id: "1217",
+        name: "水上",
+        estring: "shueishang",
+        sect: "chiayi"
+      }, {
+        id: "1218",
+        name: "南靖",
+        estring: "nanjing",
+        sect: "chiayi"
+      }, {
+        id: "1219",
+        name: "後壁",
+        estring: "houbi",
+        sect: "tainan"
+      }, {
+        id: "1220",
+        name: "新營",
+        estring: "xinyingsinying",
+        sect: "tainan",
+        big: 'w'
+      }, {
+        id: "1221",
+        name: "柳營",
+        estring: "liouying",
+        sect: "tainan"
+      }, {
+        id: "1222",
+        name: "林鳳營",
+        estring: "linfengyinglinfongying",
+        sect: "tainan"
+      }, {
+        id: "1223",
+        name: "隆田",
+        estring: "longtian",
+        sect: "tainan"
+      }, {
+        id: "1224",
+        name: "拔林",
+        estring: "balin",
+        sect: "tainan"
+      }, {
+        id: "1225",
+        name: "善化",
+        estring: "shanghua",
+        sect: "tainan"
+      }, {
+        id: "1244",
+        name: "南科",
+        estring: "nanke",
+        sect: "tainan"
+      }, {
+        id: "1226",
+        name: "新市",
+        estring: "xinshisinshih",
+        sect: "tainan"
+      }, {
+        id: "1227",
+        name: "永康",
+        estring: "yungkangyongkang",
+        sect: "tainan"
+      }, {
+        id: "1239",
+        name: "大橋",
+        estring: "daqiaodaciao",
+        sect: "tainan"
+      }, {
+        id: "1228",
+        name: "台南",
+        estring: "tainan",
+        sect: "tainan",
+        big: 'w'
+      }, {
+        id: "1229",
+        name: "保安",
+        estring: "baoan",
+        sect: "tainan"
+      }, {
+        id: "1243",
+        name: "仁德",
+        estring: "rende",
+        sect: "tainan"
+      }, {
+        id: "1230",
+        name: "中州",
+        estring: "zhongzhoujhongjhou",
+        sect: "tainan"
+      }, {
+        id: "1231",
+        name: "大湖",
+        estring: "dahu",
+        sect: "kaohsiung"
+      }, {
+        id: "1232",
+        name: "路竹",
+        estring: "luzhulujhu",
+        sect: "kaohsiung"
+      }, {
+        id: "1233",
+        name: "岡山",
+        estring: "ganshan",
+        sect: "kaohsiung",
+        big: 'w'
+      }, {
+        id: "1234",
+        name: "橋頭",
+        estring: "qiaotou",
+        sect: "kaohsiung"
+      }, {
+        id: "1235",
+        name: "楠梓",
+        estring: "nanzi",
+        sect: "kaohsiung"
+      }, {
+        id: "1242",
+        name: "新左營",
+        estring: "xingzouying",
+        sect: "kaohsiung",
+        big: 's'
+      }, {
+        id: "1236",
+        name: "左營",
+        estring: "zouying",
+        sect: "kaohsiung"
+      }, {
+        id: "1245",
+        name: "內惟",
+        estring: "neiwei",
+        sect: "kaohsiung"
+      }, {
+        id: "1246",
+        name: "美術館",
+        estring: "meishuguanmuseumoffinearts",
+        sect: "kaohsiung"
+      }, {
+        id: "1237",
+        name: "鼓山",
+        estring: "gushan",
+        sect: "kaohsiung"
+      }, {
+        id: "1247",
+        name: "三塊厝",
+        estring: "sankuaicuo",
+        sect: "kaohsiung"
+      }, {
+        id: "1238",
+        name: "高雄",
+        estring: "kaohsiunggaoxung",
+        sect: "kaohsiung",
+        big: 'ws'
+      }, {
+        id: "1419",
+        name: "民族",
+        estring: "mingzhu",
+        sect: "kaohsiung"
+      }, {
+        id: "1420",
+        name: "科工館",
+        estring: "kegongguanscienceandtecnologymuseum",
+        sect: "kaohsiung"
+      }, {
+        id: "1421",
+        name: "正義",
+        estring: "zhengyi",
+        sect: "kaohsiung"
+      }, {
+        id: "1402",
+        name: "鳳山",
+        estring: "fongshanfengshan",
+        sect: "kaohsiung"
+      }, {
+        id: "1403",
+        name: "後庄",
+        sect: "kaohsiung"
+      }, {
+        id: "1404",
+        name: "九曲堂",
+        sect: "kaohsiung"
+      }, {
+        id: "1405",
+        name: "六塊厝",
+        sect: "pingdong"
+      }, {
+        id: "1406",
+        name: "屏東",
+        estring: "pingtungpingdong",
+        sect: "pingdong",
+        big: 'ws',
+        noShow: true
+      }, {
+        id: "1407",
+        name: "歸來",
+        sect: "pingdong"
+      }, {
+        id: "1408",
+        name: "麟洛",
+        sect: "pingdong"
+      }, {
+        id: "1409",
+        name: "西勢",
+        sect: "pingdong"
+      }, {
+        id: "1410",
+        name: "竹田",
+        sect: "pingdong"
+      }, {
+        id: "1411",
+        name: "潮州",
+        estring: "chaozhouchaojhou",
+        sect: "pingdong",
+        big: 'ws',
+        noShow: true
+      }, {
+        id: "1412",
+        name: "崁頂",
+        sect: "pingdong"
+      }, {
+        id: "1413",
+        name: "南州",
+        sect: "pingdong"
+      }, {
+        id: "1414",
+        name: "鎮安",
+        sect: "pingdong"
+      }, {
+        id: "1415",
+        name: "林邊",
+        sect: "pingdong"
+      }, {
+        id: "1416",
+        name: "佳冬",
+        sect: "pingdong"
+      }, {
+        id: "1417",
+        name: "東海",
+        sect: "pingdong"
+      }, {
+        id: "1418",
+        name: "枋寮",
+        sect: "pingdong"
+      }, {
+        id: "1802",
+        name: "暖暖",
+        estring: "nuannuan",
+        sect: "northeast"
+      }, {
+        id: "1803",
+        name: "四腳亭",
+        estring: "sijiaoting",
+        sect: "northeast"
+      }, {
+        id: "1804",
+        name: "瑞芳",
+        estring: "ruifang",
+        sect: "northeast",
+        big: 'e'
+      }, {
+        id: "1805",
+        name: "猴硐",
+        estring: "houdong",
+        sect: "northeast"
+      }, {
+        id: "1806",
+        name: "三貂嶺",
+        estring: "sandiaoling",
+        sect: "northeast"
+      }, {
+        id: "1807",
+        name: "牡丹",
+        estring: "mudan",
+        sect: "northeast"
+      }, {
+        id: "1808",
+        name: "雙溪",
+        estring: "shuangxi",
+        sect: "northeast"
+      }, {
+        id: "1809",
+        name: "貢寮",
+        estring: "gongliao",
+        sect: "northeast"
+      }, {
+        id: "1810",
+        name: "福隆",
+        estring: "fulong",
+        sect: "northeast"
+      }, {
+        id: "1811",
+        name: "石城",
+        estring: "shicheng",
+        sect: "yilan"
+      }, {
+        id: "1812",
+        name: "大里",
+        estring: "dali",
+        sect: "yilan"
+      }, {
+        id: "1813",
+        name: "大溪",
+        estring: "daxidasi",
+        sect: "yilan"
+      }, {
+        id: "1814",
+        name: "龜山",
+        estring: "gueishan",
+        sect: "yilan"
+      }, {
+        id: "1815",
+        name: "外澳",
+        estring: "waiao",
+        sect: "yilan"
+      }, {
+        id: "1816",
+        name: "頭城",
+        estring: "toucheng",
+        sect: "yilan",
+        big: 'e'
+      }, {
+        id: "1817",
+        name: "頂埔",
+        estring: "dingpu",
+        sect: "yilan"
+      }, {
+        id: "1818",
+        name: "礁溪",
+        estring: "jiaoxijiaohsi",
+        sect: "yilan"
+      }, {
+        id: "1819",
+        name: "四城",
+        estring: "sicheng",
+        sect: "yilan"
+      }, {
+        id: "1820",
+        name: "宜蘭",
+        estring: "yilan",
+        sect: "yilan",
+        big: 'e'
+      }, {
+        id: "1821",
+        name: "二結",
+        estring: "erjie",
+        sect: "yilan"
+      }, {
+        id: "1822",
+        name: "中里",
+        estring: "zhongli",
+        sect: "yilan"
+      }, {
+        id: "1823",
+        name: "羅東",
+        estring: "luodong",
+        sect: "yilan",
+        big: 'e'
+      }, {
+        id: "1824",
+        name: "冬山",
+        estring: "dongshan",
+        sect: "yilan"
+      }, {
+        id: "1825",
+        name: "新馬",
+        estring: "xinmasinma",
+        sect: "yilan"
+      }, {
+        id: "1826",
+        name: "蘇澳新",
+        estring: "suaoxinsuaosin",
+        sect: "yilan",
+        big: 'e'
+      }, {
+        id: "1827",
+        name: "蘇澳",
+        estring: "suao",
+        sect: "yilan"
+      }, {
+        id: "1703",
+        name: "永樂",
+        estring: "yongle",
+        sect: "beihui"
+      }, {
+        id: "1704",
+        name: "東澳",
+        estring: "dongao",
+        sect: "beihui"
+      }, {
+        id: "1705",
+        name: "南澳",
+        estring: "nanao",
+        sect: "beihui",
+        big: 'e'
+      }, {
+        id: "1706",
+        name: "武塔",
+        estring: "wuta",
+        sect: "beihui"
+      }, {
+        id: "1708",
+        name: "漢本",
+        estring: "hanben",
+        sect: "beihui"
+      }, {
+        id: "1709",
+        name: "和平",
+        estring: "heping",
+        sect: "beihui"
+      }, {
+        id: "1710",
+        name: "和仁",
+        estring: "heren",
+        sect: "beihui"
+      }, {
+        id: "1711",
+        name: "崇德",
+        estring: "chongde",
+        sect: "hualian"
+      }, {
+        id: "1712",
+        name: "新城",
+        estring: "xinchengsincheng",
+        sect: "hualian"
+      }, {
+        id: "1713",
+        name: "景美",
+        estring: "jingmei",
+        sect: "hualian"
+      }, {
+        id: "1714",
+        name: "北埔",
+        estring: "beipu",
+        sect: "hualian"
+      }, {
+        id: "1715",
+        name: "花蓮",
+        estring: "hualienhualian",
+        sect: "hualian",
+        big: 'e'
+      }, //sect:hualian
+      {
+        id: "1602",
+        name: "吉安",
+        estring: "jian",
+        sect: "hualian"
+      }, {
+        id: "1604",
+        name: "志學",
+        estring: "zhixue",
+        sect: "hualian"
+      }, {
+        id: "1605",
+        name: "平和",
+        estring: "pinghe",
+        sect: "hualian"
+      }, {
+        id: "1606",
+        name: "壽豐",
+        estring: "shoufeng",
+        sect: "hualian"
+      }, {
+        id: "1607",
+        name: "豐田",
+        estring: "fengtian",
+        sect: "hualian"
+      }, {
+        id: "1609",
+        name: "南平",
+        estring: "nanping",
+        sect: "hualian"
+      }, {
+        id: "1610",
+        name: "鳳林",
+        estring: "fenglinfonglin",
+        sect: "hualian"
+      }, {
+        id: "1611",
+        name: "萬榮",
+        estring: "wanrong",
+        sect: "hualian"
+      }, {
+        id: "1612",
+        name: "光復",
+        estring: "guangfu",
+        sect: "hualian"
+      }, {
+        id: "1613",
+        name: "大富",
+        estring: "dafu",
+        sect: "hualian"
+      }, {
+        id: "1614",
+        name: "富源",
+        estring: "fuyuan",
+        sect: "hualian"
+      }, {
+        id: "1616",
+        name: "瑞穗",
+        estring: "ruisui",
+        sect: "hualian"
+      }, {
+        id: "1617",
+        name: "三民",
+        estring: "sanmin",
+        sect: "hualian"
+      }, {
+        id: "1619",
+        name: "玉里",
+        estring: "yuli",
+        sect: "hualian",
+        big: 'e'
+      }, {
+        id: "1621",
+        name: "東里",
+        estring: "dongli",
+        sect: "hualian"
+      }, {
+        id: "1622",
+        name: "東竹",
+        estring: "dongzhu",
+        sect: "hualian"
+      }, {
+        id: "1623",
+        name: "富里",
+        estring: "fuli",
+        sect: "hualian"
+      }, {
+        id: "1624",
+        name: "池上",
+        estring: "chishang",
+        sect: "taidong"
+      }, {
+        id: "1625",
+        name: "海端",
+        estring: "haiduan",
+        sect: "taidong"
+      }, {
+        id: "1626",
+        name: "關山",
+        estring: "guanshan",
+        sect: "taidong"
+      }, {
+        id: "1628",
+        name: "瑞和",
+        estring: "ruihe",
+        sect: "taidong"
+      }, {
+        id: "1629",
+        name: "瑞源",
+        estring: "ruiyuan",
+        sect: "taidong"
+      }, {
+        id: "1630",
+        name: "鹿野",
+        estring: "luye",
+        sect: "taidong"
+      }, {
+        id: "1631",
+        name: "山里",
+        estring: "shanli",
+        sect: "taidong"
+      }, {
+        id: "1632",
+        name: "台東",
+        estring: "taitungtaidong",
+        sect: "taidong",
+        big: 'es'
+      }, //海線及南迴線臨時資料
+      {
+        id: "1102",
+        name: "談文",
+        sect: "miaoli"
+      }, {
+        id: "1104",
+        name: "大山",
+        sect: "miaoli"
+      }, {
+        id: "1105",
+        name: "後龍",
+        sect: "miaoli"
+      }, {
+        id: "1106",
+        name: "龍港",
+        sect: "miaoli"
+      }, {
+        id: "1107",
+        name: "白沙屯",
+        sect: "miaoli"
+      }, {
+        id: "1108",
+        name: "新埔",
+        sect: "miaoli"
+      }, {
+        id: "1109",
+        name: "通霄",
+        sect: "miaoli"
+      }, {
+        id: "1110",
+        name: "苑裡",
+        sect: "miaoli"
+      }, {
+        id: "1111",
+        name: "日南",
+        sect: "taichung"
+      }, {
+        id: "1112",
+        name: "大甲",
+        sect: "taichung"
+      }, {
+        id: "1113",
+        name: "臺中港",
+        sect: "taichung"
+      }, {
+        id: "1114",
+        name: "清水",
+        sect: "taichung"
+      }, {
+        id: "1115",
+        name: "沙鹿",
+        sect: "taichung"
+      }, {
+        id: "1116",
+        name: "龍井",
+        sect: "taichung"
+      }, {
+        id: "1117",
+        name: "大肚",
+        sect: "taichung"
+      }, {
+        id: "1118",
+        name: "追分",
+        sect: "taichung"
+      }, {
+        id: "1502",
+        name: "加祿",
+        sect: "pingdong"
+      }, {
+        id: "1503",
+        name: "內獅",
+        sect: "pingdong"
+      }, {
+        id: "1504",
+        name: "枋山",
+        sect: "pingdong"
+      }, {
+        id: "1507",
+        name: "古莊",
+        sect: "taidong"
+      }, {
+        id: "1508",
+        name: "大武",
+        sect: "taidong"
+      }, {
+        id: "1510",
+        name: "瀧溪",
+        sect: "taidong"
+      }, {
+        id: "1512",
+        name: "金崙",
+        sect: "taidong"
+      }, {
+        id: "1514",
+        name: "太麻里",
+        sect: "taidong"
+      }, {
+        id: "1516",
+        name: "知本",
+        sect: "taidong"
+      }, {
+        id: "1517",
+        name: "康樂",
+        sect: "taidong"
+      }, //海線及南迴線臨時資料
+      {
+        id: "2003",
+        name: "八斗子",
+        estring: "badouzi",
+        sect: "northeast"
+      }, {
+        id: "6103",
+        name: "海科館",
+        estring: "haikeguan",
+        sect: "northeast"
+      }, {
+        id: "1903",
+        name: "大華",
+        estring: "dahua",
+        sect: "northeast"
+      }, {
+        id: "1904",
+        name: "十分",
+        estring: "shifenshihfen",
+        sect: "northeast"
+      }, {
+        id: "1905",
+        name: "望古",
+        estring: "wanggu",
+        sect: "northeast"
+      }, {
+        id: "1906",
+        name: "嶺腳",
+        estring: "lingjiao",
+        sect: "northeast"
+      }, {
+        id: "1907",
+        name: "平溪",
+        estring: "pingxipingsi",
+        sect: "northeast"
+      }, {
+        id: "1908",
+        name: "菁桐",
+        estring: "jingtong",
+        sect: "northeast"
+      }, {
+        id: "2212",
+        name: "千甲",
+        estring: "qianjia",
+        sect: "hsinchu"
+      }, {
+        id: "2213",
+        name: "新莊",
+        estring: "xinzhuang",
+        sect: "hsinchu"
+      }, {
+        id: "2203",
+        name: "竹中",
+        estring: "zhuzhong",
+        sect: "hsinchu"
+      }, {
+        id: "2214",
+        name: "六家",
+        estring: "liujia",
+        sect: "hsinchu"
+      }, {
+        id: "2204",
+        name: "上員",
+        estring: "shangyuan",
+        sect: "hsinchu"
+      }, {
+        id: "2211",
+        name: "榮華",
+        estring: "ronghua",
+        sect: "hsinchu"
+      }, {
+        id: "2205",
+        name: "竹東",
+        estring: "zhudong",
+        sect: "hsinchu"
+      }, {
+        id: "2206",
+        name: "橫山",
+        estring: "zhuzhong",
+        sect: "hsinchu"
+      }, {
+        id: "2207",
+        name: "九讚頭",
+        estring: "jiouzantou",
+        sect: "hsinchu"
+      }, {
+        id: "2208",
+        name: "合興",
+        estring: "hexinghesing",
+        sect: "hsinchu"
+      }, {
+        id: "2209",
+        name: "富貴",
+        estring: "fuguei",
+        sect: "hsinchu"
+      }, {
+        id: "2210",
+        name: "內灣",
+        estring: "neiwan",
+        sect: "hsinchu"
+      }, {
+        id: "5101",
+        name: "長榮大學",
+        estring: "changrongdaxuechangjungchristianuniversity",
+        sect: "tainan"
+      }, {
+        id: "5102",
+        name: "沙崙",
+        estring: "shalun",
+        sect: "tainan"
+      }],
+      line: [{
+        LineID: 'TL-N',
+        ttid: "tra_xibu",
+        name: "西部幹線(基隆-竹南)",
+        trainSect: ["keelung", "taipei", "taoyuan", "hsinchu"],
+        color: "#000050",
+        dir: "1",
+        link: {
+          "YL": {
+            station: "1002",
+            dir: "0"
+          },
+          "TL-M": {
+            station: "1028",
+            dir: "1"
+          },
+          "TL-C": {
+            station: "1028",
+            dir: "1"
+          },
+          "NW": {
+            station: "1025",
+            dir: "0"
+          }
+        },
+        station: ["1001", "1029", "1002", "1003", "1030", "1004", "1005", "1031", "1006", "1007", "1008", "1009", "1011", "1032", "1012", "1034", "1013", "1014", "1015", "1016", "1017", "1018", "1019", "1020", "1036", "1033", "1021", "1022", "1023", "1024", "1025", "1035", "1026", "1027", "1028"]
+      }, {
+        LineID: 'TL-M',
+        ttid: "tra_shan",
+        name: "山線(竹南-彰化)",
+        trainSect: ["hsinchu", "miaoli", "taichung", "changhua"],
+        color: "#104020",
+        dir: "1",
+        area: 'w',
+        link: {
+          "TL-N": {
+            station: "1028",
+            dir: "0"
+          },
+          "TL-S": {
+            station: "1120",
+            dir: "1"
+          },
+          "CZ": {
+            station: "1321",
+            dir: "0"
+          }
+        },
+        station: ["1028", "1302", "1304", "1305", "1307", "1308", "1310", "1314", "1315", "1317", "1325", "1318", "1326", "1327", "1323", "1328", "1319", "1329", "1322", "1320", "1324", "1321", "1120"]
+      }, {
+        LineID: 'TL-C',
+        ttid: "tra_hai",
+        name: "海線",
+        trainSect: ["miaoli", "taichung"],
+        color: "#2050C0",
+        dir: "1",
+        area: 'w',
+        link: {
+          "TL-N": {
+            station: "1028",
+            dir: "0"
+          },
+          "TL-S": {
+            station: "1120",
+            dir: "1"
+          },
+          "CZ": {
+            station: "1118",
+            dir: "1"
+          }
+        },
+        station: ["1028", "1102", "1104", "1105", "1106", "1107", "1108", "1109", "1110", "1111", "1112", "1113", "1114", "1115", "1116", "1117", "1118", "1120"]
+      }, {
+        LineID: 'CZ',
+        ttid: "",
+        name: "成追線",
+        trainSect: ["taichung"],
+        color: "#204020",
+        dir: "0",
+        area: 'w',
+        link: {
+          "TL-M": {
+            station: "1321",
+            dir: "1"
+          },
+          "TL-C": {
+            station: "1118",
+            dir: "0"
+          }
+        },
+        station: ["1321", "1118"]
+      }, {
+        LineID: 'TL-S',
+        ttid: "tra_zhjy|tra_jygx",
+        name: "西部幹線(彰化-高雄)",
+        trainSect: ["changhua", "yunlin", "chiayi"],
+        color: "#707010",
+        dir: "1",
+        area: 'w',
+        link: {
+          "TL-M": {
+            station: "1120",
+            dir: "0"
+          },
+          "TL-C": {
+            station: "1120",
+            dir: "0"
+          },
+          "JJ": {
+            station: "1120",
+            dir: "1"
+          },
+          "SH": {
+            station: "1120",
+            dir: "1"
+          },
+          "PL": {
+            station: "1238",
+            dir: "1"
+          }
+        },
+        station: ["1120", "1202", "1240", "1203", "1204", "1205", "1206", "1207", "1208", "1209", "1210", "1211", "1212", "1213", "1214", "1241", "1215", "tra_1217", "tra_1218", "tra_1219", "tra_1220", "tra_1221", "tra_1222", "tra_1223", "tra_1224", "tra_1225", "tra_1244", "tra_1226", "tra_1227", "tra_1239", "tra_1228", "tra_1229", "tra_1243", "tra_1230", "tra_1231", "tra_1232", "tra_1233", "tra_1234", "tra_1235", "tra_1242", "tra_1236", "tra_1245", "tra_1246", "tra_1237", "tra_1247", "tra_1238"]
+      }, {
+        LineID: 'PL',
+        ttid: "tra_pingdong",
+        name: "屏東線",
+        trainSect: ["kaohsiung", "pingdong"],
+        color: "#501F02",
+        dir: "1",
+        area: 'w',
+        link: {
+          "TL-S": {
+            station: "1238",
+            dir: "0"
+          },
+          "SL": {
+            station: "1418",
+            dir: "1"
+          }
+        },
+        station: ["1238", "1402", "1403", "1404", "1405", "1406", "1407", "1408", "1409", "1410", "1411", "1412", "1413", "1414", "1415", "1416", "1417", "1418"]
+      }, {
+        LineID: 'YL',
+        ttid: "tra_yilan",
+        name: "宜蘭線",
+        trainSect: ["taipei", "keelung", "northeast", "yilan"],
+        color: "#500000",
+        dir: "0",
+        area: 'e',
+        link: {
+          "TL-N": {
+            station: "1002",
+            dir: "1"
+          },
+          "NL": {
+            station: "1826",
+            dir: "0"
+          },
+          "SA": {
+            station: "1804",
+            dir: "1"
+          },
+          "PX": {
+            station: "1806",
+            dir: "0"
+          }
+        },
+        station: ["1002", "1802", "1803", "1804", "1805", "1806", "1807", "1808", "1809", "1810", //taipei
+        "1811", "1812", "1813", "1814", "1815", "1816", "1817", "1818", "1819", "1820", "1821", "1822", "1823", "1824", "1825", "1826", "1827"]
+      }, {
+        LineID: 'NL',
+        ttid: "tra_beihui",
+        name: "北迴線(蘇澳-花蓮)",
+        trainSect: ["taipei", "keelung", "northeast", "yilan", "beihui", "hualian"],
+        color: "#004060",
+        dir: "0",
+        area: 'e',
+        link: {
+          "YL": {
+            station: "1826",
+            dir: "1"
+          },
+          "TT": {
+            station: "1715",
+            dir: "0"
+          }
+        },
+        station: ["1826", "1703", "1704", "1705", "1706", "1708", "1709", "1710", "1711", "1712", "1713", "1714", "1715"]
+      }, {
+        LineID: 'TT',
+        ttid: "tra_huadong",
+        name: "台東線",
+        trainSect: ["taipei", "keelung", "northeast", "yilan", "beihui", "hualian", "taidong"],
+        color: "#605040",
+        dir: "0",
+        area: 'e',
+        link: {
+          "NL": {
+            station: "1715",
+            dir: "1"
+          },
+          "SL": {
+            station: "1632",
+            dir: "0"
+          }
+        },
+        station: ["1715", "1602", "1604", "1605", "1606", "1607", "1609", "1610", "1611", "1612", "1613", "1614", "1616", "1617", "1619", "1621", "1622", "1623", "1624", "1625", "1626", "1628", "1629", "1630", "1631", "1632"]
+      }, {
+        LineID: 'SL',
+        ttid: "tra_nanhuei",
+        name: "南迴線",
+        trainSect: ["taidong", "pingdong"],
+        color: "#3040A0",
+        dir: "0",
+        area: 'e',
+        link: {
+          "TT": {
+            station: "1632",
+            dir: "1"
+          },
+          "PL": {
+            station: "1418",
+            dir: "0"
+          }
+        },
+        station: ["1632", "1517", "1516", "1514", "1512", "1510", "1508", "1507", "1504", "1503", "1502", "1418"]
+      }, {
+        LineID: 'PX',
+        ttid: "tra_pingxi",
+        name: "平溪線",
+        trainSect: ["northeast"],
+        color: "#003030",
+        dir: "0",
+        area: 'e',
+        link: {
+          "YL": {
+            station: "1806",
+            dir: "0"
+          }
+        },
+        station: ["1806", "1903", "1904", "1905", "1906", "1907", "1908"]
+      }, {
+        LineID: 'SA',
+        ttid: "tra_pingxi",
+        name: "深澳線",
+        trainSect: ["northeast"],
+        color: "#003030",
+        dir: "0",
+        area: 'e',
+        link: {
+          "YL": {
+            station: "1804",
+            dir: "1"
+          }
+        },
+        station: ["2003", "6103", "1804"]
+      }, {
+        LineID: 'NW',
+        ttid: "tra_liujia",
+        name: "內灣線",
+        trainSect: ["hsinchu"],
+        color: "#403090",
+        dir: "0",
+        area: 'w',
+        link: {
+          "TL-N": {
+            station: "1025",
+            dir: "1"
+          },
+          "LJ": {
+            station: "2203",
+            dir: "0"
+          }
+        },
+        station: ["1025", "1024", "2212", "2213", "2203", "2204", "2211", "2205", "2206", "2207", "2208", "2209", "2210"]
+      }, {
+        LineID: 'LJ',
+        ttid: "tra_liujia",
+        name: "六家線",
+        trainSect: ["hsinchu"],
+        color: "#403090",
+        dir: "0",
+        area: 'w',
+        link: {
+          "NW": {
+            station: "2203",
+            dir: "1"
+          }
+        },
+        station: ["2203", "2214"]
+      }, {
+        LineID: 'SH',
+        ttid: "tra_shalun",
+        name: "沙崙線",
+        trainSect: ["tainan"],
+        color: "#124060",
+        dir: "1",
+        area: 'w',
+        protectStation: ["1230"],
+        link: {
+          "TL-S": {
+            station: "1230",
+            dir: "0"
+          }
+        },
+        station: ["1230", "5101", "5102"]
+      }],
+      running_ary: [{
+        id: 'eTemu',
+        cate: 'express',
+        CarClass: ['1107', '1102'],
+        dir: '0',
+        area: 'e',
+        range: ['1012', '1632'],
+        name: '東部幹線太魯閣號、普悠瑪號',
+        rangeSplit: '1715',
+        lineOf: ['TL-N', 'YL', 'NL', 'TT'],
+        mustStop: ['1012', '1011', '1008', '1007', '1715', '1619', '1632'],
+        maybeStop: ['1006', '1003', '1820', '1823', '1606', '1610', '1612', '1616', '1626'],
+        lessStop: ['1002', '1804', '1816', '1818', '1712', '1602', '1604', '1611', '1623', '1624', '1630']
+      }, {
+        id: 'eZi',
+        cate: 'express',
+        CarClass: ['1100', '1101', '1103', '1108', '1109', '110A', '110B', '110C', '110D', '110E', '110F'],
+        dir: '0',
+        area: 'e',
+        range: ['1012', '1632'],
+        name: '東部幹線自強號',
+        rangeSplit: '1715',
+        lineOf: ['TL-N', 'YL', 'NL', 'TT'],
+        mustStop: ['1012', '1011', '1008', '1007', '1820', '1823', '1715', '1619', '1632'],
+        maybeStop: ['1003', '1804', '1816', '1818', '1826', '1705', '1712', '1602', '1604', '1611', '1623', '1624', '1630'],
+        lessStop: ['1009', '1006', '1005', '1002', '1808', '1810', '1709']
+      }, {
+        id: 'eJv',
+        cate: 'express',
+        CarClass: ['1110', '11111', '1114', '1115'],
+        dir: '0',
+        area: 'e',
+        range: ['1012', '1632'],
+        name: '東部幹線莒光號',
+        rangeSplit: '1715',
+        lineOf: ['TL-N', 'YL', 'NL', 'TT'],
+        mustStop: ['1012', '1011', '1008', '1007', '1804', '1816', '1818', '1820', '1823', '1715', '1619', '1632'],
+        maybeStop: ['1005', '1003', '1826', '1705', '1712', '1602', '1604', '1611', '1623', '1624', '1630'],
+        lessStop: ['1009', '1002', '1805', '1808', '1810', '1704', '1709', '1607', '1621', '1622']
+      }, {
+        //西部對號
+        id: 'wZi',
+        cate: 'express',
+        CarClass: ['1100', '1101', '1103', '1108', '1109', '110A', '110B', '110C', '110D', '110E', '110F'],
+        dir: '1',
+        area: 'w',
+        range: ['1003', '1411'],
+        name: '西部幹線自強號',
+        lineOf: ['TL-N', 'TL-M', 'TL-S', 'PL'],
+        mustStop: ['1003', '1007', '1008', '1011', '1015', '1017', '1025', '1305', '1317', '1319', '1120', '1210', '1215', '1228', '1242', '1238', '1402', '1406', '1411'],
+        maybeStop: ['1005', '1028', '1203', '1206', '1211', '1220', '1404'],
+        lessStop: ['1006', '1012', '1214', '1225', '1227', '1233']
+      }, {
+        id: 'wJv',
+        cate: 'express',
+        CarClass: ['1110', '11111', '1114', '1115'],
+        dir: '1',
+        area: 'w',
+        range: ['1003', '1411'],
+        name: '西部幹線莒光號',
+        lineOf: ['TL-N', 'TL-C', 'TL-S', 'PL'],
+        mustStop: ['1003', '1005', '1007', '1008', '1011', '1012', '1015', '1017', '1019', '1021', '1025', '1028', '1105', '1109', '1110', '1112', '1114', '1115', '1120', '1203', '1206', '1210', '1211', '1215', '1220', '1223', '1225', '1228', '1233', '1242', '1238', '1402', '1406', '1411'],
+        maybeStop: ['1023', '1207', '1213', '1214', '1227', '1404'],
+        lessStop: ['1014', '1107', '1117', '1214', '1226', '1231', '1232']
+      }, {
+        //南迴線對號
+        id: 'sZi',
+        cate: 'express',
+        CarClass: ['1100', '1101', '1103', '1108', '1109', '110A', '110B', '110C', '110D', '110E', '110F'],
+        dir: '1',
+        area: 's',
+        range: ['1242', '1632'],
+        name: '南迴線自強號',
+        lineOf: ['TL-S', 'PL', 'SL'],
+        mustStop: ['1242', '1238', '1402', '1406', '1411', '1418', '1508', '1514', '1516', '1632'],
+        maybeStop: ['1413', '1415', '1512'],
+        lessStop: ['1404', '1510', '1517']
+      }, {
+        id: 'sJvFu',
+        cate: 'express',
+        CarClass: ['1110', '11111', '1114', '1115', '1120'],
+        dir: '1',
+        area: 's',
+        range: ['1242', '1632'],
+        name: '南迴線莒光號、復興號',
+        lineOf: ['TL-S', 'PL', 'SL'],
+        mustStop: ['1242', '1238', '1402', '1406', '1411', '1418', '1508', '1512', '1514', '1516', '1632'],
+        maybeStop: ['1404', '1413', '1415', '1510', '1517'],
+        lessStop: []
+      }, {
+        id: 'eLocal1',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '0',
+        area: 'e',
+        range: ['1012', '1827'],
+        name: '宜蘭線區間車',
+        stopAll: true,
+        lineOf: ['TL-N', 'YL']
+      }, {
+        id: 'eLocal2',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '0',
+        area: 'e',
+        range: ['1820', '1715'],
+        name: '北迴線區間車',
+        stopAll: true,
+        lineOf: ['YL', 'NL']
+      }, {
+        id: 'eLocal3',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '0',
+        area: 'e',
+        range: ['1715', '1632'],
+        name: '臺東線區間車',
+        stopAll: true,
+        maybeStop: ['1608'],
+        //當stopAll 時 maybeStop 表示為不一定停靠
+        lineOf: ['TT']
+      }, {
+        id: 'wLocal1',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '1',
+        area: 'w',
+        range: ['1001', '1025'],
+        name: '基隆新竹段區間車',
+        stopAll: true,
+        lineOf: ['TL-N']
+      }, {
+        id: 'wLocal2',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '1',
+        area: 'w',
+        range: ['1025', '1120'],
+        name: '山線區間車',
+        stopAll: true,
+        lineOf: ['TL-N', 'TL-M']
+      }, {
+        id: 'wLocal3',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '1',
+        area: 'w',
+        range: ['1025', '1120'],
+        name: '海線區間車',
+        stopAll: true,
+        lineOf: ['TL-N', 'TL-C']
+      }, {
+        id: 'wLocal4',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '1',
+        area: 'w',
+        range: ['1120', '1215'],
+        name: '彰化嘉義段區間車',
+        stopAll: true,
+        lineOf: ['TL-S']
+      }, {
+        id: 'wLocal5',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '1',
+        area: 'w',
+        range: ['1215', '1411'],
+        name: '嘉義潮州段區間車',
+        stopAll: true,
+        lineOf: ['TL-S', 'PL']
+      }, {
+        id: 'wLocal6',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '1',
+        area: 'w',
+        range: ['1411', '1418'],
+        name: '潮州枋寮段區間車',
+        stopAll: true,
+        lineOf: ['PL']
+      }, {
+        id: 'sLocal',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '1',
+        area: 's',
+        range: ['1418', '1632'],
+        name: '南迴線區間車',
+        stopAll: true,
+        lineOf: ['SL']
+      }, {
+        id: 'subPX',
+        cate: 'local',
+        CarClass: ['1150', '1131'],
+        dir: '0',
+        area: 'e',
+        range: ['2003', '1908'],
+        name: '平溪線',
+        stopAll: true,
+        lineOf: ['SA', 'YL', 'PX']
+      }, {
+        id: 'subLJ',
+        cate: 'local',
+        CarClass: ['1131'],
+        dir: '0',
+        area: 'w',
+        range: ['1025', '2214'],
+        name: '六家線',
+        stopAll: true,
+        lineOf: ['NW', 'LJ']
+      }, {
+        id: 'subNW',
+        cate: 'local',
+        CarClass: ['1150', '1131'],
+        dir: '0',
+        area: 'w',
+        range: ['2203', '2210'],
+        name: '內灣線',
+        stopAll: true,
+        lineOf: ['NW']
+      }, {
+        id: 'subJJ',
+        cate: 'local',
+        CarClass: ['1150', '1131'],
+        dir: '1',
+        area: 'w',
+        range: ['1207', '2707'],
+        name: '集集線',
+        stopAll: true,
+        lineOf: ['JJ']
+      }, {
+        id: 'subSL',
+        cate: 'local',
+        CarClass: ['1150', '1131'],
+        dir: '1',
+        area: 'w',
+        range: ['1228', '5102'],
+        name: '沙崙線',
+        stopAll: true,
+        lineOf: ['TL-S', 'SH']
+      }]
     }
   };
 
@@ -1446,18 +3449,35 @@
 
   var tymetro_station = [{"StationID":"A1","lat":25.048,"lon":25.048,"name":"台北車站","ename":"Taipei Main Station","FirstLast":[{"To":"A21","Time":["06:07","23:07"],"TrainType":1},{"To":"A13","Time":["06:00","23:00"],"TrainType":2}]},{"StationID":"A2","lat":25.054,"lon":25.054,"name":"三重站","ename":"Sanchong Station","FirstLast":[{"To":"A21","Time":["05:58","23:15"],"TrainType":1},{"To":"A1","Time":["06:08","00:17"],"TrainType":1}]},{"StationID":"A3","lat":25.061,"lon":25.061,"name":"新北產業園區站","ename":"New Taipei Industrial Park Station","FirstLast":[{"To":"A21","Time":["06:02","23:19"],"TrainType":1},{"To":"A1","Time":["06:03","00:12"],"TrainType":1},{"To":"A13","Time":["06:09","23:09"],"TrainType":2},{"To":"A1","Time":["06:11","23:26"],"TrainType":2}]},{"StationID":"A4","lat":25.059,"lon":25.059,"name":"新莊副都心站","ename":"Xinzhuang Fuduxin Station","FirstLast":[{"To":"A21","Time":["06:05","23:22"],"TrainType":1},{"To":"A1","Time":["06:00","00:09"],"TrainType":1}]},{"StationID":"A5","lat":25.052,"lon":25.052,"name":"泰山站","ename":"Taishan Station","FirstLast":[{"To":"A21","Time":["06:07","23:24"],"TrainType":1},{"To":"A1","Time":["05:58","00:07"],"TrainType":1}]},{"StationID":"A6","lat":25.033,"lon":25.033,"name":"泰山貴和站","ename":"Taishan Guihe Station","FirstLast":[{"To":"A21","Time":["06:10","23:27"],"TrainType":1},{"To":"A1","Time":["06:10","00:04"],"TrainType":1}]},{"StationID":"A7","lat":25.041,"lon":25.041,"name":"體育大學站","ename":"National Taiwan Sport University Station","FirstLast":[{"To":"A21","Time":["06:00","23:32"],"TrainType":1},{"To":"A1","Time":["06:03","23:57"],"TrainType":1}]},{"StationID":"A8","lat":25.061,"lon":25.061,"name":"長庚醫院站","ename":"Chang Gung Memorial Hospital Station","FirstLast":[{"To":"A21","Time":["06:08","23:36"],"TrainType":1},{"To":"A1","Time":["05:59","23:53"],"TrainType":1},{"To":"A13","Time":["06:06","23:21"],"TrainType":2},{"To":"A1","Time":["05:58","23:11"],"TrainType":2}]},{"StationID":"A9","lat":25.066,"lon":25.066,"name":"林口站","ename":"Linkou Station","FirstLast":[{"To":"A21","Time":["06:11","23:39"],"TrainType":1},{"To":"A1","Time":["06:07","23:50"],"TrainType":1}]},{"StationID":"A10","lat":25.081,"lon":25.081,"name":"山鼻站","ename":"Shanbi Station","FirstLast":[{"To":"A21","Time":["06:05","23:48"],"TrainType":1},{"To":"A1","Time":["05:59","23:42"],"TrainType":1}]},{"StationID":"A11","lat":25.086,"lon":25.086,"name":"坑口站","ename":"Kengkou Station","FirstLast":[{"To":"A21","Time":["06:08","23:51"],"TrainType":1},{"To":"A1","Time":["06:11","23:40"],"TrainType":1}]},{"StationID":"A12","lat":25.082,"lon":25.082,"name":"機場第一航廈站","ename":"Airport Terminal 1 Station","FirstLast":[{"To":"A21","Time":["05:57","23:55"],"TrainType":1},{"To":"A1","Time":["06:07","23:36"],"TrainType":1},{"To":"A13","Time":["06:07","23:37"],"TrainType":2},{"To":"A1","Time":["05:59","22:58"],"TrainType":2}]},{"StationID":"A13","lat":25.077,"lon":25.077,"name":"機場第二航廈站","ename":"Airport Terminal 2 Station","FirstLast":[{"To":"A21","Time":["06:00","23:57"],"TrainType":1},{"To":"A1","Time":["06:04","23:33"],"TrainType":1},{"To":"A1","Time":["05:57","22:55"],"TrainType":2}]},{"StationID":"A14a","lat":25.069,"lon":25.069,"name":"機場旅館站","ename":"Airport Hotel Station","FirstLast":[{"To":"A21","Time":["06:03","00:00"],"TrainType":1},{"To":"A1","Time":["06:00","23:29"],"TrainType":1}]},{"StationID":"A15","lat":25.056,"lon":25.056,"name":"大園站","ename":"Dayuan Station","FirstLast":[{"To":"A21","Time":["06:06","00:03"],"TrainType":1},{"To":"A1","Time":["06:12","23:26"],"TrainType":1}]},{"StationID":"A16","lat":25.037,"lon":25.037,"name":"橫山站","ename":"Hengshan Station","FirstLast":[{"To":"A21","Time":["06:09","00:06"],"TrainType":1},{"To":"A1","Time":["06:09","23:23"],"TrainType":1}]},{"StationID":"A17","lat":25.024,"lon":25.024,"name":"領航站","ename":"Linghang Station","FirstLast":[{"To":"A21","Time":["06:12","00:09"],"TrainType":1},{"To":"A1","Time":["06:06","23:20"],"TrainType":1}]},{"StationID":"A18","lat":25.014,"lon":25.014,"name":"高鐵桃園站","ename":"Taoyuan HSR Station","FirstLast":[{"To":"A21","Time":["06:02","00:13"],"TrainType":1},{"To":"A1","Time":["06:02","23:16"],"TrainType":1}]},{"StationID":"A19","lat":25.002,"lon":25.002,"name":"桃園體育園區站","ename":"Taoyuan Sports Park Station","FirstLast":[{"To":"A21","Time":["06:05","00:16"],"TrainType":1},{"To":"A1","Time":["06:13","23:13"],"TrainType":1}]},{"StationID":"A20","lat":24.98,"lon":24.98,"name":"興南站","ename":"Xingnan Station","FirstLast":[{"To":"A21","Time":["06:10","00:21"],"TrainType":1},{"To":"A1","Time":["06:08","23:08"],"TrainType":1}]},{"StationID":"A21","lat":24.967,"lon":24.967,"name":"環北站","ename":"Huanbei Station","FirstLast":[{"To":"A1","Time":["06:05","23:05"],"TrainType":1}]}];
 
+  var trtc_transfer = [{"FromLineID":"R","FromStationID":"R22","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R22","TransferTime":3,"name":"北投","ename":"Beitou"},{"FromLineID":"R","FromStationID":"R13","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O11","TransferTime":3,"name":"民權西路","ename":"Minzuan W. Rd."},{"FromLineID":"O","FromStationID":"O11","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R13","TransferTime":3,"name":"民權西路","ename":"Minzuan W. Rd."},{"FromLineID":"R","FromStationID":"R11","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G14","TransferTime":3,"name":"中山","ename":"Zhongshan"},{"FromLineID":"G","FromStationID":"G14","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R11","TransferTime":3,"name":"中山","ename":"Zhongshan"},{"FromLineID":"R","FromStationID":"R10","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL12","TransferTime":4,"name":"台北車站","ename":"Taipei Main Station"},{"FromLineID":"BL","FromStationID":"BL12","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R10","TransferTime":4,"name":"台北車站","ename":"Taipei Main Station"},{"FromLineID":"R","FromStationID":"R08","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G10","TransferTime":2,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall"},{"FromLineID":"G","FromStationID":"G10","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R08","TransferTime":2,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall"},{"FromLineID":"R","FromStationID":"R07","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O06","TransferTime":2,"name":"東門","ename":"Dongmen"},{"FromLineID":"O","FromStationID":"O06","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R07","TransferTime":2,"name":"東門","ename":"Dongmen"},{"FromLineID":"R","FromStationID":"R05","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR09","TransferTime":5,"name":"大安","ename":"Daan"},{"FromLineID":"BR","FromStationID":"BR09","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R05","TransferTime":5,"name":"大安","ename":"Daan"},{"FromLineID":"G","FromStationID":"G16","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR11","TransferTime":5,"name":"南京復興","ename":"Nanjing Fuxing"},{"FromLineID":"BR","FromStationID":"BR11","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G16","TransferTime":5,"name":"南京復興","ename":"Nanjing Fuxing"},{"FromLineID":"G","FromStationID":"G15","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O08","TransferTime":2,"name":"松江南京","ename":"Songliang Nanjing"},{"FromLineID":"O","FromStationID":"O08","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G15","TransferTime":2,"name":"松江南京","ename":"Songliang Nanjing"},{"FromLineID":"G","FromStationID":"G12","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL11","TransferTime":2,"name":"西門","ename":"Ximen"},{"FromLineID":"BL","FromStationID":"BL11","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G12","TransferTime":2,"name":"西門","ename":"Ximen"},{"FromLineID":"G","FromStationID":"G09","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O05","TransferTime":2,"name":"古亭","ename":"Guting"},{"FromLineID":"O","FromStationID":"O05","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G09","TransferTime":2,"name":"古亭","ename":"Guting"},{"FromLineID":"G","FromStationID":"G03","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G03","TransferTime":3,"name":"七張","ename":"Qizhang"},{"FromLineID":"O","FromStationID":"O12","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O12","TransferTime":1,"name":"大橋頭","ename":"Daqiaotou"},{"FromLineID":"O","FromStationID":"O07","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL14","TransferTime":2,"name":"忠孝新生","ename":"Zhongxiao Xinsheng"},{"FromLineID":"BL","FromStationID":"BL14","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O07","TransferTime":2,"name":"忠孝新生","ename":"Zhongxiao Xinsheng"},{"FromLineID":"BL","FromStationID":"BL23","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR24","TransferTime":5,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center"},{"FromLineID":"BR","FromStationID":"BR24","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL23","TransferTime":5,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center"},{"FromLineID":"BL","FromStationID":"BL15","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR10","TransferTime":5,"name":"忠孝復興","ename":"Zhongxiao Fuxing"},{"FromLineID":"BR","FromStationID":"BR10","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL15","TransferTime":5,"name":"忠孝復興","ename":"Zhongxiao Fuxing"}];
+
+  var krtc_transfer = [{"FromLineID":"R","FromStationID":"R10","ToLineID":"O","ToStationID":"O5","TransferTime":3,"name":"美麗島","ename":"Formosa Boulevard"},{"FromLineID":"O","FromStationID":"O5","ToLineID":"R","ToStationID":"R10","TransferTime":3,"name":"美麗島","ename":"Formosa Boulevard"}];
+
+  var tra_line = [{"dir":0,"LineID":"YL","station":[{"name":"八堵","ID":"1002","TD":0},{"name":"暖暖","ID":"1802","TD":1.6},{"name":"四腳亭","ID":"1803","TD":3.9},{"name":"瑞芳","ID":"1804","TD":8.9},{"name":"侯硐","ID":"1805","TD":13.5},{"name":"三貂嶺","ID":"1806","TD":16},{"name":"牡丹","ID":"1807","TD":19.6},{"name":"雙溪","ID":"1808","TD":22.9},{"name":"貢寮","ID":"1809","TD":28.3},{"name":"福隆","ID":"1810","TD":32},{"name":"石城","ID":"1811","TD":37.4},{"name":"大里","ID":"1812","TD":40.1},{"name":"大溪","ID":"1813","TD":44.8},{"name":"龜山","ID":"1814","TD":49.4},{"name":"外澳","ID":"1815","TD":53},{"name":"頭城","ID":"1816","TD":56.6},{"name":"頂埔","ID":"1817","TD":58.8},{"name":"礁溪","ID":"1818","TD":62.9},{"name":"四城","ID":"1819","TD":67.6},{"name":"宜蘭","ID":"1820","TD":71.3},{"name":"二結","ID":"1821","TD":77.1},{"name":"中里","ID":"1822","TD":78.3},{"name":"羅東","ID":"1823","TD":80.1},{"name":"冬山","ID":"1824","TD":85.1},{"name":"新馬","ID":"1825","TD":89.3},{"name":"蘇澳新","ID":"1826","TD":90.2},{"name":"蘇澳","ID":"1827","TD":93.6}]},{"dir":0,"LineID":"NL","station":[{"name":"蘇澳新","ID":"1826","TD":0},{"name":"永樂","ID":"1703","TD":5.2},{"name":"東澳","ID":"1704","TD":11},{"name":"南澳","ID":"1705","TD":19},{"name":"武塔","ID":"1706","TD":22.7},{"name":"漢本","ID":"1708","TD":35.6},{"name":"和平","ID":"1709","TD":39.8},{"name":"和仁","ID":"1710","TD":47.5},{"name":"崇德","ID":"1711","TD":57.6},{"name":"新城","ID":"1712","TD":62.9},{"name":"景美","ID":"1713","TD":68.2},{"name":"北埔","ID":"1714","TD":74.7},{"name":"花蓮","ID":"1715","TD":79.2}]},{"dir":0,"LineID":"TT","station":[{"name":"花蓮","ID":"1715","TD":0},{"name":"吉安","ID":"1602","TD":3.4},{"name":"志學","ID":"1604","TD":12.4},{"name":"平和","ID":"1605","TD":15.3},{"name":"壽豐","ID":"1606","TD":17.2},{"name":"豐田","ID":"1607","TD":19.9},{"name":"南平","ID":"1609","TD":28.4},{"name":"鳳林","ID":"1610","TD":32.5},{"name":"萬榮","ID":"1611","TD":37.3},{"name":"光復","ID":"1612","TD":42.9},{"name":"大富","ID":"1613","TD":50.6},{"name":"富源","ID":"1614","TD":53.6},{"name":"瑞穗","ID":"1616","TD":62.9},{"name":"三民","ID":"1617","TD":72.1},{"name":"玉里","ID":"1619","TD":83.1},{"name":"東里","ID":"1621","TD":89.8},{"name":"東竹","ID":"1622","TD":95.7},{"name":"富里","ID":"1623","TD":101.9},{"name":"池上","ID":"1624","TD":108.8},{"name":"海端","ID":"1625","TD":114.4},{"name":"關山","ID":"1626","TD":120.9},{"name":"瑞和","ID":"1628","TD":128.3},{"name":"瑞源","ID":"1629","TD":131.1},{"name":"鹿野","ID":"1630","TD":136.6},{"name":"山里","ID":"1631","TD":142.6},{"name":"臺東","ID":"1632","TD":150.9}]},{"dir":0,"LineID":"PX","station":[{"name":"三貂嶺","ID":"1806","TD":0},{"name":"大華","ID":"1903","TD":3.5},{"name":"十分","ID":"1904","TD":6.4},{"name":"望古","ID":"1905","TD":8.2},{"name":"嶺腳","ID":"1906","TD":10.2},{"name":"平溪","ID":"1907","TD":11.2},{"name":"菁桐","ID":"1908","TD":12.9}]},{"dir":1,"LineID":"SA","station":[{"name":"瑞芳","ID":"1804","TD":0},{"name":"海科館","ID":"6103","TD":4.2}]},{"dir":0,"LineID":"NW","station":[{"name":"新竹","ID":"1025","TD":0},{"name":"北新竹","ID":"1024","TD":1.4},{"name":"千甲","ID":"2212","TD":3.6},{"name":"新莊","ID":"2213","TD":6.6},{"name":"竹中","ID":"2203","TD":7.9},{"name":"上員","ID":"2204","TD":10.5},{"name":"榮華","ID":"2211","TD":15},{"name":"竹東","ID":"2205","TD":16.6},{"name":"橫山","ID":"2206","TD":20},{"name":"九讚頭","ID":"2207","TD":22.2},{"name":"合興","ID":"2208","TD":24.4},{"name":"富貴","ID":"2209","TD":25.7},{"name":"內灣","ID":"2210","TD":27.9}]},{"dir":1,"LineID":"JJ","station":[{"name":"二水","ID":"1207","TD":0},{"name":"源泉","ID":"2702","TD":2.9},{"name":"濁水","ID":"2703","TD":10.8},{"name":"龍泉","ID":"2704","TD":15.7},{"name":"集集","ID":"2705","TD":20.1},{"name":"水里","ID":"2706","TD":27.4},{"name":"車埕","ID":"2707","TD":29.7}]},{"dir":1,"LineID":"SH","station":[{"name":"中洲","ID":"1230","TD":0},{"name":"長榮大學","ID":"5101","TD":2.6},{"name":"沙崙","ID":"5102","TD":5.3}]},{"dir":0,"LineID":"LJ","station":[{"name":"竹中","ID":"2203","TD":0},{"name":"六家","ID":"2214","TD":3.1}]},{"dir":0,"LineID":"CZ","station":[{"name":"成功","ID":"1321","TD":0},{"name":"追分","ID":"1118","TD":2.2}]},{"dir":1,"LineID":"TL-N","station":[{"name":"基隆","ID":"1001","TD":0},{"name":"三坑","ID":"1029","TD":1.3},{"name":"八堵","ID":"1002","TD":3.7},{"name":"七堵","ID":"1003","TD":6},{"name":"百福","ID":"1030","TD":8.7},{"name":"五堵","ID":"1004","TD":11.7},{"name":"汐止","ID":"1005","TD":13.1},{"name":"汐科","ID":"1031","TD":14.6},{"name":"南港","ID":"1006","TD":19.1},{"name":"松山","ID":"1007","TD":21.9},{"name":"臺北","ID":"1008","TD":28.3},{"name":"萬華","ID":"1009","TD":31.1},{"name":"板橋","ID":"1011","TD":35.5},{"name":"浮洲","ID":"1032","TD":38},{"name":"樹林","ID":"1012","TD":40.9},{"name":"山佳","ID":"1013","TD":44.8},{"name":"鶯歌","ID":"1014","TD":49.2},{"name":"桃園","ID":"1015","TD":57.4},{"name":"內壢","ID":"1016","TD":63.3},{"name":"中壢","ID":"1017","TD":67.3},{"name":"埔心","ID":"1018","TD":73.1},{"name":"楊梅","ID":"1019","TD":77.1},{"name":"富岡","ID":"1020","TD":83.9},{"name":"北湖","ID":"1033","TD":87.1},{"name":"湖口","ID":"1021","TD":89.6},{"name":"新豐","ID":"1022","TD":95.8},{"name":"竹北","ID":"1023","TD":100.6},{"name":"北新竹","ID":"1024","TD":105},{"name":"新竹","ID":"1025","TD":106.4},{"name":"三姓橋","ID":"1035","TD":111.2},{"name":"香山","ID":"1026","TD":114.4},{"name":"崎頂","ID":"1027","TD":120.8},{"name":"竹南","ID":"1028","TD":125.4}]},{"dir":1,"LineID":"TL-M","station":[{"name":"竹南","ID":"1028","TD":0},{"name":"造橋","ID":"1302","TD":5.3},{"name":"豐富","ID":"1304","TD":11.7},{"name":"苗栗","ID":"1305","TD":15.2},{"name":"南勢","ID":"1307","TD":21.8},{"name":"銅鑼","ID":"1308","TD":26},{"name":"三義","ID":"1310","TD":33.4},{"name":"泰安","ID":"1314","TD":44.3},{"name":"后里","ID":"1315","TD":46.9},{"name":"豐原","ID":"1317","TD":53.7},{"name":"潭子","ID":"1318","TD":58.7},{"name":"太原","ID":"1323","TD":63.8},{"name":"臺中","ID":"1319","TD":67.9},{"name":"大慶","ID":"1322","TD":72.1},{"name":"烏日","ID":"1320","TD":75.1},{"name":"新烏日","ID":"1324","TD":75.9},{"name":"成功","ID":"1321","TD":78.4},{"name":"彰化","ID":"1120","TD":85.5}]},{"dir":1,"LineID":"TL-C","station":[{"name":"竹南","ID":"1028","TD":0},{"name":"談文","ID":"1102","TD":4.5},{"name":"大山","ID":"1104","TD":11.2},{"name":"後龍","ID":"1105","TD":15},{"name":"龍港","ID":"1106","TD":18.6},{"name":"白沙屯","ID":"1107","TD":26.7},{"name":"新埔","ID":"1108","TD":29.8},{"name":"通霄","ID":"1109","TD":35.6},{"name":"苑裡","ID":"1110","TD":41.7},{"name":"日南","ID":"1111","TD":49.4},{"name":"大甲","ID":"1112","TD":54},{"name":"臺中港","ID":"1113","TD":59.3},{"name":"清水","ID":"1114","TD":65.3},{"name":"沙鹿","ID":"1115","TD":68.5},{"name":"龍井","ID":"1116","TD":73.1},{"name":"大肚","ID":"1117","TD":78.1},{"name":"追分","ID":"1118","TD":83.1},{"name":"彰化","ID":"1120","TD":90.2}]},{"dir":1,"LineID":"TL-S","station":[{"name":"彰化","ID":"1120","TD":0},{"name":"花壇","ID":"1202","TD":6.6},{"name":"大村","ID":"1240","TD":11.2},{"name":"員林","ID":"1203","TD":14.7},{"name":"永靖","ID":"1204","TD":18.2},{"name":"社頭","ID":"1205","TD":21.9},{"name":"田中","ID":"1206","TD":26.2},{"name":"二水","ID":"1207","TD":32},{"name":"林內","ID":"1208","TD":40.1},{"name":"石榴","ID":"1209","TD":44.9},{"name":"斗六","ID":"1210","TD":49.7},{"name":"斗南","ID":"1211","TD":57.3},{"name":"石龜","ID":"1212","TD":61.2},{"name":"大林","ID":"1213","TD":65.8},{"name":"民雄","ID":"1214","TD":71.6},{"name":"嘉北","ID":"1241","TD":78.3},{"name":"嘉義","ID":"1215","TD":80.9},{"name":"水上","ID":"1217","TD":87.5},{"name":"南靖","ID":"1218","TD":90.1},{"name":"後壁","ID":"1219","TD":96.1},{"name":"新營","ID":"1220","TD":103.8},{"name":"柳營","ID":"1221","TD":107.1},{"name":"林鳳營","ID":"1222","TD":111},{"name":"隆田","ID":"1223","TD":116.5},{"name":"拔林","ID":"1224","TD":118.7},{"name":"善化","ID":"1225","TD":123.3},{"name":"南科","ID":"1244","TD":126.2},{"name":"新市","ID":"1226","TD":130.9},{"name":"永康","ID":"1227","TD":135.9},{"name":"大橋","ID":"1239","TD":139.6},{"name":"臺南","ID":"1228","TD":142.3},{"name":"保安","ID":"1229","TD":149.9},{"name":"仁德","ID":"1243","TD":151.3},{"name":"中洲","ID":"1230","TD":153.9},{"name":"大湖","ID":"1231","TD":156.8},{"name":"路竹","ID":"1232","TD":159.7},{"name":"岡山","ID":"1233","TD":167.5},{"name":"橋頭","ID":"1234","TD":171.1},{"name":"楠梓","ID":"1235","TD":175.3},{"name":"新左營","ID":"1242","TD":180.4},{"name":"左營","ID":"1236","TD":182.3},{"name":"高雄","ID":"1238","TD":188.9}]},{"dir":1,"LineID":"PL","station":[{"name":"高雄","ID":"1238","TD":0},{"name":"鳳山","ID":"1402","TD":5.8},{"name":"後庄","ID":"1403","TD":9.5},{"name":"九曲堂","ID":"1404","TD":13.8},{"name":"六塊厝","ID":"1405","TD":18.8},{"name":"屏東","ID":"1406","TD":21},{"name":"歸來","ID":"1407","TD":23.6},{"name":"麟洛","ID":"1408","TD":25.9},{"name":"西勢","ID":"1409","TD":28.3},{"name":"竹田","ID":"1410","TD":32},{"name":"潮州","ID":"1411","TD":36.1},{"name":"崁頂","ID":"1412","TD":40.9},{"name":"南州","ID":"1413","TD":43.3},{"name":"鎮安","ID":"1414","TD":46.9},{"name":"林邊","ID":"1415","TD":50.1},{"name":"佳冬","ID":"1416","TD":54.1},{"name":"東海","ID":"1417","TD":57.2},{"name":"枋寮","ID":"1418","TD":61.3}]},{"dir":1,"LineID":"SL","station":[{"name":"枋寮","ID":"1418","TD":0},{"name":"加祿","ID":"1502","TD":5.3},{"name":"內獅","ID":"1503","TD":8.7},{"name":"枋山","ID":"1504","TD":13.6},{"name":"古莊","ID":"1507","TD":40.5},{"name":"大武","ID":"1508","TD":43.8},{"name":"瀧溪","ID":"1510","TD":55.5},{"name":"金崙","ID":"1512","TD":63.9},{"name":"太麻里","ID":"1514","TD":74.9},{"name":"知本","ID":"1516","TD":86.6},{"name":"康樂","ID":"1517","TD":93.6},{"name":"臺東","ID":"1632","TD":98.2}]}];
+
+  var tra_station = [{"StationID":"4102","name":"樹調","ename":"ShuDiao"},{"StationID":"1632","lat":22.793711,"lon":121.123175,"name":"臺東","ename":"Taitung"},{"StationID":"1631","lat":22.862046,"lon":121.138031,"name":"山里","ename":"Shanli"},{"StationID":"1630","lat":22.912469,"lon":121.137004,"name":"鹿野","ename":"Luye"},{"StationID":"1629","lat":22.955978,"lon":121.159014,"name":"瑞源","ename":"Ruiyuan"},{"StationID":"1628","lat":22.979968,"lon":121.15579,"name":"瑞和","ename":"Ruihe"},{"StationID":"1626","lat":23.045665,"lon":121.164373,"name":"關山","ename":"Guanshan"},{"StationID":"1625","lat":23.102934,"lon":121.176829,"name":"海端","ename":"Haiduan"},{"StationID":"1624","lat":23.126158,"lon":121.21939,"name":"池上","ename":"Chishang"},{"StationID":"1623","lat":23.179132,"lon":121.248692,"name":"富里","ename":"Fuli"},{"StationID":"1622","lat":23.226025,"lon":121.278481,"name":"東竹","ename":"Dongzhu"},{"StationID":"1621","lat":23.272309,"lon":121.304181,"name":"東里","ename":"Dongli"},{"StationID":"1619","lat":23.331518,"lon":121.311726,"name":"玉里","ename":"Yuli"},{"StationID":"1617","lat":23.424766,"lon":121.345344,"name":"三民","ename":"Sanmin"},{"StationID":"1616","lat":23.497376,"lon":121.376841,"name":"瑞穗","ename":"Ruisui"},{"StationID":"1614","lat":23.580268,"lon":121.380122,"name":"富源","ename":"Fuyuan"},{"StationID":"1613","lat":23.605688,"lon":121.389624,"name":"大富","ename":"Dafu"},{"StationID":"1612","lat":23.666293,"lon":121.421168,"name":"光復","ename":"Guangfu"},{"StationID":"1611","lat":23.711978,"lon":121.419067,"name":"萬榮","ename":"Wanrong"},{"StationID":"1610","lat":23.74634,"lon":121.447024,"name":"鳳林","ename":"Fenglin"},{"StationID":"1609","lat":23.782276,"lon":121.45828,"name":"南平","ename":"Nanping"},{"StationID":"1608","lat":23.802587,"lon":121.462015,"name":"林榮新光","ename":"Linrong Shin Kong"},{"StationID":"1607","lat":23.848475,"lon":121.496168,"name":"豐田","ename":"Fengtian"},{"StationID":"1606","lat":23.869016,"lon":121.510633,"name":"壽豐","ename":"Shoufeng"},{"StationID":"1605","lat":23.882774,"lon":121.520485,"name":"平和","ename":"Pinghe"},{"StationID":"1604","lat":23.907494,"lon":121.529437,"name":"志學","ename":"Zhixue"},{"StationID":"1602","lat":23.968179,"lon":121.582699,"name":"吉安","ename":"Jian"},{"StationID":"1715","lat":23.992868,"lon":121.600993,"name":"花蓮","ename":"Hualien"},{"StationID":"1714","lat":24.032533,"lon":121.601671,"name":"北埔","ename":"Beipu"},{"StationID":"1713","lat":24.090317,"lon":121.610786,"name":"景美","ename":"Jingmei"},{"StationID":"1712","lat":24.127524,"lon":121.640866,"name":"新城","ename":"Xincheng"},{"StationID":"1711","lat":24.172116,"lon":121.655498,"name":"崇德","ename":"Chongde"},{"StationID":"1710","lat":24.242199,"lon":121.711749,"name":"和仁","ename":"Heren"},{"StationID":"1709","lat":24.298296,"lon":121.753346,"name":"和平","ename":"Heping"},{"StationID":"1708","lat":24.335428,"lon":121.768355,"name":"漢本","ename":"Hanben"},{"StationID":"1706","lat":24.448674,"lon":121.776037,"name":"武塔","ename":"Wuta"},{"StationID":"1705","lat":24.463396,"lon":121.800926,"name":"南澳","ename":"Nanao"},{"StationID":"1704","lat":24.518221,"lon":121.830683,"name":"東澳","ename":"Dongao"},{"StationID":"1703","lat":24.568417,"lon":121.844564,"name":"永樂","ename":"Yongle"},{"StationID":"1827","lat":24.595181,"lon":121.85144,"name":"蘇澳","ename":"Suao"},{"StationID":"1826","lat":24.609024,"lon":121.82703,"name":"蘇澳新","ename":"Suaoxin"},{"StationID":"1825","lat":24.615395,"lon":121.8229,"name":"新馬","ename":"Xinma"},{"StationID":"1824","lat":24.636726,"lon":121.792246,"name":"冬山","ename":"Dongshan"},{"StationID":"1823","lat":24.677929,"lon":121.774629,"name":"羅東","ename":"Luodong"},{"StationID":"1822","lat":24.694192,"lon":121.775163,"name":"中里","ename":"Zhongli"},{"StationID":"1821","lat":24.705267,"lon":121.774131,"name":"二結","ename":"Erjie"},{"StationID":"1820","lat":24.754512,"lon":121.758253,"name":"宜蘭","ename":"Yilan"},{"StationID":"1819","lat":24.786802,"lon":121.762727,"name":"四城","ename":"Sicheng"},{"StationID":"1818","lat":24.827034,"lon":121.775354,"name":"礁溪","ename":"Jiaoxi"},{"StationID":"1817","lat":24.843998,"lon":121.809207,"name":"頂埔","ename":"Dingpu"},{"StationID":"1816","lat":24.858976,"lon":121.822556,"name":"頭城","ename":"Toucheng"},{"StationID":"1815","lat":24.883703,"lon":121.845758,"name":"外澳","ename":"Waiao"},{"StationID":"1814","lat":24.904818,"lon":121.868878,"name":"龜山","ename":"Guishan"},{"StationID":"1813","lat":24.938423,"lon":121.889873,"name":"大溪","ename":"Daxi"},{"StationID":"1812","lat":24.966799,"lon":121.922496,"name":"大里","ename":"Dali"},{"StationID":"1811","lat":24.978334,"lon":121.945191,"name":"石城","ename":"Shicheng"},{"StationID":"1810","lat":25.015893,"lon":121.944659,"name":"福隆","ename":"Fulong"},{"StationID":"1809","lat":25.022044,"lon":121.908703,"name":"貢寮","ename":"Gongliao"},{"StationID":"1808","lat":25.038544,"lon":121.866548,"name":"雙溪","ename":"Shuangxi"},{"StationID":"1807","lat":25.058738,"lon":121.851977,"name":"牡丹","ename":"Mudan"},{"StationID":"1806","lat":25.065544,"lon":121.822559,"name":"三貂嶺","ename":"Sandiaoling"},{"StationID":"1805","lat":25.087009,"lon":121.827424,"name":"侯硐","ename":"Houtong"},{"StationID":"1804","lat":25.108928,"lon":121.806149,"name":"瑞芳","ename":"Ruifang"},{"StationID":"1803","lat":25.102751,"lon":121.761887,"name":"四腳亭","ename":"Sijiaoting"},{"StationID":"1802","lat":25.102282,"lon":121.740329,"name":"暖暖","ename":"Nuannuan"},{"StationID":"1001","lat":25.131598,"lon":121.738366,"name":"基隆","ename":"Keelung"},{"StationID":"1002","lat":25.108392,"lon":121.729049,"name":"八堵","ename":"Badu"},{"StationID":"1003","lat":25.093359,"lon":121.713868,"name":"七堵","ename":"Qidu"},{"StationID":"1004","lat":25.078,"lon":121.667701,"name":"五堵","ename":"Wudu"},{"StationID":"1005","lat":25.068224,"lon":121.661757,"name":"汐止","ename":"Xizhi"},{"StationID":"1006","lat":25.05314,"lon":121.607019,"name":"南港","ename":"Nangang"},{"StationID":"1007","lat":25.04933,"lon":121.577965,"name":"松山","ename":"Songshan"},{"StationID":"1008","lat":25.047503,"lon":121.517047,"name":"臺北","ename":"Taipei"},{"StationID":"1009","lat":25.03335,"lon":121.500331,"name":"萬華","ename":"Wanhua"},{"StationID":"1011","lat":25.014399,"lon":121.463497,"name":"板橋","ename":"Banqiao"},{"StationID":"1012","lat":24.991348,"lon":121.424564,"name":"樹林","ename":"Shulin"},{"StationID":"1013","lat":24.972482,"lon":121.392657,"name":"山佳","ename":"Shanjia"},{"StationID":"1014","lat":24.954532,"lon":121.355125,"name":"鶯歌","ename":"Yingge"},{"StationID":"1015","lat":24.989209,"lon":121.313499,"name":"桃園","ename":"Taoyuan"},{"StationID":"1016","lat":24.972797,"lon":121.258258,"name":"內壢","ename":"Neili"},{"StationID":"1017","lat":24.953666,"lon":121.225798,"name":"中壢","ename":"Zhongli"},{"StationID":"1018","lat":24.919951,"lon":121.183827,"name":"埔心","ename":"Puxin"},{"StationID":"1019","lat":24.914346,"lon":121.146405,"name":"楊梅","ename":"Yangmei"},{"StationID":"1020","lat":24.934273,"lon":121.083019,"name":"富岡","ename":"Fugang"},{"StationID":"1021","lat":24.903029,"lon":121.044009,"name":"湖口","ename":"Hukou"},{"StationID":"1022","lat":24.869228,"lon":120.99634,"name":"新豐","ename":"Xinfeng"},{"StationID":"1023","lat":24.839283,"lon":121.009376,"name":"竹北","ename":"Zhubei"},{"StationID":"1025","lat":24.801637,"lon":120.971627,"name":"新竹","ename":"Hsinchu"},{"StationID":"1026","lat":24.763121,"lon":120.91389,"name":"香山","ename":"Xiangshan"},{"StationID":"1027","lat":24.722782,"lon":120.87179,"name":"崎頂","ename":"Qiding"},{"StationID":"1028","lat":24.686562,"lon":120.880888,"name":"竹南","ename":"Zhunan"},{"StationID":"1102","lat":24.656414,"lon":120.858241,"name":"談文","ename":"Tanwen"},{"StationID":"1104","lat":24.645645,"lon":120.803778,"name":"大山","ename":"Dashan"},{"StationID":"1105","lat":24.616212,"lon":120.787307,"name":"後龍","ename":"Houlong"},{"StationID":"1106","lat":24.611683,"lon":120.758142,"name":"龍港","ename":"Longgang"},{"StationID":"1107","lat":24.564797,"lon":120.708198,"name":"白沙屯","ename":"Baishatun"},{"StationID":"1108","lat":24.54018,"lon":120.695179,"name":"新埔","ename":"Xinpu"},{"StationID":"1109","lat":24.491403,"lon":120.678425,"name":"通霄","ename":"Tongxiao"},{"StationID":"1110","lat":24.443426,"lon":120.651494,"name":"苑裡","ename":"Yuanli"},{"StationID":"1111","lat":24.378066,"lon":120.654119,"name":"日南","ename":"Rinan"},{"StationID":"1112","lat":24.34443,"lon":120.627017,"name":"大甲","ename":"Dajia"},{"StationID":"1113","lat":24.304366,"lon":120.602297,"name":"臺中港","ename":"Taichung Port"},{"StationID":"1114","lat":24.263624,"lon":120.569178,"name":"清水","ename":"Qingshui"},{"StationID":"1115","lat":24.237044,"lon":120.557627,"name":"沙鹿","ename":"Shalu"},{"StationID":"1116","lat":24.197444,"lon":120.543371,"name":"龍井","ename":"Longjing"},{"StationID":"1117","lat":24.154024,"lon":120.542536,"name":"大肚","ename":"Dadu"},{"StationID":"1118","lat":24.120613,"lon":120.570158,"name":"追分","ename":"Zhuifen"},{"StationID":"1302","lat":24.641439,"lon":120.867051,"name":"造橋","ename":"Zaoqiao"},{"StationID":"1305","lat":24.570036,"lon":120.822319,"name":"苗栗","ename":"Miaoli"},{"StationID":"1307","lat":24.522509,"lon":120.791571,"name":"南勢","ename":"Nanshi"},{"StationID":"1308","lat":24.48634,"lon":120.786173,"name":"銅鑼","ename":"Tongluo"},{"StationID":"1310","lat":24.42062,"lon":120.773931,"name":"三義","ename":"Sanyi"},{"StationID":"1314","lat":24.331292,"lon":120.741816,"name":"泰安","ename":"Taian"},{"StationID":"1315","lat":24.309312,"lon":120.732893,"name":"后里","ename":"Houli"},{"StationID":"1317","lat":24.254111,"lon":120.723447,"name":"豐原","ename":"Fengyuan"},{"StationID":"1318","lat":24.212802,"lon":120.705947,"name":"潭子","ename":"Tanzi"},{"StationID":"1319","lat":24.136955,"lon":120.686827,"name":"臺中","ename":"Taichung"},{"StationID":"1320","lat":24.108692,"lon":120.622472,"name":"烏日","ename":"Wuri"},{"StationID":"1321","lat":24.114232,"lon":120.590164,"name":"成功","ename":"Chenggong"},{"StationID":"1120","lat":24.081666,"lon":120.538539,"name":"彰化","ename":"Changhua"},{"StationID":"1202","lat":24.024997,"lon":120.5374,"name":"花壇","ename":"Huatan"},{"StationID":"1203","lat":23.959258,"lon":120.56965,"name":"員林","ename":"Yuanlin"},{"StationID":"1204","lat":23.928148,"lon":120.571672,"name":"永靖","ename":"Yongjing"},{"StationID":"1205","lat":23.89571,"lon":120.5808,"name":"社頭","ename":"Shetou"},{"StationID":"1206","lat":23.858503,"lon":120.591396,"name":"田中","ename":"Tianzhong"},{"StationID":"1207","lat":23.81315,"lon":120.618115,"name":"二水","ename":"Ershui"},{"StationID":"1208","lat":23.759681,"lon":120.614987,"name":"林內","ename":"Linnei"},{"StationID":"1209","lat":23.731643,"lon":120.579973,"name":"石榴","ename":"Shiliu"},{"StationID":"1210","lat":23.711813,"lon":120.541146,"name":"斗六","ename":"Douliu"},{"StationID":"1211","lat":23.672972,"lon":120.480841,"name":"斗南","ename":"Dounan"},{"StationID":"1212","lat":23.639568,"lon":120.471007,"name":"石龜","ename":"Shigui"},{"StationID":"1213","lat":23.601076,"lon":120.455839,"name":"大林","ename":"Dalin"},{"StationID":"1214","lat":23.555039,"lon":120.431651,"name":"民雄","ename":"Minxiong"},{"StationID":"1215","lat":23.479139,"lon":120.441026,"name":"嘉義","ename":"Chiayi"},{"StationID":"1217","lat":23.433995,"lon":120.399665,"name":"水上","ename":"Shuishang"},{"StationID":"1218","lat":23.41345,"lon":120.386544,"name":"南靖","ename":"Nanjing"},{"StationID":"1219","lat":23.36629,"lon":120.360517,"name":"後壁","ename":"Houbi"},{"StationID":"1220","lat":23.306732,"lon":120.323055,"name":"新營","ename":"Xinying"},{"StationID":"1221","lat":23.277737,"lon":120.322304,"name":"柳營","ename":"Liuying"},{"StationID":"1222","lat":23.24259,"lon":120.32093,"name":"林鳳營","ename":"Linfengying"},{"StationID":"1223","lat":23.192699,"lon":120.31929,"name":"隆田","ename":"Longtian"},{"StationID":"1224","lat":23.172622,"lon":120.32133,"name":"拔林","ename":"Balin"},{"StationID":"1225","lat":23.133323,"lon":120.306551,"name":"善化","ename":"Shanhua"},{"StationID":"1226","lat":23.06823,"lon":120.290035,"name":"新市","ename":"Xinshi"},{"StationID":"1227","lat":23.038338,"lon":120.253524,"name":"永康","ename":"Yongkang"},{"StationID":"1228","lat":22.997144,"lon":120.212966,"name":"臺南","ename":"Tainan"},{"StationID":"1229","lat":22.93294,"lon":120.231594,"name":"保安","ename":"Baoan"},{"StationID":"1230","lat":22.904544,"lon":120.2527,"name":"中洲","ename":"Zhongzhou"},{"StationID":"1231","lat":22.878228,"lon":120.253934,"name":"大湖","ename":"Dahu"},{"StationID":"1232","lat":22.853948,"lon":120.266275,"name":"路竹","ename":"Luzhu"},{"StationID":"1233","lat":22.792355,"lon":120.299933,"name":"岡山","ename":"Gangshan"},{"StationID":"1234","lat":22.760994,"lon":120.310334,"name":"橋頭","ename":"Qiaotou"},{"StationID":"1235","lat":22.727035,"lon":120.324371,"name":"楠梓","ename":"Nanzi"},{"StationID":"1236","lat":22.675204,"lon":120.294793,"name":"左營","ename":"Zuoying"},{"StationID":"1238","lat":22.63962,"lon":120.302111,"name":"高雄","ename":"Kaohsiung"},{"StationID":"1402","lat":22.631284,"lon":120.357683,"name":"鳳山","ename":"Fengshan"},{"StationID":"1403","lat":22.640067,"lon":120.391125,"name":"後庄","ename":"Houzhuang"},{"StationID":"1404","lat":22.656423,"lon":120.420879,"name":"九曲堂","ename":"Jiuqutang"},{"StationID":"1405","lat":22.666252,"lon":120.464873,"name":"六塊厝","ename":"Liukuaicuo"},{"StationID":"1406","lat":22.669306,"lon":120.486203,"name":"屏東","ename":"Pingtung"},{"StationID":"1407","lat":22.65238,"lon":120.502941,"name":"歸來","ename":"Guilai"},{"StationID":"1408","lat":22.634849,"lon":120.514378,"name":"麟洛","ename":"Linluo"},{"StationID":"1409","lat":22.616433,"lon":120.526697,"name":"西勢","ename":"Xishi"},{"StationID":"1410","lat":22.586491,"lon":120.540002,"name":"竹田","ename":"Zhutian"},{"StationID":"1411","lat":22.550086,"lon":120.53642,"name":"潮州","ename":"Chaozhou"},{"StationID":"1412","lat":22.51306,"lon":120.514765,"name":"崁頂","ename":"Kanding"},{"StationID":"1413","lat":22.492058,"lon":120.511738,"name":"南州","ename":"Nanzhou"},{"StationID":"1414","lat":22.457984,"lon":120.511356,"name":"鎮安","ename":"Zhenan"},{"StationID":"1415","lat":22.431406,"lon":120.515376,"name":"林邊","ename":"Linbian"},{"StationID":"1416","lat":22.414087,"lon":120.547742,"name":"佳冬","ename":"Jiadong"},{"StationID":"1417","lat":22.399005,"lon":120.572381,"name":"東海","ename":"Donghai"},{"StationID":"1418","lat":22.368019,"lon":120.595098,"name":"枋寮","ename":"Fangliao"},{"StationID":"1502","lat":22.330971,"lon":120.624621,"name":"加祿","ename":"Jialu"},{"StationID":"1503","lat":22.306184,"lon":120.643492,"name":"內獅","ename":"Neishi"},{"StationID":"1504","lat":22.267067,"lon":120.659647,"name":"枋山","ename":"Fangshan"},{"StationID":"1505","lat":22.280818,"lon":120.717243,"name":"枋野","ename":"Fangye"},{"StationID":"1507","lat":22.345509,"lon":120.878079,"name":"古莊","ename":"Guzhuang"},{"StationID":"1508","lat":22.365206,"lon":120.900713,"name":"大武","ename":"Dawu"},{"StationID":"1510","lat":22.46104,"lon":120.941771,"name":"瀧溪","ename":"Longxi"},{"StationID":"1512","lat":22.531488,"lon":120.967239,"name":"金崙","ename":"Jinlun"},{"StationID":"1514","lat":22.614936,"lon":120.993368,"name":"太麻里","ename":"Taimali"},{"StationID":"1516","lat":22.710182,"lon":121.060744,"name":"知本","ename":"Zhiben"},{"StationID":"1517","lat":22.764277,"lon":121.09356,"name":"康樂","ename":"Kangle"},{"StationID":"1322","lat":24.119304,"lon":120.648571,"name":"大慶","ename":"Daqing"},{"StationID":"1029","lat":25.123081,"lon":121.742009,"name":"三坑","ename":"Sankeng"},{"StationID":"1323","lat":24.163634,"lon":120.699717,"name":"太原","ename":"Taiyuan"},{"StationID":"1239","lat":23.019399,"lon":120.22442,"name":"大橋","ename":"Daqiao"},{"StationID":"1240","lat":23.990053,"lon":120.560645,"name":"大村","ename":"Dacun"},{"StationID":"1241","lat":23.499897,"lon":120.448503,"name":"嘉北","ename":"Jiabei"},{"StationID":"1903","lat":25.049758,"lon":121.797929,"name":"大華","ename":"Dahua"},{"StationID":"1904","lat":25.040991,"lon":121.775229,"name":"十分","ename":"Shifen"},{"StationID":"1905","lat":25.03454,"lon":121.763782,"name":"望古","ename":"Wanggu"},{"StationID":"1906","lat":25.030138,"lon":121.748102,"name":"嶺腳","ename":"Lingjiao"},{"StationID":"1907","lat":25.025633,"lon":121.739984,"name":"平溪","ename":"Pingxi"},{"StationID":"1908","lat":25.023918,"lon":121.723649,"name":"菁桐","ename":"Jingtong"},{"StationID":"1024","lat":24.808746,"lon":120.98367,"name":"北新竹","ename":"North Hsinchu"},{"StationID":"2212","lat":24.806662,"lon":121.003273,"name":"千甲","ename":"Qianjia"},{"StationID":"2213","lat":24.788176,"lon":121.022122,"name":"新莊","ename":"Xinzhuang"},{"StationID":"2214","lat":24.807655,"lon":121.039417,"name":"六家","ename":"Liujia"},{"StationID":"2203","lat":24.781358,"lon":121.031306,"name":"竹中","ename":"Zhuzhong"},{"StationID":"2204","lat":24.77789,"lon":121.055725,"name":"上員","ename":"Shangyuan"},{"StationID":"2205","lat":24.738257,"lon":121.0949,"name":"竹東","ename":"Zhudong"},{"StationID":"2206","lat":24.72056,"lon":121.11645,"name":"橫山","ename":"Hengshan"},{"StationID":"2207","lat":24.720599,"lon":121.13602,"name":"九讚頭","ename":"Jiuzantou"},{"StationID":"2208","lat":24.716746,"lon":121.154403,"name":"合興","ename":"Hexing"},{"StationID":"2209","lat":24.715559,"lon":121.167377,"name":"富貴","ename":"Fugui"},{"StationID":"2210","lat":24.705317,"lon":121.182325,"name":"內灣","ename":"Neiwan"},{"StationID":"2211","lat":24.74839,"lon":121.083399,"name":"榮華","ename":"Ronghua"},{"StationID":"2702","lat":23.798445,"lon":120.642034,"name":"源泉","ename":"Yuanquan"},{"StationID":"2703","lat":23.834666,"lon":120.70472,"name":"濁水","ename":"Zhuoshui"},{"StationID":"2704","lat":23.835188,"lon":120.750404,"name":"龍泉","ename":"Longquan"},{"StationID":"2705","lat":23.826451,"lon":120.784891,"name":"集集","ename":"Jiji"},{"StationID":"2706","lat":23.818456,"lon":120.853323,"name":"水里","ename":"Shuili"},{"StationID":"2707","lat":23.832637,"lon":120.865745,"name":"車埕","ename":"Checheng"},{"StationID":"3202","lat":23.994013,"lon":121.636083,"name":"花蓮港","ename":"hualien Port"},{"StationID":"1030","lat":25.077927,"lon":121.693869,"name":"百福","ename":"Baifu"},{"StationID":"1031","lat":25.062626,"lon":121.646584,"name":"汐科","ename":"Xike"},{"StationID":"1032","lat":25.004184,"lon":121.444649,"name":"浮洲","ename":"Fuzhou"},{"StationID":"1034","lat":24.980485,"lon":121.408796,"name":"南樹林","ename":"South Shulin"},{"StationID":"1036","lat":24.931239,"lon":121.066512,"name":"新富","ename":"Xinfu Station"},{"StationID":"1033","lat":24.922207,"lon":121.055671,"name":"北湖","ename":"BeihuChina University of Technology"},{"StationID":"1035","lat":24.78755,"lon":120.928937,"name":"三姓橋","ename":"Sanxingqiao"},{"StationID":"1304","lat":24.604417,"lon":120.826115,"name":"豐富","ename":"Fengfu"},{"StationID":"1325","name":"栗林","ename":"Lilin"},{"StationID":"1326","name":"頭家厝","ename":"Toujiacuo"},{"StationID":"1327","name":"松竹","ename":"Songzhu"},{"StationID":"1328","name":"精武","ename":"Jingwu"},{"StationID":"1329","lat":24.129105,"lon":120.666833,"name":"五權","ename":"Wuquan"},{"StationID":"1324","lat":24.109851,"lon":120.614309,"name":"新烏日","ename":"Xinwuri"},{"StationID":"1243","lat":22.923682,"lon":120.240609,"name":"仁德","ename":"Rende"},{"StationID":"1244","lat":23.107602,"lon":120.301996,"name":"南科","ename":"Nanke"},{"StationID":"5101","lat":22.907187,"lon":120.272176,"name":"長榮大學","ename":"CJCU"},{"StationID":"5102","lat":22.923953,"lon":120.286371,"name":"沙崙","ename":"Shalun"},{"StationID":"1242","lat":22.687544,"lon":120.306788,"name":"新左營","ename":"Xinzuoying"},{"StationID":"6103","lat":25.137706,"lon":121.800023,"name":"海科館","ename":"NMMST"},{"StationID":"2003","lat":25.135392,"lon":121.803199,"name":"八斗子","ename":"Badouzi"},{"StationID":"1245","lat":22.665959,"lon":120.287059,"name":"內惟","ename":"Neiwei"},{"StationID":"1246","lat":22.652737,"lon":120.281489,"name":"美術館","ename":"Museum of Fine Arts"},{"StationID":"1237","lat":22.639895,"lon":120.281328,"name":"鼓山","ename":"Gushan"},{"StationID":"1247","name":"三塊厝","ename":"Sankuaicuo"},{"StationID":"1419","name":"民族","ename":"Minzu"},{"StationID":"1420","lat":22.639693,"lon":120.323515,"name":"科工館","ename":"Science and Technology Museum"},{"StationID":"1421","name":"正義","ename":"Zhengyi"}];
+
+  var tra_train = [{"TrainTypeID":"1107","TrainTypeCode":"2","note":"普悠瑪","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1115","TrainTypeCode":"4","note":"有身障座位 ,有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"110F","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1110","TrainTypeCode":"4","note":"無身障座位","name":"莒光","ename":"Chu Kuang"},{"TrainTypeID":"110A","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1111","TrainTypeCode":"4","note":"有身障座位","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1120","TrainTypeCode":"5","note":"","name":"復興","ename":"Fu Hsing"},{"TrainTypeID":"110E","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1106","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"110B","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1100","TrainTypeCode":"3","note":"DMU2800、2900、3000型柴聯及 EMU型電車自強號","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"1103","TrainTypeCode":"3","note":"DMU3100型柴聯自強號","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"110C","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1131","TrainTypeCode":"6","note":"","name":"區間車","ename":"Local Train"},{"TrainTypeID":"1114","TrainTypeCode":"4","note":"無身障座位 ,有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1109","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1108","TrainTypeCode":"3","note":"推拉式自強號且無自行車車廂","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1140","TrainTypeCode":"7","note":"","name":"普快車","ename":"Ordinary Express train"},{"TrainTypeID":"1101","TrainTypeCode":"3","note":"推拉式自強號","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"1132","TrainTypeCode":"6","note":"","name":"區間快","ename":"Fast Local Train"},{"TrainTypeID":"1102","TrainTypeCode":"1","note":"太魯閣","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"110D","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"}];
+
   var datax = {
     trtc: {
       line: trtc_line,
-      station: trtc_station
+      station: trtc_station,
+      transfer: trtc_transfer
     },
     krtc: {
       line: krtc_line,
-      station: krtc_station
+      station: krtc_station,
+      transfer: krtc_transfer
     },
     tymetro: {
       line: tymetro_line,
       station: tymetro_station
+    },
+    tra: {
+      line: tra_line,
+      station: tra_station,
+      train: tra_train
     }
   };
 
@@ -1981,7 +4001,8 @@
         },
         Station_BackTag: ['StationID', 'StationName', 'StationPosition'],
         Station_FirstLastTimetable_BackTag: ['StationID', 'LineID', 'DestinationStaionID', 'FirstTrainTime', 'LastTrainTime'],
-        Station_Fare_BackTag: ['OriginStationID', 'DestinationStationID', 'Fares']
+        Station_Fare_BackTag: ['OriginStationID', 'DestinationStationID', 'Fares'],
+        Station_Transfer_BackTag: ['FromLineID', 'FromStationID', 'FromStationName', 'IsOnSiteTransfer', 'ToLineID', 'ToStationID', 'TransferTime']
       },
       calcStationDayTimeBySimple: function calcStationDayTimeBySimple(timeObj) {
         var w = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
@@ -2209,6 +4230,16 @@
         var st = catchData.getDataXStationData(StationID);
         return isEn ? st.ename : st.name;
       },
+      getDataXTransferOfLine: function getDataXTransferOfLine(LineID) {
+        return ptx.datax[compName].transfer.filter(function (c) {
+          return c.FromLineID == LineID;
+        });
+      },
+      getDataXTransferStation: function getDataXTransferStation(FromLineID, ToLineID) {
+        return ptx.datax[compName].transfer.filter(function (c) {
+          return c.FromLineID == FromLineID && c.ToLineID == ToLineID;
+        });
+      },
       getStationByTimeSimpleArray: function getStationByTimeSimpleArray(StationID, ary) {
         return ary.find(function (c) {
           return c.StationID == StationID;
@@ -2371,6 +4402,28 @@
         });
 
         return atStation;
+      },
+      Transfer: function Transfer(progressFn) {
+        if (typeof progressFn != 'function') progressFn = function progressFn(msg) {}; //轉乘包抓法  1.抓所有 ODFare  2.整理輸出就好
+
+        progressFn('取得轉乘站中');
+        var backTag = catchData.config.Station_Transfer_BackTag;
+        return me._LineTransfer({
+          selectField: backTag
+        }).then(function (res) {
+          //整理
+          return promiseCatchLinePredo(res.data, backTag);
+        }).then(function (data) {
+          //合併
+          data.forEach(function (st) {
+            st.name = st.FromStationName.Zh_tw;
+            st.ename = st.FromStationName.En;
+            delete st.FromStationName;
+          });
+          return data;
+        }).catch(function (res) {
+          return res;
+        });
       },
       Fare: function Fare(progressFn) {
         if (typeof progressFn != 'function') progressFn = function progressFn(msg) {}; //票價包抓法  1.抓所有 ODFare  2.整理輸出全票票價就好
@@ -3543,6 +5596,75 @@
         //私用預處理
         return json;
       }
+    },
+    getDataXLineObj: function getDataXLineObj(LineID) {
+      var rt = ptx.datax['tra'].line.find(function (c) {
+        return !!(c.LineID == LineID);
+      });
+
+      if (rt) {
+        var dt = ptx.data.tra.line.find(function (c) {
+          return !!(c.LineID == LineID);
+        });
+
+        for (var k in dt) {
+          if (!rt[k]) {
+            rt[k] = dt[k];
+          } else {
+            rt['data_' + k] = dt[k];
+          }
+        }
+      }
+
+      return rt;
+    },
+    getDataXStationData: function getDataXStationData(StationID) {
+      var rt = ptx.datax['tra'].station.find(function (c) {
+        return !!(c.StationID == StationID);
+      });
+
+      if (rt) {
+        var dt = ptx.data.tra.station_ary.find(function (c) {
+          return !!(c.id == StationID);
+        });
+
+        for (var k in dt) {
+          if (k == 'id') {
+            rt['ttid'] = 'tra_' + dt[k];
+          } else if (!rt[k]) {
+            rt[k] = dt[k];
+          } else {
+            rt['data_' + k] = dt[k];
+          }
+        }
+      }
+
+      return rt;
+    },
+    getDataXTrain: function getDataXTrain(id) {
+      var rt = ptx.datax['tra'].train.find(function (c) {
+        return !!(c.TrainTypeID == id);
+      });
+
+      if (rt) {
+        var dt = ptx.data.tra["CarClass"].find(function (c) {
+          return !!(c.id == id);
+        });
+
+        for (var k in dt) {
+          if (!rt[k]) {
+            rt[k] = dt[k];
+          } else {
+            rt['data_' + k] = dt[k];
+          }
+        }
+      }
+
+      return rt;
+    },
+    getDataXStationName: function getDataXStationName(StationID, isEn) {
+      var st = catchData$1.getDataXStationData(StationID);
+      return isEn ? st.ename : st.name;
     },
     Line: function Line(progressFn) {
       if (typeof progressFn != 'function') progressFn = function progressFn(msg) {};

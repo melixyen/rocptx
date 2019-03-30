@@ -332,7 +332,8 @@ class baseMethod {
                 },
                 Station_BackTag: ['StationID','StationName','StationPosition'],
                 Station_FirstLastTimetable_BackTag: ['StationID','LineID','DestinationStaionID','FirstTrainTime','LastTrainTime'],
-                Station_Fare_BackTag: ['OriginStationID','DestinationStationID','Fares']
+                Station_Fare_BackTag: ['OriginStationID','DestinationStationID','Fares'],
+                Station_Transfer_BackTag: ['FromLineID','FromStationID','FromStationName','IsOnSiteTransfer','ToLineID','ToStationID','TransferTime']
             },
             calcStationDayTimeBySimple: function(timeObj, w=2){//運用 TimeSimple Format 計算一個車站每週每日往兩方向的所有班次資訊 , w for weekdays
                 w = w.toString();
@@ -475,6 +476,12 @@ class baseMethod {
                 var st = catchData.getDataXStationData(StationID);
                 return (isEn) ? st.ename : st.name;
             },
+            getDataXTransferOfLine: function(LineID){
+                return ptx.datax[compName].transfer.filter(c=>{return c.FromLineID==LineID})
+            },
+            getDataXTransferStation: function(FromLineID, ToLineID){
+                return ptx.datax[compName].transfer.filter(c=>{return c.FromLineID==FromLineID && c.ToLineID==ToLineID})
+            },
             getStationByTimeSimpleArray: function(StationID, ary){
                 return ary.find((c)=>c.StationID == StationID);
             },
@@ -605,6 +612,25 @@ class baseMethod {
                     })
                 })
                 return atStation;
+            },
+            Transfer: function(progressFn){
+                if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+                //轉乘包抓法  1.抓所有 ODFare  2.整理輸出就好
+                progressFn('取得轉乘站中');
+                let backTag = catchData.config.Station_Transfer_BackTag;
+                return me._LineTransfer({selectField: backTag})
+                .then(function(res){//整理
+                    return promiseCatchLinePredo(res.data, backTag);
+                }).then(function(data){//合併
+                    data.forEach(function(st){
+                        st.name = st.FromStationName.Zh_tw;
+                        st.ename = st.FromStationName.En;
+                        delete st.FromStationName;
+                    })
+                    return data
+                }).catch(function(res){
+                    return res;
+                })
             },
             Fare: function(progressFn){
                 if(typeof(progressFn)!='function') progressFn = (msg)=>{};
