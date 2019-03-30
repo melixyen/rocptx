@@ -85,6 +85,29 @@ CONST_PTX_API_FAIL | String | 伺服器回應失敗常數
 defaultCrossDayTime | String | 預設換日時間 04:00，在此之前均算前一天列車
 transTime2Sec | Functin | (String, Boolean) 傳入 String 值回應一個秒數，Boolean 為 true 則凌晨以換日時間決定輸出值是否超過 86400 秒，超過代表跨日收班列車
 
+# datax
+透過抓取路線及車站資料存成 json 後擴曾於 ptx 資料內，提供工具存取固定資料。
+Name | Method | Description
+-----|------|-------------
+getLine | getLine(uid) | 抓取固定資料中的路線，uid 格式請參考範例
+getStation | getStation(uid) | 抓取固定資料中的車站，uid 格式請參考範例
+
+```javascript
+//uid 格式為{公司}_{路線} 或 {公司}-{路線}，小寫為接軌時刻用法，大寫為 ptx 格式
+rocptx.datax.getLine('tymetro_A')
+rocptx.datax.getLine('TYMC-A')
+//以上兩種寫法均可傳回機場捷運的路線資料
+
+rocptx.datax.getLine('tra_TL-N')
+rocptx.datax.getLine('TRA-TL-N')
+//以上兩種寫法均可傳回台鐵西部幹線北段的路線資料
+
+rocptx.datax.getStation('TRTC-BL04')
+rocptx.datax.getStation('trtc_L04')
+//以上兩種寫法均可傳回板南線海山站的路線資料
+```
+請注意接軌時刻的捷運站 id 為不分路線的共同編號故不能在此直接使用
+
 # metro
 ```javascript
 rocptx.metro.{功能或變數名稱}

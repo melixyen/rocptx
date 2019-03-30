@@ -3459,6 +3459,21 @@
 
   var tra_train = [{"TrainTypeID":"1107","TrainTypeCode":"2","note":"普悠瑪","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1115","TrainTypeCode":"4","note":"有身障座位 ,有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"110F","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1110","TrainTypeCode":"4","note":"無身障座位","name":"莒光","ename":"Chu Kuang"},{"TrainTypeID":"110A","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1111","TrainTypeCode":"4","note":"有身障座位","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1120","TrainTypeCode":"5","note":"","name":"復興","ename":"Fu Hsing"},{"TrainTypeID":"110E","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1106","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"110B","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1100","TrainTypeCode":"3","note":"DMU2800、2900、3000型柴聯及 EMU型電車自強號","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"1103","TrainTypeCode":"3","note":"DMU3100型柴聯自強號","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"110C","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1131","TrainTypeCode":"6","note":"","name":"區間車","ename":"Local Train"},{"TrainTypeID":"1114","TrainTypeCode":"4","note":"無身障座位 ,有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1109","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1108","TrainTypeCode":"3","note":"推拉式自強號且無自行車車廂","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1140","TrainTypeCode":"7","note":"","name":"普快車","ename":"Ordinary Express train"},{"TrainTypeID":"1101","TrainTypeCode":"3","note":"推拉式自強號","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"1132","TrainTypeCode":"6","note":"","name":"區間快","ename":"Fast Local Train"},{"TrainTypeID":"1102","TrainTypeCode":"1","note":"太魯閣","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"110D","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"}];
 
+  function getObjID(uid) {
+    //透過 uid 拆解找對應的資料，uid 格式為 {公司名}_{路線名}，例如 trtc_R 為台北捷運紅線
+    if (/^TRA-|^TRTC-|^KRTC-|^TYMC-|^KLRT-|^THSR-/.test(uid)) {
+      if (/^TRA-/.test(uid)) uid = uid.replace(/^TRA-/, 'tra_');else if (/^TRTC-/.test(uid)) uid = uid.replace(/^TRTC-/, 'trtc_');else if (/^KRTC-/.test(uid)) uid = uid.replace(/^KRTC-/, 'krtc_');else if (/^TYMC-/.test(uid)) uid = uid.replace(/^TYMC-/, 'tymetro_');else if (/^KLRT-/.test(uid)) uid = uid.replace(/^KLRT-/, 'klrt_');else if (/^THSR-/.test(uid)) uid = uid.replace(/^THSR-/, 'thsr_');
+    }
+
+    var ary = uid.split('_');
+    var companyTag = ary[0];
+    var id = uid.replace(companyTag + '_', '');
+    return {
+      company: companyTag,
+      id: id
+    };
+  }
+
   var datax = {
     trtc: {
       line: trtc_line,
@@ -3478,6 +3493,38 @@
       line: tra_line,
       station: tra_station,
       train: tra_train
+    },
+    getLine: function getLine(uid) {
+      var objA = getObjID(uid);
+
+      if (arguments.length == 2) {
+        objA = {
+          company: arguments[0],
+          id: arguments[1]
+        };
+      }
+
+      if (!this[objA.company]) throw 'Company ' + objA.company + ' is not defined. Error on datax.js getLine';
+      var lineAry = this[objA.company].line;
+      return lineAry.find(function (c) {
+        return c.LineID == objA.id;
+      });
+    },
+    getStation: function getStation(uid) {
+      var objA = getObjID(uid);
+
+      if (arguments.length == 2) {
+        objA = {
+          company: arguments[0],
+          id: arguments[1]
+        };
+      }
+
+      if (!this[objA.company]) throw 'Company ' + objA.company + ' is not defined. Error on datax.js getStation';
+      var stAry = this[objA.company].station;
+      return stAry.find(function (c) {
+        return c.StationID == objA.id;
+      });
     }
   };
 

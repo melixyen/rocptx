@@ -13,6 +13,24 @@ import tra_line from './datax/tra.line.json';
 import tra_station from './datax/tra.station.json';
 import tra_train from './datax/tra.train.json';
 
+function getObjID(uid){
+	//透過 uid 拆解找對應的資料，uid 格式為 {公司名}_{路線名}，例如 trtc_R 為台北捷運紅線
+	if(/^TRA-|^TRTC-|^KRTC-|^TYMC-|^KLRT-|^THSR-/.test(uid)){
+		if(/^TRA-/.test(uid)) uid = uid.replace(/^TRA-/,'tra_');
+		else if(/^TRTC-/.test(uid)) uid = uid.replace(/^TRTC-/,'trtc_');
+		else if(/^KRTC-/.test(uid)) uid = uid.replace(/^KRTC-/,'krtc_');
+		else if(/^TYMC-/.test(uid)) uid = uid.replace(/^TYMC-/,'tymetro_');
+		else if(/^KLRT-/.test(uid)) uid = uid.replace(/^KLRT-/,'klrt_');
+		else if(/^THSR-/.test(uid)) uid = uid.replace(/^THSR-/,'thsr_');
+	}
+	let ary = uid.split('_');
+	let companyTag = ary[0];
+	let id = uid.replace(companyTag+'_','');
+	return {
+		company: companyTag,
+		id: id
+	}
+}
 
 const datax = {
 	trtc: {
@@ -33,6 +51,24 @@ const datax = {
 		line: tra_line,
 		station: tra_station,
 		train: tra_train
+	},
+	getLine: function(uid){
+		let objA = getObjID(uid);
+		if(arguments.length==2){
+			objA = {company:arguments[0], id:arguments[1]}
+		}
+		if(!this[objA.company]) throw  'Company ' + objA.company + ' is not defined. Error on datax.js getLine';
+		let lineAry = this[objA.company].line;
+		return lineAry.find((c)=>c.LineID==objA.id);
+	},
+	getStation: function(uid){
+		let objA = getObjID(uid);
+		if(arguments.length==2){
+			objA = {company:arguments[0], id:arguments[1]}
+		}
+		if(!this[objA.company]) throw  'Company ' + objA.company + ' is not defined. Error on datax.js getStation';
+		let stAry = this[objA.company].station;
+		return stAry.find((c)=>c.StationID==objA.id);
 	}
 }
 
