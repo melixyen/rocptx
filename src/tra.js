@@ -3,6 +3,7 @@ import ptx from './ptx.js';
 import pData from './data.js';
 
 const traURL = common.traURL;
+const traV3URL = common.traV3URL;
 const urls = {
     Network: traURL + '/Network', //取得臺鐵路網資料
     Line: traURL + '/Line/', //取得路線基本資料
@@ -30,6 +31,41 @@ const urls = {
     DailyTimetable_Station_TrainDate: traURL + '/DailyTimetable/Station/{StationID}/{TrainDate}', //取得指定[日期],[車站]的站別時刻表資料
     DailyTimetable_OD_TrainDate: traURL + '/DailyTimetable/OD/{OriginStationID}/to/{DestinationStationID}/{TrainDate}',//取得指定[日期],[起迄站間]之站間時刻表資料
     LiveBoard_Station: traURL + '/LiveBoard/Station/{StationID}' //取得指定[車站]列車即時到離站電子看板(動態前後30分鐘的車次)
+}
+
+const v3urls = {
+    Network: traV3URL + '/Network', //取得臺鐵路網資料
+    Station: traV3URL + '/Station/', //取得車站基本資料
+    StationExit: traV3URL + '/StationExit/', //取得車站出入口資料
+    StationFacility: traV3URL + '/StationFacility/', //取得車站設施資料
+    Line: traV3URL + '/Line/', //取得路線基本資料
+    StationOfLine: traV3URL + '/StationOfLine/', //取得路線車站基本資料
+    TrainType: traV3URL + '/TrainType',//取得所有列車車種資料
+    //ODFare: traURL + '/ODFare/', //取得票價資料 , v3 已移除
+    //Shape: traURL + '/Shape/', //取得指定營運業者之軌道路網實體路線圖資資料 , v3 已移除
+    //GeneralTrainInfo: traURL + '/GeneralTrainInfo/', //取得所有車次的定期車次資料 , v3 已移除
+    GeneralTimetable: traV3URL + '/GeneralTimetable/', //取得所有車次的定期時刻表資料
+    GeneralStationTimetable: traV3URL + '/GeneralStationTimetable', //取得各站的定期站別時刻表資料
+    SpecificTrainTimetable : traV3URL + '/SpecificTrainTimetable', //取得所有特殊車次時刻表資料
+    DailyTrainTimetable_Today: traV3URL + '/DailyTrainTimetable/Today/', //取得當天車次時刻表資料
+    DailyStationTimetable_Today: traV3URL + '/DailyStationTimetable/Today/', //取得當天各站站別時刻表資料
+    StationLiveBoard: traV3URL + '/StationLiveBoard/', //取得列車即時到離站資料
+    TrainLiveBoard: traV3URL + '/TrainLiveBoard/', //取得列車即時位置動態資料
+    LineTransfer: traV3URL + '/LineTransfer/', //取得內部路線轉乘資料
+    StationTransfer: traV3URL + '/StationTransfer/', //取得車站跨運具轉乘資訊
+    News: traV3URL + '/News/', //取得最新消息
+    Alert: traV3URL + '/Alert/', //取得營運通阻資料
+    //以下為帶有變數的 API
+    ODFareFromTo: traV3URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
+    GeneralTimetable_TrainNo: traV3URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料
+    GeneralStationTimetable_Station: traV3URL + '/GeneralStationTimetable/Station/{StationID}', //取得指定[車站]的定期站別時刻表資料
+    SpecificTrainTimetable_TrainNo : traV3URL + '/SpecificTrainTimetable/TrainNo/{TrainNo}', //取得指定[車次]的特殊車次時刻表資料
+    DailyTrainTimetable_Today_TrainNo: traV3URL + '/DailyTrainTimetable/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的時刻表資料
+    DailyTrainTimetable_TrainDate: traV3URL + '/DailyTrainTimetable/TrainDate/{TrainDate}', //取得指定[日期]所有車次的時刻表資料(台鐵提供近60天每日時刻表)
+    DailyStationTimetable_Today_Station: traV3URL + '/DailyStationTimetable/Today/Station/{StationID}', //取得當天指定[車站]的時刻表資料
+    DailyStationTimetable_TrainDate: traV3URL + '/DailyStationTimetable/TrainDate/{TrainDate}', //取得各站每日站別時刻表資料 yyyy-MM-dd
+    StationLiveBoard_Station: traV3URL + '/StationLiveBoard/Station/{StationID}', //取得指定[車站]列車即時到離站電子看板(動態前後30分鐘的車次)
+    TrainLiveBoard_TrainNo: traV3URL + '/TrainLiveBoard/TrainNo/{TrainNo}' //取得指定[車次]的列車即時位置動態資料
 }
 
 let vars = {
@@ -75,6 +111,7 @@ function useStationID2filterBy(StationID, cfg={}){
 var tra = {
     companyTag: 'TRA',
     urls: urls,
+    v3urls: v3urls,
     vars: vars,
     getStationOfLine: function(LineID, cfg={}){
         cfg = useLineID2filterBy(LineID, cfg);
@@ -332,6 +369,58 @@ aryMakeFunction.forEach(function(fn){
 tra.ptxAutoTRAFunctionKey = ptxAutoTRAFunctionKey;
 tra.getStationLiveBoard = tra._LiveBoard_Station;//alias
 tra.getFromToFare = tra._ODFareFromTo;//alias
+
+//====================== TRA V3 Function 產生至 tra.v3 之下 ==============================
+
+tra.v2Sv3 = function(StationID){//輸入 v2 StationID 輸出 v3 id
+    let dt = ptx.data.tra.station_ary.find(c=> !!(c.id==StationID));
+    return (dt) ? dt.v3id : false;
+}
+tra.v3Sv2 = function(StationID){//輸入 v3 StationID 輸出 v2 id
+    let dt = ptx.data.tra.station_ary.find(c=> !!(c.v3id==StationID));
+    return (dt) ? dt.id : false;
+}
+
+//自動產生 V3 Function
+tra.v3 = {};
+function makePTXV3_func(cmd, cfg){
+    cfg = setDefaultCfg(cfg);
+    var param = processCfg(cfg);
+    return getPTX(v3urls[cmd] + param, cfg);
+}
+var aryMakeV3Function = Object.keys(v3urls);
+var ptxAutoTRAV3FunctionKey = [];
+aryMakeV3Function.forEach(function(fn){
+    if(!/\{/.test(v3urls[fn])){//排除要傳參數組 URL 的
+        tra.v3['_' + fn] = function(cfg){return makePTXV3_func(fn, cfg);}
+        ptxAutoTRAV3FunctionKey.push('_' + fn);
+    }else{//處理有動態參數的
+        let urlAry = v3urls[fn].split('/');
+        let paramCount = 0;
+        let paramAry = [];
+        urlAry.forEach((c)=>{if(/^\{/.test(c)){paramCount++; paramAry.push(c); } })
+
+        tra.v3['_' + fn] = function(){
+            let ptr = 0;
+            let arg = arguments;
+            if(arg.length < paramCount) throw('Lose parameter, need ' + paramAry.join());
+            let url = urlAry.map((c)=>{
+                if(/^\{/.test(c)){
+                    c = arg[ptr];
+                    ptr++;
+                }
+                return c;
+            }).join('/');
+            let cfg = arguments[paramCount];
+            cfg = setDefaultCfg(cfg);
+            var param = processCfg(cfg);
+            return getPTX(url + param, cfg);
+        }
+    }
+})
+tra.v3.ptxAutoTRAFunctionKey = ptxAutoTRAV3FunctionKey;
+tra.v3.getStationLiveBoard = tra.v3._LiveBoard_Station;//alias
+tra.v3.getFromToFare = tra.v3._ODFareFromTo;//alias
 
 
 

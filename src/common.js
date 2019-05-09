@@ -93,10 +93,13 @@ CM.CONST_PTX_API_SUCCESS = CM.statusCode.SUCCESS;
 CM.CONST_PTX_API_FAIL = CM.statusCode.FAIL;
 CM.CONST_PTX_API_MSG_COMM_FAILED = 'Communication failed, no response. (通訊失敗，PTX 無法取回資料。)';
 CM.v2url = 'https://ptx.transportdata.tw/MOTC/v2';
+CM.v3url = 'https://ptx.transportdata.tw/MOTC/v3';
 CM.ptxURL = CM.v2url;
+CM.ptxV3URL = CM.v3url;
 CM.metroURL = CM.ptxURL + '/Rail/Metro';
 CM.busURL = CM.ptxURL + '/Bus'
 CM.traURL = CM.ptxURL + '/Rail/TRA';
+CM.traV3URL = CM.ptxV3URL + '/Rail/TRA';
 CM.ptxMRTWeekStr = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 CM.defaultCrossDayTimeSec = CM.transTime2Sec(CM.defaultCrossDayTime);
 

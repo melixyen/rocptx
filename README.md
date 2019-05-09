@@ -248,6 +248,8 @@ Fare | Fare(progressFn) | 向 PTX API 下載所有車站票價資料，可傳入
 
 ```javascript
 rocptx.tra.{功能或變數名稱}
+
+rocptx.tra.v3.{功能或變數名稱}//對應 PTX 官網 v3 版相關 API
 ```
 Name | Type | Description
 -----|------|-------------
@@ -288,10 +290,49 @@ const urls = {
 
 ```
 
+#### V3 版 urls 對應位置及動態參數傳遞方式，需使用 v3 版 StationID
+```javascript
+const v3urls = {
+    Network: traV3URL + '/Network', //取得臺鐵路網資料
+    Station: traV3URL + '/Station/', //取得車站基本資料
+    StationExit: traV3URL + '/StationExit/', //取得車站出入口資料
+    StationFacility: traV3URL + '/StationFacility/', //取得車站設施資料
+    Line: traV3URL + '/Line/', //取得路線基本資料
+    StationOfLine: traV3URL + '/StationOfLine/', //取得路線車站基本資料
+    TrainType: traV3URL + '/TrainType',//取得所有列車車種資料
+    GeneralTimetable: traV3URL + '/GeneralTimetable/', //取得所有車次的定期時刻表資料
+    GeneralStationTimetable: traV3URL + '/GeneralStationTimetable', //取得各站的定期站別時刻表資料
+    SpecificTrainTimetable : traV3URL + '/SpecificTrainTimetable', //取得所有特殊車次時刻表資料
+    DailyTrainTimetable_Today: traV3URL + '/DailyTrainTimetable/Today/', //取得當天車次時刻表資料
+    DailyStationTimetable_Today: traV3URL + '/DailyStationTimetable/Today/', //取得當天各站站別時刻表資料
+    StationLiveBoard: traV3URL + '/StationLiveBoard/', //取得列車即時到離站資料
+    TrainLiveBoard: traV3URL + '/TrainLiveBoard/', //取得列車即時位置動態資料
+    LineTransfer: traV3URL + '/LineTransfer/', //取得內部路線轉乘資料
+    StationTransfer: traV3URL + '/StationTransfer/', //取得車站跨運具轉乘資訊
+    News: traV3URL + '/News/', //取得最新消息
+    Alert: traV3URL + '/Alert/', //取得營運通阻資料
+    //以下為帶有變數的 API
+    ODFareFromTo: traV3URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
+    GeneralTimetable_TrainNo: traV3URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料
+    GeneralStationTimetable_Station: traV3URL + '/GeneralStationTimetable/Station/{StationID}', //取得指定[車站]的定期站別時刻表資料
+    SpecificTrainTimetable_TrainNo : traV3URL + '/SpecificTrainTimetable/TrainNo/{TrainNo}', //取得指定[車次]的特殊車次時刻表資料
+    DailyTrainTimetable_Today_TrainNo: traV3URL + '/DailyTrainTimetable/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的時刻表資料
+    DailyTrainTimetable_TrainDate: traV3URL + '/DailyTrainTimetable/TrainDate/{TrainDate}', //取得指定[日期]所有車次的時刻表資料(台鐵提供近60天每日時刻表)
+    DailyStationTimetable_Today_Station: traV3URL + '/DailyStationTimetable/Today/Station/{StationID}', //取得當天指定[車站]的時刻表資料
+    DailyStationTimetable_TrainDate: traV3URL + '/DailyStationTimetable/TrainDate/{TrainDate}', //取得各站每日站別時刻表資料 yyyy-MM-dd
+    StationLiveBoard_Station: traV3URL + '/StationLiveBoard/Station/{StationID}', //取得指定[車站]列車即時到離站電子看板(動態前後30分鐘的車次)
+    TrainLiveBoard_TrainNo: traV3URL + '/TrainLiveBoard/TrainNo/{TrainNo}' //取得指定[車次]的列車即時位置動態資料
+}
+
+```
+
 #### 呼叫範例
 ```javascript
 //呼叫無參數 API 方法，以 Line 為例
 rocptx.tra._Line().then(function(data){
+    console.info(data);
+})
+rocptx.tra.v3._Line().then(function(data){
     console.info(data);
 })
 
@@ -303,6 +344,11 @@ rocptx.tra._DailyTimetable_OD_TrainDate('1005','1120','2019-03-30',{top:20}).the
 rocptx.tra._DailyTrainInfo_TrainDate('2019-03-30').then(function(data){
     console.info(data);
 })
+
+rocptx.tra.v3._DailyTrainTimetable_TrainDate('2019-05-30').then(function(data){
+    console.info(data);
+})
+
 ```
 
 #### 操作方法
@@ -329,6 +375,25 @@ getDataXLineObj | getDataXLineObj(LineID) | 取得路線基本資料
 getDataXStationData | getDataXStationData(StationID) | 取得車站基本資料
 getDataXStationName | getDataXStationName(StationID, isEn) | 取得車站名稱，isEn == true 時回傳英文站名
 getDataXTrain | getDataXTrain(TrainTypeID) | 取得車種基本資料
+
+## 台鐵 V3 版工具
+
+
+#### 方法
+
+Name | Method | Description
+-----|------|-------------
+v2Sv3 | v2Sv3(StationID) | 用 V2 StationID 取得 V3 StationID
+v3Sv2 | v3Sv2(StationID) | 用 V3 StationID 取得 V2 StationID
+
+#### 呼叫範例
+```javascript
+rocptx.tra.v2Sv3("1005"); //回應 "0960"
+
+rocptx.tra.v3Sv2("7000"); //回應 "1715"
+
+
+```
 
 
 
