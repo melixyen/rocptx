@@ -3737,6 +3737,9 @@
 
   var tra_train = [{"TrainTypeID":"1107","TrainTypeCode":"2","note":"普悠瑪","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1115","TrainTypeCode":"4","note":"有身障座位 ,有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"110F","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1110","TrainTypeCode":"4","note":"無身障座位","name":"莒光","ename":"Chu Kuang"},{"TrainTypeID":"110A","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1111","TrainTypeCode":"4","note":"有身障座位","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1120","TrainTypeCode":"5","note":"","name":"復興","ename":"Fu Hsing"},{"TrainTypeID":"110E","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1106","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"110B","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1100","TrainTypeCode":"3","note":"DMU2800、2900、3000型柴聯及 EMU型電車自強號","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"1103","TrainTypeCode":"3","note":"DMU3100型柴聯自強號","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"110C","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1131","TrainTypeCode":"6","note":"","name":"區間車","ename":"Local Train"},{"TrainTypeID":"1114","TrainTypeCode":"4","note":"無身障座位 ,有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1109","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1108","TrainTypeCode":"3","note":"推拉式自強號且無自行車車廂","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1140","TrainTypeCode":"7","note":"","name":"普快車","ename":"Ordinary Express train"},{"TrainTypeID":"1101","TrainTypeCode":"3","note":"推拉式自強號","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"1132","TrainTypeCode":"6","note":"","name":"區間快","ename":"Fast Local Train"},{"TrainTypeID":"1102","TrainTypeCode":"1","note":"太魯閣","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"110D","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"}];
 
+  //import trav3_station from './datax/tra.v3.station.json';
+  //import trav3_train from './datax/tra.v3.train.json';
+
   function getObjID(uid) {
     //透過 uid 拆解找對應的資料，uid 格式為 {公司名}_{路線名}，例如 trtc_R 為台北捷運紅線
     if (/^TRA-|^TRTC-|^KRTC-|^TYMC-|^KLRT-|^THSR-/.test(uid)) {
@@ -5852,7 +5855,7 @@
     //ODFare: traURL + '/ODFare/', //取得票價資料 , v3 已移除
     //Shape: traURL + '/Shape/', //取得指定營運業者之軌道路網實體路線圖資資料 , v3 已移除
     //GeneralTrainInfo: traURL + '/GeneralTrainInfo/', //取得所有車次的定期車次資料 , v3 已移除
-    GeneralTimetable: traV3URL + '/GeneralTimetable/',
+    GeneralTrainTimetable: traV3URL + '/GeneralTrainTimetable/',
     //取得所有車次的定期時刻表資料
     GeneralStationTimetable: traV3URL + '/GeneralStationTimetable',
     //取得各站的定期站別時刻表資料
@@ -5949,7 +5952,6 @@
   var tra = {
     companyTag: 'TRA',
     urls: urls$1,
-    v3urls: v3urls,
     vars: vars,
     getStationOfLine: function getStationOfLine(LineID) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -6265,7 +6267,243 @@
   }; //自動產生 V3 Function
 
 
-  tra.v3 = {};
+  tra.v3 = {
+    urls: v3urls,
+    getStationOfLine: function getStationOfLine(LineID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useLineID2filterBy(LineID, cfg);
+      return tra.v3._StationOfLine(cfg);
+    },
+    getStation: function getStation(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      cfg = useStationID2filterBy(StationID, cfg);
+      return tra.v3._Station(cfg);
+    },
+    getStationTodayTimeTable: function getStationTodayTimeTable(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      return tra.v3._DailyStationTimetable_Today_Station(StationID, cfg);
+    }
+  }; //產生整包抓取 Function
+
+  var catchV3Data = {
+    config: {
+      Line_callback: function Line_callback(json) {
+        //通用預處理
+        return json;
+      },
+      Line_callback_final: function Line_callback_final(json) {
+        //私用預處理
+        return json;
+      }
+    },
+    getDataXLineObj: function getDataXLineObj(LineID) {
+      var rt = ptx.datax['trav3'].line.find(function (c) {
+        return !!(c.LineID == LineID);
+      });
+
+      if (rt) {
+        var dt = ptx.data.tra.line.find(function (c) {
+          return !!(c.LineID == LineID);
+        });
+
+        for (var k in dt) {
+          if (!rt[k]) {
+            rt[k] = dt[k];
+          } else {
+            rt['data_' + k] = dt[k];
+          }
+        }
+      }
+
+      return rt;
+    },
+    getDataXStationData: function getDataXStationData(StationID) {
+      var rt = ptx.datax['trav3'].station.find(function (c) {
+        return !!(c.StationID == StationID);
+      });
+
+      if (rt) {
+        var dt = ptx.data.tra.station_ary.find(function (c) {
+          return !!(c.v3id == StationID);
+        });
+
+        for (var k in dt) {
+          if (k == 'id') {
+            rt['ttid'] = 'tra_' + dt[k];
+          } else if (!rt[k]) {
+            rt[k] = dt[k];
+          } else {
+            rt['data_' + k] = dt[k];
+          }
+        }
+      }
+
+      return rt;
+    },
+    getDataXTrain: function getDataXTrain(id) {
+      var rt = ptx.datax['trav3'].train.find(function (c) {
+        return !!(c.TrainTypeID == id);
+      });
+
+      if (rt) {
+        var dt = ptx.data.tra["CarClass"].find(function (c) {
+          return !!(c.id == id);
+        });
+
+        for (var k in dt) {
+          if (!rt[k]) {
+            rt[k] = dt[k];
+          } else {
+            rt['data_' + k] = dt[k];
+          }
+        }
+      }
+
+      return rt;
+    },
+    getDataXStationName: function getDataXStationName(StationID, isEn) {
+      var st = catchV3Data.getDataXStationData(StationID);
+      return isEn ? st.ename : st.name;
+    },
+    Line: function Line(progressFn) {
+      if (typeof progressFn != 'function') progressFn = function progressFn(msg) {};
+      progressFn('取得路線中');
+
+      var atLine = tra.v3._StationOfLine().then(function (res) {
+        return res.data.StationOfLines;
+      }).catch(function (res) {
+        return res;
+      });
+
+      return atLine;
+    },
+    GeneralTrainTimetable: function GeneralTrainTimetable(progressFn) {
+      if (typeof progressFn != 'function') progressFn = function progressFn(msg) {}; //定期時刻表抓法  1.執行 tra.v3._GeneralTrainTimetable
+
+      progressFn('取得時刻中');
+
+      var atTime = tra.v3._GeneralTrainTimetable().then(function (res) {
+        return res.data.TrainTimetables;
+      }).catch(function (res) {
+        return res;
+      });
+
+      return atTime;
+    },
+    Station: function Station(progressFn) {
+      if (typeof progressFn != 'function') progressFn = function progressFn(msg) {};
+      progressFn('取得車站中');
+      return tra.v3._Station().then(function (res) {
+        return res.data.Stations.map(function (c) {
+          return {
+            StationID: c.StationID,
+            v2id: tra.v3Sv2(c.StationID),
+            lat: c.StationPosition.PositionLat,
+            lon: c.StationPosition.PositionLon,
+            name: c.StationName.Zh_tw,
+            ename: c.StationName.En
+          };
+        });
+      }).catch(function (res) {
+        return res;
+      });
+    },
+    TrainType: function TrainType(progressFn) {
+      if (typeof progressFn != 'function') progressFn = function progressFn(msg) {};
+      progressFn('取得車種中');
+      return tra.v3._TrainType().then(function (res) {
+        return res.data.TrainTypes.map(function (c) {
+          var nameAry = c.TrainTypeName.Zh_tw.split('(');
+          if (nameAry[1]) nameAry[1] = nameAry[1].replace(')', '');
+          return {
+            TrainTypeID: c.TrainTypeID,
+            TrainTypeCode: c.TrainTypeCode,
+            note: nameAry[1] || '',
+            name: nameAry[0],
+            ename: c.TrainTypeName.En
+          };
+        });
+      }).catch(function (res) {
+        return res;
+      });
+    },
+    SimpleLine: function SimpleLine(progressFn) {
+      if (typeof progressFn != 'function') progressFn = function progressFn(msg) {}; //區分要抓的 line 在資料中是順時針或逆時針方向
+
+      var recordLineDir0 = ['CZ', 'EL', 'SU', 'PX', 'NW', 'LJ'];
+      var recordLineDir1 = ['WL', 'WL-C', 'SL', 'SA', 'JJ', 'SH'];
+      var lineCfg = {
+        filterBy: ptx.filterParam('LineID', '==', recordLineDir0.concat(recordLineDir1), 'or')
+      };
+      progressFn('取得路線中');
+
+      var atLine = tra.v3._StationOfLine(lineCfg).then(function (res) {
+        return res.data.StationOfLines.map(function (c) {
+          var stAry = c.Stations.sort(function (a, b) {
+            return a.Sequence > b.Sequence ? 1 : -1;
+          }).map(function (st) {
+            return {
+              name: st.StationName,
+              ID: st.StationID,
+              v2id: tra.v3Sv2(st.StationID),
+              TD: st.CumulativeDistance
+            };
+          });
+          return {
+            dir: recordLineDir0.indexOf(c.LineID) != -1 ? 0 : 1,
+            LineID: c.LineID,
+            station: stAry
+          };
+        });
+      }).catch(function (res) {
+        return res;
+      });
+
+      return atLine;
+    },
+    SimpleTimetable: function SimpleTimetable(progressFn) {
+      return catchV3Data.GeneralTrainTimetable(progressFn).then(function (json) {
+        json.forEach(function (data, didx) {
+          var weekStr = [data.ServiceDay.Sunday, data.ServiceDay.Monday, data.ServiceDay.Tuesday, data.ServiceDay.Wednesday, data.ServiceDay.Thursday, data.ServiceDay.Friday, data.ServiceDay.Saturday].map(function (day, idx) {
+            return day ? idx.toString() : '';
+          }).join('');
+          data.weekStr = weekStr;
+          delete data.ServiceDay;
+          data.StopTimes.sort(function (a, b) {
+            return a.StopSequence > b.StopSequence ? 1 : -1;
+          });
+          data.stopTime = data.StopTimes.map(function (c) {
+            return {
+              Arr: c.ArrivalTime,
+              Dep: c.DepartureTime,
+              ID: c.StationID,
+              v2id: tra.v3Sv2(c.StationID),
+              name: c.StationName.Zh_tw
+            };
+          });
+          delete data.StopTimes;
+          data.info = {};
+          var deleteKey = ['EndingStationName', 'StartingStationName', 'TrainTypeName', 'TripHeadSign', 'TripLine'];
+
+          for (var k in data.TrainInfo) {
+            if (deleteKey.indexOf(k) == -1) {
+              data.info[k] = data.TrainInfo[k];
+            }
+          }
+
+          delete data.TrainInfo;
+
+          if (didx > 0) {
+            delete data.UpdateTime;
+            delete data.VersionID;
+          }
+        });
+        return json;
+      });
+    }
+  };
+  tra.v3.catchData = catchV3Data;
 
   function makePTXV3_func(cmd, cfg) {
     cfg = setDefaultCfg$1(cfg);
@@ -6315,7 +6553,7 @@
     }
   });
   tra.v3.ptxAutoTRAFunctionKey = ptxAutoTRAV3FunctionKey;
-  tra.v3.getStationLiveBoard = tra.v3._LiveBoard_Station; //alias
+  tra.v3.getStationLiveBoard = tra.v3._StationLiveBoard_Station; //alias
 
   tra.v3.getFromToFare = tra.v3._ODFareFromTo; //alias
 

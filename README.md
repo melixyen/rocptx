@@ -300,7 +300,7 @@ const v3urls = {
     Line: traV3URL + '/Line/', //取得路線基本資料
     StationOfLine: traV3URL + '/StationOfLine/', //取得路線車站基本資料
     TrainType: traV3URL + '/TrainType',//取得所有列車車種資料
-    GeneralTimetable: traV3URL + '/GeneralTimetable/', //取得所有車次的定期時刻表資料
+    GeneralTrainTimetable: traV3URL + '/GeneralTrainTimetable/', //取得所有車次的定期時刻表資料
     GeneralStationTimetable: traV3URL + '/GeneralStationTimetable', //取得各站的定期站別時刻表資料
     SpecificTrainTimetable : traV3URL + '/SpecificTrainTimetable', //取得所有特殊車次時刻表資料
     DailyTrainTimetable_Today: traV3URL + '/DailyTrainTimetable/Today/', //取得當天車次時刻表資料

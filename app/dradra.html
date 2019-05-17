@@ -79,6 +79,7 @@ var ptx = rocptx;
 		'<div class="btn1" v-on:click="changePanel(\'tymetro\')">桃園捷運</div>' +
 		'<div class="btn1" v-on:click="changePanel(\'klrt\')">高雄輕軌</div>' +
 		'<div class="btn1" v-on:click="changePanel(\'tra\')">台鐵</div>' +
+		'<div class="btn1" v-on:click="changePanel(\'trav3\')">台鐵 V3</div>' +
 	'</div>');
 	Vue.component('vcmp_menu_bar', {
 		render: menuBarTpl.render,
@@ -609,6 +610,220 @@ var ptx = rocptx;
 		return Vue.component('vcmp_' + compName + '_panel', tra);
 	})()
 
+	var traV3Panel = (function(){
+		let compName = 'tra';
+		let programName = 'trav3';
+		var ptxFn = TT.ptx[compName].v3;
+		var tra = Vue.extend({
+			template: '<div id="' + programName + '_panel" class="" v-if="show_' + programName + '">' +
+				'<div id="' + programName + '_line" class="frame1">' +
+					'<div class="btnBW" v-for="line in aryLINE" v-bind:style="lineStyle(line)" v-on:click="getStationOfLine(line)">{{ line.LineName.Zh_tw }}</div>' +
+					'<div class="btn4" v-on:click="catchLine()">路線包</div>' +
+					'<div class="btn4" v-on:click="catchLineSimple()">路線簡易包</div>' +
+					'<div class="btn4" v-on:click="catchStation()">車站包</div>' +
+					'<div class="btn4" v-on:click="catchTrainType()">車種包</div>' +
+					'<div class="btn4" v-on:click="catchTimeTable()">時刻表包</div>' +
+					'<div class="btn4" v-on:click="catchTimeSimple()">時刻簡易包</div>' +
+				'</div>' +
+				//===路線相關功能===
+				'<div id="' + programName + '_func_line" class="frame1" v-show="nowLineID != \'\'">' +
+					'<div class="frameIn">' +
+						//'<div class="btn3" v-on:click="getShape()">圖資</div>' +
+					'</div>' +
+				'</div>' +
+				//===車站陣列===
+				'<div id="' + programName + '_station" class="frame1" v-show="aryStationOfLine.length >0 ">' +
+					'<div class="frameIn">' +
+						'<div class="btnBW" v-for="station in aryStationOfLine" v-bind:style="stationStyle(station)" v-on:click="doStation(station)">{{ station.StationName.Zh_tw }}</div>' +
+					'</div>' +
+				'</div>' +
+				//===車站相關功能===
+				'<div id="' + programName + '_func_station" class="frame1" v-show="nowStationID != \'\'">' +
+					'<div class="frameIn">' +
+						'<div class="btn2" v-on:click="getStationTodayTimeTable()">今日時刻表</div>' +
+						'<div class="btn2" v-on:click="getStationLiveBoard()">看板</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>',
+			props: ['show_' + programName + ''],
+			data: function(){
+				return {
+					aryLINE: [],
+					aryStationOfLine: [],
+					lineColor: '',
+					nowLineID: '',
+					nowStationID: '',
+					flagShowPanel: false,
+					flagShowLine: false,
+					flagShowStation: false
+				}
+			},
+			methods: {
+				clearAryData: function(ary){
+					for(var i=0; i<ary.length; i++){
+						this[ary[i]] = [];
+					}
+				},
+				clearBarReset: function(cmd){
+					switch(cmd){
+						case 'line':
+							this.nowStationID = '';
+						break;
+					}
+				},
+				doStation: function(station){
+					this.nowStationID = station.StationID;
+					this.getStation();
+				},
+				doLoad: function(){loading(1);},
+				unload: function(){loading(0);},
+				getLINE: function(){
+					var me = this;
+					me.clearAryData(["aryLINE", 'aryStationOfLine']);
+					ptxFn._Line().then(function(res){
+						me.aryLINE = res.data.Lines;
+						me.$emit('printj', res.data.Lines);
+					}).catch(function(res){
+						console.info(res);
+					});
+				},
+				getShape: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn._Shape().then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStation: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStation(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data.Stations[0]); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStationOfLine: function(line){
+					var LineID = line.LineID;
+					var me = this;
+					me.clearBarReset('line');
+					me.clearAryData(['aryStationOfLine']);
+					me.lineColor = line.LineColor || CONST_DEFAULT_LINE_COLOR;
+					me.nowLineID = line.LineID;
+					me.doLoad();
+					ptxFn.getStationOfLine(LineID).then(function(res){
+						me.unload();
+						me.aryStationOfLine = res.data.StationOfLines[0].Stations;
+						me.$emit('printj', res.data.StationOfLines[0]);
+					}).catch(function(res){
+						me.unload();
+						console.info(res);
+					});
+				},
+				getStationTodayTimeTable: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStationTodayTimeTable(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				getStationLiveBoard: function(){
+					var me = this;
+					me.doLoad();
+					ptxFn.getStationLiveBoard(me.nowStationID).then(function(res){me.unload(); me.$emit('printj', res.data); }).catch(function(res){me.unload(); console.info(res); });
+				},
+				lineStyle: function(line){
+					var lineColor = line.LineColor || CONST_DEFAULT_LINE_COLOR;
+					var rt = 'color:#FFF; background-color:' + lineColor + ';';
+					if(line.LineID==this.nowLineID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
+					return rt;
+				},
+				stationStyle: function(station){
+					var rt = 'color:#FFF; background-color:' + this.lineColor + ';';
+					if(station.StationID==this.nowStationID) rt += 'font-weight:bold;border-color:#222;box-shadow: 5px 5px 3px rgba(72,132,132,0.8);';
+					return rt;
+				},
+				//Catch Data Function
+				catchLine: function(){
+					var me = this;
+					me.doLoad();
+					var fnMsg = function(str){loading(1,str);}
+					ptxFn.catchData.Line(fnMsg).then(function(data){
+						me.$emit('printj', data);
+						me.unload();
+					}).catch(function(res){
+						me.unload();
+						console.info(res);;
+					})
+					BB.jsonFileName = compName + '.v3.line.json';
+				},
+				catchLineSimple: function(){
+					var me = this;
+					me.doLoad();
+					var fnMsg = function(str){loading(1,str);}
+					ptxFn.catchData.SimpleLine(fnMsg).then(function(data){
+						me.$emit('printj', data);
+						me.unload();
+					}).catch(function(res){
+						me.unload();
+						console.info(res);;
+					})
+					BB.jsonFileName = compName + '.v3.line.json';
+				},
+				catchStation: function(){
+					var me = this;
+					me.doLoad();
+					var fnMsg = function(str){loading(1,str);}
+					ptxFn.catchData.Station(fnMsg).then(function(data){
+						me.$emit('printj', data);
+						me.unload();
+					}).catch(function(res){
+						me.unload();
+						console.info(res);;
+					})
+					BB.jsonFileName = compName + '.v3.station.json';
+				},
+				catchTrainType: function(){
+					var me = this;
+					me.doLoad();
+					var fnMsg = function(str){loading(1,str);}
+					ptxFn.catchData.TrainType(fnMsg).then(function(data){
+						me.$emit('printj', data);
+						me.unload();
+					}).catch(function(res){
+						me.unload();
+						console.info(res);;
+					})
+					BB.jsonFileName = compName + '.v3.train.json';
+				},
+				catchTimeTable: function(){
+					var me = this;
+					me.doLoad();
+					var fnMsg = function(str){loading(1,str);}
+					ptxFn.catchData.GeneralTrainTimetable(fnMsg).then(function(data){
+						me.$emit('printj', data);
+						me.unload();
+					}).catch(function(res){
+						me.unload();
+						console.info(res);;
+					})
+					BB.jsonFileName = compName + '.v3.time.json';
+				},
+				catchTimeSimple: function(){
+					var me = this;
+					me.doLoad();
+					var fnMsg = function(str){loading(1,str);}
+					ptxFn.catchData.SimpleTimetable(fnMsg).then(function(data){
+						me.$emit('printj', data);
+						me.unload();
+					}).catch(function(res){
+						me.unload();
+						console.info(res);;
+					})
+					BB.jsonFileName = compName + '.v3.time.json';
+				}
+			},
+			mounted: function() {
+				this.getLINE();
+			},
+			destroy: function() {
+			}
+		});
+		return Vue.component('vcmp_' + programName + '_panel', tra);
+	})()
+
 	BB.initFn = function(){
 		//hljs.initHighlightingOnLoad();
 		var tpl = Vue.compile('<div id="main">' + 
@@ -620,6 +835,7 @@ var ptx = rocptx;
 				'<vcmp_tymetro_panel v-bind:show_tymetro="(panelName==\'tymetro\')" v-if="(panelName==\'tymetro\')" v-on:printj="printJSON" />' +
 				'<vcmp_klrt_panel v-bind:show_klrt="(panelName==\'klrt\')" v-if="(panelName==\'klrt\')" v-on:printj="printJSON" />' +
 				'<vcmp_tra_panel v-bind:show_tra="(panelName==\'tra\')" v-if="(panelName==\'tra\')" v-on:printj="printJSON" />' +
+				'<vcmp_trav3_panel v-bind:show_trav3="(panelName==\'trav3\')" v-if="(panelName==\'trav3\')" v-on:printj="printJSON" />' +
 			'</div>' +
 			'<div id="output">' +
 				'<textarea id="json_text" v-show="flagShowTextArea">{{json_text}}</textarea>' +

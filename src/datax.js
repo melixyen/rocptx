@@ -13,6 +13,10 @@ import tra_line from './datax/tra.line.json';
 import tra_station from './datax/tra.station.json';
 import tra_train from './datax/tra.train.json';
 
+//import trav3_line from './datax/tra.v3.line.json';
+//import trav3_station from './datax/tra.v3.station.json';
+//import trav3_train from './datax/tra.v3.train.json';
+
 function getObjID(uid){
 	//透過 uid 拆解找對應的資料，uid 格式為 {公司名}_{路線名}，例如 trtc_R 為台北捷運紅線
 	if(/^TRA-|^TRTC-|^KRTC-|^TYMC-|^KLRT-|^THSR-/.test(uid)){

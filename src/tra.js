@@ -44,7 +44,7 @@ const v3urls = {
     //ODFare: traURL + '/ODFare/', //取得票價資料 , v3 已移除
     //Shape: traURL + '/Shape/', //取得指定營運業者之軌道路網實體路線圖資資料 , v3 已移除
     //GeneralTrainInfo: traURL + '/GeneralTrainInfo/', //取得所有車次的定期車次資料 , v3 已移除
-    GeneralTimetable: traV3URL + '/GeneralTimetable/', //取得所有車次的定期時刻表資料
+    GeneralTrainTimetable: traV3URL + '/GeneralTrainTimetable/', //取得所有車次的定期時刻表資料
     GeneralStationTimetable: traV3URL + '/GeneralStationTimetable', //取得各站的定期站別時刻表資料
     SpecificTrainTimetable : traV3URL + '/SpecificTrainTimetable', //取得所有特殊車次時刻表資料
     DailyTrainTimetable_Today: traV3URL + '/DailyTrainTimetable/Today/', //取得當天車次時刻表資料
@@ -111,7 +111,6 @@ function useStationID2filterBy(StationID, cfg={}){
 var tra = {
     companyTag: 'TRA',
     urls: urls,
-    v3urls: v3urls,
     vars: vars,
     getStationOfLine: function(LineID, cfg={}){
         cfg = useLineID2filterBy(LineID, cfg);
@@ -382,7 +381,219 @@ tra.v3Sv2 = function(StationID){//輸入 v3 StationID 輸出 v2 id
 }
 
 //自動產生 V3 Function
-tra.v3 = {};
+tra.v3 = {
+    urls: v3urls,
+    getStationOfLine: function(LineID, cfg={}){
+        cfg = useLineID2filterBy(LineID, cfg);
+        return tra.v3._StationOfLine(cfg);
+    },
+    getStation: function(StationID, cfg={}){
+        cfg = useStationID2filterBy(StationID, cfg);
+        return tra.v3._Station(cfg);
+    },
+    getStationTodayTimeTable: function(StationID, cfg={}){
+        let date = new Date();
+        //let dateStr = date.getFullYear() + '-' + common.appendNumber0(date.getMonth()+1) + '-' + common.appendNumber0(date.getDate());
+        return tra.v3._DailyStationTimetable_Today_Station(StationID, cfg);
+    }
+};
+
+//產生整包抓取 Function
+let catchV3Data = {
+    config: {
+        Line_callback: (json)=>{//通用預處理
+            return json;
+        },
+        Line_callback_final: (json)=>{//私用預處理
+            return json;
+        }
+    },
+    getDataXLineObj: function(LineID){
+        var rt = ptx.datax['trav3'].line.find((c)=>{return !!(c.LineID==LineID)})
+        if(rt){
+            var dt = ptx.data.tra.line.find(c=> !!(c.LineID==LineID))
+            for(var k in dt){
+                if(!rt[k]){
+                    rt[k] = dt[k];
+                }else{
+                    rt['data_' + k] = dt[k];
+                }
+            }
+        }
+        return rt;
+    },
+    getDataXStationData: function(StationID){
+        var rt = ptx.datax['trav3'].station.find((c)=>{return !!(c.StationID==StationID)})
+        if(rt){
+            var dt = ptx.data.tra.station_ary.find(c=> !!(c.v3id==StationID))
+            for(var k in dt){
+                if(k=='id'){
+                    rt['ttid'] = 'tra_' + dt[k];
+                }else if(!rt[k]){
+                    rt[k] = dt[k];
+                }else{
+                    rt['data_' + k] = dt[k];
+                }
+            }
+        }
+        return rt;
+    },
+    getDataXTrain: function(id){
+        var rt = ptx.datax['trav3'].train.find((c)=>{return !!(c.TrainTypeID==id)})
+        if(rt){
+            var dt = ptx.data.tra["CarClass"].find(c=> !!(c.id==id))
+            for(var k in dt){
+                if(!rt[k]){
+                    rt[k] = dt[k];
+                }else{
+                    rt['data_' + k] = dt[k];
+                }
+            }
+        }
+        return rt;
+    },
+    getDataXStationName: function(StationID, isEn){
+        var st = catchV3Data.getDataXStationData(StationID);
+        return (isEn) ? st.ename : st.name;
+    },
+    Line: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        progressFn('取得路線中');
+        var atLine = tra.v3._StationOfLine()
+        .then(function(res){
+            return res.data.StationOfLines
+        }).catch(function(res){
+            return res;
+        })
+        return atLine;
+    },
+    GeneralTrainTimetable: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        //定期時刻表抓法  1.執行 tra.v3._GeneralTrainTimetable
+        progressFn('取得時刻中');
+        var atTime = tra.v3._GeneralTrainTimetable()
+        .then(function(res){
+            return res.data.TrainTimetables;
+        }).catch(function(res){
+            return res;
+        })
+        return atTime;
+    },
+    Station: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        progressFn('取得車站中');
+        return tra.v3._Station()
+        .then(function(res){
+            return res.data.Stations.map(function(c){
+                return {
+                    StationID: c.StationID,
+                    v2id: tra.v3Sv2(c.StationID),
+                    lat: c.StationPosition.PositionLat,
+                    lon: c.StationPosition.PositionLon,
+                    name: c.StationName.Zh_tw,
+                    ename: c.StationName.En
+                }
+            })
+        }).catch(function(res){
+            return res;
+        })
+    },
+    TrainType: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        progressFn('取得車種中');
+        return tra.v3._TrainType()
+        .then(function(res){
+            return res.data.TrainTypes.map(function(c){
+                let nameAry = c.TrainTypeName.Zh_tw.split('(');
+                if(nameAry[1]) nameAry[1] = nameAry[1].replace(')','');
+                return {
+                    TrainTypeID: c.TrainTypeID,
+                    TrainTypeCode: c.TrainTypeCode,
+                    note: nameAry[1] || '',
+                    name: nameAry[0],
+                    ename: c.TrainTypeName.En
+                }
+            })
+        }).catch(function(res){
+            return res;
+        })
+    },
+    SimpleLine: function(progressFn){
+        if(typeof(progressFn)!='function') progressFn = (msg)=>{};
+        //區分要抓的 line 在資料中是順時針或逆時針方向
+        let recordLineDir0 = ['CZ','EL','SU','PX','NW','LJ'];
+        let recordLineDir1 = ['WL','WL-C','SL','SA','JJ','SH'];
+        let lineCfg = {
+            filterBy: ptx.filterParam('LineID', '==', recordLineDir0.concat(recordLineDir1), 'or')
+        }
+        progressFn('取得路線中');
+        var atLine = tra.v3._StationOfLine(lineCfg)
+        .then(function(res){
+            return res.data.StationOfLines.map(c=>{
+                let stAry = c.Stations.sort((a,b)=>{
+                    return (a.Sequence > b.Sequence) ? 1 : -1;
+                }).map(st=>{
+                    return {
+                        name: st.StationName,
+                        ID: st.StationID,
+                        v2id: tra.v3Sv2(st.StationID),
+                        TD: st.CumulativeDistance
+                    }
+                })
+                return {
+                    dir: (recordLineDir0.indexOf(c.LineID)!=-1) ? 0 : 1,
+                    LineID: c.LineID,
+                    station: stAry
+                }
+            });
+        }).catch(function(res){
+            return res;
+        })
+        return atLine;
+    },
+    SimpleTimetable: function(progressFn){
+        return catchV3Data.GeneralTrainTimetable(progressFn)
+        .then(function(json){
+            json.forEach((data,didx)=>{
+                let weekStr = [data.ServiceDay.Sunday, data.ServiceDay.Monday, data.ServiceDay.Tuesday, data.ServiceDay.Wednesday, data.ServiceDay.Thursday, data.ServiceDay.Friday, data.ServiceDay.Saturday].map((day,idx)=>{return (day) ? idx.toString() : ''}).join('');
+                data.weekStr = weekStr;
+                delete data.ServiceDay;
+
+                data.StopTimes.sort(function(a,b){
+                    return (a.StopSequence > b.StopSequence) ? 1 : -1;
+                })
+
+                data.stopTime = data.StopTimes.map(c=>{
+                    return {
+                        Arr: c.ArrivalTime,
+                        Dep: c.DepartureTime,
+                        ID: c.StationID,
+                        v2id: tra.v3Sv2(c.StationID),
+                        name: c.StationName.Zh_tw
+                    }
+                })
+                delete data.StopTimes;
+
+                data.info = {};
+                let deleteKey = ['EndingStationName','StartingStationName','TrainTypeName','TripHeadSign','TripLine'];
+                for(var k in data.TrainInfo){
+                    if(deleteKey.indexOf(k)==-1){
+                        data.info[k] = data.TrainInfo[k];
+                    }
+                }
+                delete data.TrainInfo;
+
+                if(didx>0){
+                    delete data.UpdateTime;
+                    delete data.VersionID;
+                }
+            })
+            return json;
+        })
+    }
+}
+tra.v3.catchData = catchV3Data;
+
 function makePTXV3_func(cmd, cfg){
     cfg = setDefaultCfg(cfg);
     var param = processCfg(cfg);
@@ -419,7 +630,7 @@ aryMakeV3Function.forEach(function(fn){
     }
 })
 tra.v3.ptxAutoTRAFunctionKey = ptxAutoTRAV3FunctionKey;
-tra.v3.getStationLiveBoard = tra.v3._LiveBoard_Station;//alias
+tra.v3.getStationLiveBoard = tra.v3._StationLiveBoard_Station;//alias
 tra.v3.getFromToFare = tra.v3._ODFareFromTo;//alias
 
 
