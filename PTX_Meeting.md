@@ -106,3 +106,11 @@ rocptx.tra.v3Sv2("7000"); //回應 "1715" 花蓮
 
 [參考 公車 StationID](https://ptx.transportdata.tw/MOTC#!/CityBus/CityBusApi_Station) filter = StationID eq '1001113'
 
+## StationID 可以印在全國公車站牌上
+
+如新加坡作法，此數字可增加查尋#便利度及作為定位依據，不會因 GPS 飄移至對向站牌 (同向 StationID 才會一樣)，輸入數字也較輸入站牌名稱更容易。
+
+
+![參考 SG StationID](https://i.imgur.com/CEVHf7L.jpg)
+![參考 SG StationID](https://i.imgur.com/TFS1BQQ.jpg)
+
