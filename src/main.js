@@ -10,6 +10,7 @@ import tymetro from './tymetro.js';
 import klrt from './klrt.js';
 import tra from './tra.js';
 import jsSHA from './jsSHA';
+import id from './id';
 
 
 var inBrowser = common.inBrowser;
@@ -26,6 +27,7 @@ var combine = {
 	klrt: klrt,
 	tra: tra,
 	jsSHA: jsSHA,
+	id: id,
 	common: common
 }
 for(var k in combine){

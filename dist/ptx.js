@@ -1453,118 +1453,140 @@
       sect_ary: ['taoyuan', 'taipei'],
       station_ary: [//Airport Line
       {
-        id: "A1",
+        id: "tymetro_a01",
+        StationID: ["A1"],
         name: "臺北車站",
         estring: "taipeichezhantaipeimainstation",
         sect: 'taipei',
         big: 'd'
       }, {
-        id: "A2",
+        id: "tymetro_a02",
+        StationID: ["A2"],
         name: "三重",
         estring: "sanchong",
         sect: 'taipei'
       }, {
-        id: "A3",
+        id: "tymetro_a03",
+        StationID: ["A3"],
         name: "新北產業園區",
         estring: "xinbeichanyeyuanqui",
         sect: 'taipei',
         big: 'd'
       }, {
-        id: "A4",
+        id: "tymetro_a04",
+        StationID: ["A4"],
         name: "新莊副都心",
         estring: "xinzhungfuduxin",
         sect: 'taipei'
       }, {
-        id: "A5",
+        id: "tymetro_a05",
+        StationID: ["A5"],
         name: "泰山",
         estring: "taishan",
         sect: 'taipei'
       }, {
-        id: "A6",
+        id: "tymetro_a06",
+        StationID: ["A6"],
         name: "泰山貴和",
         estring: "taishanguehe",
         sect: 'taipei'
       }, {
-        id: "A7",
+        id: "tymetro_a07",
+        StationID: ["A7"],
         name: "體育大學",
         estring: "tiyvdaxue",
         sect: 'taipei'
       }, {
-        id: "A8",
+        id: "tymetro_a08",
+        StationID: ["A8"],
         name: "長庚醫院",
         estring: "changgengyiyuan",
         sect: 'taoyuan',
         big: 'd'
       }, {
-        id: "A9",
+        id: "tymetro_a09",
+        StationID: ["A9"],
         name: "林口",
         estring: "linkou",
         sect: 'taoyuan'
       }, {
-        id: "A10",
+        id: "tymetro_a10",
+        StationID: ["A10"],
         name: "山鼻",
         estring: "shanbi",
         sect: 'taoyuan'
       }, {
-        id: "A11",
+        id: "tymetro_a11",
+        StationID: ["A11"],
         name: "坑口",
         estring: "kengkou",
         sect: 'taoyuan'
       }, {
-        id: "A12",
+        id: "tymetro_a12",
+        StationID: ["A12"],
         name: "機場第一航廈",
         estring: "terminal1",
         sect: 'taoyuan',
         big: 'd'
       }, {
-        id: "A13",
+        id: "tymetro_a13",
+        StationID: ["A13"],
         name: "機場第二航廈",
         estring: "terminal2",
         sect: 'taoyuan',
         big: 'd'
       }, {
-        id: "A14a",
+        id: "tymetro_a14a",
+        StationID: ["A14a"],
         name: "機場旅館",
         estring: "airporthotel",
         sect: 'taoyuan'
       }, {
-        id: "A15",
+        id: "tymetro_a15",
+        StationID: ["A15"],
         name: "大園",
         estring: "dayuan",
         sect: 'taoyuan'
       }, {
-        id: "A16",
+        id: "tymetro_a16",
+        StationID: ["A16"],
         name: "橫山",
         estring: "hengshan",
         sect: 'taoyuan'
       }, {
-        id: "A17",
+        id: "tymetro_a17",
+        StationID: ["A17"],
         name: "領航",
         estring: "linghang",
         sect: 'taoyuan'
       }, {
-        id: "A18",
+        id: "tymetro_a18",
+        StationID: ["A18"],
         name: "高鐵桃園站",
         estring: "gaotietaoyuanzhan",
         sect: 'taoyuan'
       }, {
-        id: "A19",
+        id: "tymetro_a19",
+        StationID: ["A19"],
         name: "桃園體育園區",
         estring: "taoyuantiyuyuanqui",
         sect: 'taoyuan'
       }, {
-        id: "A20",
+        id: "tymetro_a20",
+        StationID: ["A20"],
         name: "興南",
         estring: "xingnan",
         sect: 'taoyuan'
       }, {
-        id: "A21",
+        id: "tymetro_a21",
+        StationID: ["A21"],
         name: "環北",
         estring: "huanbei",
         sect: 'taoyuan'
       }],
       line: [{
         id: "tymetro_1",
+        LineID: "A",
         name: "機場捷運",
         trainSect: ["taipei", "taoyuan"],
         color: "#8e47ad",
@@ -6557,6 +6579,291 @@
 
   tra.v3.getFromToFare = tra.v3._ODFareFromTo; //alias
 
+  function findData(ary, col, val) {
+    for (var i = 0; i < ary.length; i++) {
+      var colData = ary[i][col];
+
+      if (colData == val) {
+        return ary[i];
+      } else if (_typeof(colData) == 'object' && colData.length && colData.indexOf(val) >= 0) {
+        return ary[i];
+      }
+    }
+
+    return false;
+  }
+
+  function idTrans(objS) {
+    //objS.value 原始值放到 objS.from
+    //objS.Line 如果有多個 StationID 對應到一組 id 時用 Line 區別 
+    objS.returnType = objS.returnType || 'string'; //"string":只給對應 id。"data":給整個車站的 data obj。預設為 string
+
+    objS.fromType = objS.fromType || 'id'; //原來的車站 ID 格式，對應到 data 內的欄位名稱做搜尋匹配
+
+    objS.toType = objS.toType || 'id'; //轉換規則，對應到 data 內的欄位名稱給值，若 returnType 為 data 就不看了
+
+    if (objS.value.indexOf('_') > 0 && !objS.company) {
+      objS.company = objS.value.split('_')[0];
+    }
+
+    if (!objS.company) return false;
+    objS.from = objS.value;
+
+    if (/^tra/.test(objS.company) && objS.value.indexOf('_') > 0) {
+      objS.from = objS.value.split('_')[1];
+    }
+
+    var stationAry = [],
+        stData = {},
+        tmpA = false,
+        rt = false;
+
+    switch (objS.company) {
+      case 'tra':
+        stationAry = pData.tra.station_ary;
+        stData = findData(stationAry, objS.fromType, objS.from);
+
+        if (stData) {
+          if (objS.returnType == 'string') {
+            rt = stData[objS.toType];
+          } else {
+            rt = stData;
+          }
+        }
+
+        break;
+
+      case 'trtc':
+        stationAry = pData.trtc.station_ary;
+        stData = findData(stationAry, objS.fromType, objS.from);
+
+        if (stData) {
+          if (objS.returnType == 'string') {
+            tmpA = stData[objS.toType];
+
+            if (_typeof(tmpA) == 'object' && tmpA.length && objS.LineID) {
+              if (/^trtc/.test(objS.LineID)) {
+                objS.LineID = findData(pData.trtc.line, 'id', objS.LineID)['LineID']; //如果給的是 rocptx 的路線 id 則於此處交換為 PTX 上操作 TRTC 的 LineID
+              }
+
+              var testReg = new RegExp('^' + objS.LineID + '[0-9]', 'i');
+              var returnValue = tmpA.find(function (k) {
+                return testReg.test(k);
+              });
+              rt = returnValue;
+            } else {
+              rt = stData[objS.toType];
+            }
+          } else {
+            rt = stData;
+          }
+        }
+
+        break;
+
+      case 'tymetro':
+        stationAry = pData.tymetro.station_ary;
+        stData = findData(stationAry, objS.fromType, objS.from);
+
+        if (stData) {
+          if (objS.returnType == 'string') {
+            tmpA = stData[objS.toType];
+
+            if (_typeof(tmpA) == 'object' && tmpA.length && objS.LineID) {
+              if (/^tymetro/.test(objS.LineID)) {
+                objS.LineID = findData(pData.tymetro.line, 'id', objS.LineID)['LineID']; //如果給的是 rocptx 的路線 id 則於此處交換為 PTX 上操作 TYMetro 的 LineID
+              }
+
+              var testReg = new RegExp('^' + objS.LineID + '[0-9]', 'i');
+              var returnValue = tmpA.find(function (k) {
+                return testReg.test(k);
+              });
+              rt = returnValue;
+            } else {
+              rt = stData[objS.toType];
+            }
+          } else {
+            rt = stData;
+          }
+        }
+
+        break;
+    }
+
+    return rt;
+  }
+
+  function mrtLineTrans(objS) {
+    //objS.value 原始值放到 objS.from
+    objS.returnType = objS.returnType || 'string'; //"string":只給對應 id。"data":給整個車站的 data obj。預設為 string
+
+    objS.fromType = objS.fromType || 'id'; //原來的車站 ID 格式，對應到 data 內的欄位名稱做搜尋匹配
+
+    objS.toType = objS.toType || 'LineID'; //轉換規則，對應到 data 內的欄位名稱給值，若 returnType 為 data 就不看了
+
+    if (!objS.company || !objS.value) return false;
+    var lineAry = [],
+        lineData = {},
+        rt = false;
+
+    switch (objS.company) {
+      case "trtc":
+        lineAry = pData.trtc.line;
+        lineData = findData(lineAry, objS.fromType, objS.value);
+
+        if (lineData) {
+          rt = objS.returnType == 'string' ? lineData[objS.toType] : lineData;
+        }
+
+        break;
+
+      case "tymetro":
+        lineAry = pData.tymetro.line;
+        lineData = findData(lineAry, objS.fromType, objS.value);
+
+        if (lineData) {
+          rt = objS.returnType == 'string' ? lineData[objS.toType] : lineData;
+        }
+
+        break;
+    }
+
+    return rt;
+  }
+
+  var tra$1 = {
+    getPTXV2: function getPTXV2(id) {
+      return id;
+    },
+    getPTXV3: function getPTXV3(id) {
+      return idTrans({
+        company: 'tra',
+        value: id,
+        toType: 'v3id'
+      });
+    },
+    getPTXV3byV2: function getPTXV3byV2(id) {
+      return idTrans({
+        company: 'tra',
+        value: id,
+        toType: 'v3id'
+      });
+    },
+    getPTXV2byV3: function getPTXV2byV3(id) {
+      return idTrans({
+        company: 'tra',
+        value: id,
+        fromType: 'v3id',
+        toType: 'id'
+      });
+    },
+    getJGSKbyPTXV2: function getJGSKbyPTXV2(id) {
+      return 'tra_' + id;
+    },
+    getJGSKbyPTXV3: function getJGSKbyPTXV3(id) {
+      return 'tra_' + this.getPTXV2byV3(id);
+    },
+    getRPIDbyPTXV2: function getRPIDbyPTXV2(id) {
+      //rocptx station id
+      return id;
+    },
+    getRPIDbyPTXV3: function getRPIDbyPTXV3(id) {
+      return idTrans({
+        company: 'tra',
+        value: id,
+        fromType: 'v3id',
+        toType: 'id'
+      });
+    }
+  };
+  var trtc = {
+    getPTXV2: function getPTXV2(id, line) {
+      var param = {
+        company: 'trtc',
+        value: id,
+        fromType: 'id',
+        toType: 'StationID'
+      };
+
+      if (line) {
+        param.LineID = line;
+      }
+
+      return idTrans(param);
+    },
+    getRPIDbyPTXV2: function getRPIDbyPTXV2(id) {
+      return idTrans({
+        company: 'trtc',
+        value: id,
+        fromType: 'StationID',
+        toType: 'id'
+      });
+    },
+    getLINE_LineIDbyRPID: function getLINE_LineIDbyRPID(id) {
+      return mrtLineTrans({
+        company: 'trtc',
+        value: id,
+        fromType: 'id',
+        toType: 'LineID'
+      });
+    },
+    getLINE_RPIDbyLineID: function getLINE_RPIDbyLineID(id) {
+      return mrtLineTrans({
+        company: 'trtc',
+        value: id,
+        fromType: 'LineID',
+        toType: 'id'
+      });
+    }
+  };
+  var tymetro = {
+    getPTXV2: function getPTXV2(id, line) {
+      var param = {
+        company: 'tymetro',
+        value: id,
+        fromType: 'id',
+        toType: 'StationID'
+      };
+
+      if (line) {
+        param.LineID = line;
+      }
+
+      return idTrans(param);
+    },
+    getRPIDbyPTXV2: function getRPIDbyPTXV2(id) {
+      return idTrans({
+        company: 'tymetro',
+        value: id,
+        fromType: 'StationID',
+        toType: 'id'
+      });
+    },
+    getLINE_LineIDbyRPID: function getLINE_LineIDbyRPID(id) {
+      return mrtLineTrans({
+        company: 'tymetro',
+        value: id,
+        fromType: 'id',
+        toType: 'LineID'
+      });
+    },
+    getLINE_RPIDbyLineID: function getLINE_RPIDbyLineID(id) {
+      return mrtLineTrans({
+        company: 'tymetro',
+        value: id,
+        fromType: 'LineID',
+        toType: 'id'
+      });
+    }
+  };
+  var id = {
+    idTrans: idTrans,
+    mrtLineTrans: mrtLineTrans,
+    tra: tra$1,
+    trtc: trtc,
+    tymetro: tymetro
+  };
+
   var inBrowser = CM.inBrowser;
   var combine = {
     data: pData,
@@ -6569,6 +6876,7 @@
     klrt: fnMRT$3,
     tra: tra,
     jsSHA: jsSHA,
+    id: id,
     common: CM
   };
 

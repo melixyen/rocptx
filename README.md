@@ -395,6 +395,54 @@ rocptx.tra.v3Sv2("7000"); //回應 "1715"
 
 ```
 
+# id 轉換工具
+
+rocptx.id 下依照各營運公司不同而有不同 id 轉換工具
+
+```javascript
+rocptx.id.tra.getPTXV3byV2('1006');//Return 0980
+```
+
+#### tra 方法
+
+Name | Method | Description
+-----|------|-------------
+getPTXV2 | getPTXV2(id) | 用 rocptx id 取 PTX V2 版 StationID
+getPTXV3 | getPTXV3(id) | 用 rocptx id 取 PTX V3 版 StationID
+getPTXV3byV2 | getPTXV3byV2(StationID) | 用 PTX V2 版 StationID 取 PTX V3 版 StationID
+getPTXV2byV3 | getPTXV2byV3(StationID) | 用 PTX V3 版 StationID 取 PTX V2 版 StationID
+getRPIDbyPTXV2 | getRPIDbyPTXV2(StationID) | 用 PTX V2 版 StationID 取 rocptx tra id
+getRPIDbyPTXV3 | getRPIDbyPTXV3(StationID) | 用 PTX V3 版 StationID 取 rocptx tra id
+
+#### trtc 方法
+
+Name | Method | Description
+-----|------|-------------
+getPTXV2 | getPTXV2(id) | 用 rocptx id 取 PTX V2 版 StationID
+getRPIDbyPTXV2 | getRPIDbyPTXV2(StationID) | 用 PTX V2 版 StationID 取 rocptx id
+getLINE_LineIDbyRPID | getLINE_LineIDbyRPID(id) | 路線 ID，用 rocptx id 取 PTX V2 版 LineID
+getLINE_RPIDbyLineID | getLINE_RPIDbyLineID(LineID) | 路線 ID，用 PTX V2 版 LineID 取 rocptx id
+
+#### tymetro 方法
+
+Name | Method | Description
+-----|------|-------------
+getPTXV2 | getPTXV2(id) | 用 rocptx id 取 PTX V2 版 StationID
+getRPIDbyPTXV2 | getRPIDbyPTXV2(StationID) | 用 PTX V2 版 StationID 取 rocptx id
+getLINE_LineIDbyRPID | getLINE_LineIDbyRPID(id) | 路線 ID，用 rocptx id 取 PTX V2 版 LineID
+getLINE_RPIDbyLineID | getLINE_RPIDbyLineID(LineID) | 路線 ID，用 PTX V2 版 LineID 取 rocptx id
+
+## idTrans 車站 id 轉換 Function
+
+```javascript
+rocptx.id.idTrans({
+    value: "1005",//要轉換的 id 值
+    fromType: "id",//要搜尋的資料欄位名
+    company: "tra",//營運公司
+    toType: "v3id"//要回應的資料欄位名
+})
+```
+
 
 
 # 實作 Web App
