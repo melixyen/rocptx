@@ -49,7 +49,8 @@ switch(format){
 		config.output.file = 'dist/rocptx.es.js';
 		config.plugins = [
 			resolve(),
-			commonjs()
+			commonjs(),
+			json()
 		]
 	break;
 	case 'iife':
