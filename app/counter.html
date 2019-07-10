@@ -1,0 +1,195 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="zh-TW" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+<meta name="description" content="交通轉向量計數器" />
+<meta name="keywords" content="計數器" />
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<title>交通轉向量計數器</title>
+<style type="text/css">
+@charset "utf-8";
+
+body {
+	box-sizing: border-box;
+	font-family: "Arial", "Microsoft JhengHei";
+	font-size: large;
+	margin: 0px;
+	background-color: rgb(192, 244, 247);
+   -o-user-select:none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   -webkit-user-select: none;
+   user-select: none;
+}
+
+#main {
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+	background-color: rgb(192, 244, 247);
+}
+
+#menu{
+	display: flex;
+}
+
+.btnA{
+	margin: 1vh 1vw;
+	width: 30vw;
+	height: 7vh;
+	background-color: #7E7;
+	border-radius: 10vw;
+	line-height: 7vh;
+	font-size: Large;
+	text-align: center;
+}
+
+#counter .frame{
+	width: 100vw;
+}
+#counter .title{
+	width: 100vw;
+	text-align: center;
+	background-color: #Daa;
+	display: inline-block;
+}
+#counter .btnB{
+	background-color: #822;
+	color: #ee3;
+	font-size: 8vw;
+	text-align: center;
+	height: 23vh;
+	width: 28.5vw;
+	margin: 2vh 2vw;
+	line-height: 28vh;
+	border-radius: 5vw;
+	float: left;
+}
+</style>
+
+<script type="text/javascript" src="../../railtime/libs/vue.js"></script>
+<script type="text/javascript" src="../../railtime/libs/QRious.js"></script>
+
+<script type="text/javascript">
+
+	var BB = {};
+
+
+	BB.initFn = function(){
+		var tpl = Vue.compile('<div id="main">' + 
+			'<div id="menu" class="menu">' +
+				'<div class="btnA" v-on:click="goCount()">計數</div>' +
+				'<div class="btnA" v-on:click="goList()">紀錄</div>' +
+				'<div class="btnA" v-on:click="clear()">歸零</div>' +
+			'</div>' +
+			'<div id="counter" v-show="flagShowCounter">' +
+				'<div class="frame big">' +
+					'<div class="title">大型車</div>' +
+					'<div class="in">' +
+						'<div class="btnB" v-on:click="add(\'bigL\')">{{bigL}}</div>' +
+						'<div class="btnB" v-on:click="add(\'bigC\')">{{bigC}}</div>' +
+						'<div class="btnB" v-on:click="add(\'bigR\')">{{bigR}}</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+			'<div id="counter" v-show="flagShowCounter">' +
+				'<div class="frame car">' +
+					'<div class="title">小型車</div>' +
+					'<div class="in">' +
+						'<div class="btnB" v-on:click="add(\'carL\')">{{carL}}</div>' +
+						'<div class="btnB" v-on:click="add(\'carC\')">{{carC}}</div>' +
+						'<div class="btnB" v-on:click="add(\'carR\')">{{carR}}</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+			'<div id="counter" v-show="flagShowCounter">' +
+				'<div class="frame moto">' +
+					'<div class="title">機踏車</div>' +
+					'<div class="in">' +
+						'<div class="btnB" v-on:click="add(\'motoL\')">{{motoL}}</div>' +
+						'<div class="btnB" v-on:click="add(\'motoC\')">{{motoC}}</div>' +
+						'<div class="btnB" v-on:click="add(\'motoR\')">{{motoR}}</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+			'<div id="list" v-show="flagShowList">' +
+				'<div>' +
+					'<div v-for="ax in aryList">' +
+						'<div style="margin: 2vh 0; border-bottom: 1px solid #ddd;">{{ax}}</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+		'</div>');
+		BB.main = new Vue({
+			render: tpl.render,
+			staticRenderFns: tpl.staticRenderFns,
+			el: '#main',
+			data: {
+				flagShowCounter: true,
+				flagShowList: false,
+				aryList: [],
+				bigL: 0,
+				bigC: 0,
+				bigR: 0,
+				carL: 0,
+				carC: 0,
+				carR: 0,
+				motoL: 0,
+				motoC: 0,
+				motoR: 0,
+				zxcv: 1
+			},
+			methods: {
+				add: function(val){
+					this[val] = this[val] + 1;
+				},
+				clear: function(){
+					var aryXA = localStorage.getItem('jjcc');
+					if(aryXA) aryXA = JSON.parse(localStorage.getItem('jjcc'));
+					var aryA = aryXA || [];
+					var objA = {
+						time: new Date().toLocaleTimeString(),
+						big: [this.bigL, this.bigC, this.bigR],
+						car: [this.carL, this.carC, this.carR],
+						moto: [this.motoL, this.motoC, this.motoR]
+					};
+					aryA.push(objA);
+					localStorage.setItem('jjcc', JSON.stringify(aryA));
+					this.bigL = 0;
+					this.bigR = 0;
+					this.bigC = 0;
+					this.carL = 0;
+					this.carR = 0;
+					this.carC = 0;
+					this.motoL = 0;
+					this.motoC = 0;
+					this.motoR = 0;
+				},
+				goCount: function(){
+					this.flagShowCounter = true;
+					this.flagShowList = false;
+				},
+				goList: function(){
+					this.flagShowCounter = false;
+					this.flagShowList = true;
+
+					var aryXA = localStorage.getItem('jjcc');
+					if(aryXA){
+						this.aryList = JSON.parse(aryXA);
+					}
+				}
+			}
+		});
+	}
+
+</script>
+<!-- -->
+<!-- -->
+</head>
+<body onload="BB.initFn()">
+	<div id="main"></div>
+	<div id="mask" class="mask"><div class="text"></div></div>
+</body>
+</html>
