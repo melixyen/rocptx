@@ -43,6 +43,10 @@ var ptx = {
         dir = (dir && typeof(dir)=='string') ? ' ' + dir.toLowerCase() : '';
         return encodeURI('$orderby=' + arguments[0] + dir);
     },
+    spatialFilterFn: function(lat, lng, far=200, field='StationPosition'){
+        //預設對 PTX 找 200 公尺範圍的
+        return encodeURI('$spatialFilter=nearby(' + field + ', ' + lat + ', ' + lng + ', ' + far + ')');
+    },
     topFn: function(top, formatStr){
         top = top || 3000;
         formatStr = formatStr || 'JSON';

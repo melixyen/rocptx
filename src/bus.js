@@ -73,6 +73,13 @@ var fnBUS = {
         if(cfg.selectField) myURL += '&' + cfg.selectField;
         ptx.getURL(myURL, cfg.cbFn);
     },
+    getPositionBusStation: function(city, lat, lng, cfg){
+        cfg = this.setDefaultCfg(cfg);
+        var myURL = busURL + '/Station/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
+        myURL += ptx.spatialFilterFn(lat, lng, cfg.far, cfg.field) + '&' + ptx.topFn();
+        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        ptx.getURL(myURL, cfg.cbFn);
+    },
     getBusStopRoute: function(RouteUID, city, cfg){
         cfg = this.setDefaultCfg(cfg);
         var myURL = busURL + '/StopOfRoute/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';

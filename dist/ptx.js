@@ -777,6 +777,12 @@
       dir = dir && typeof dir == 'string' ? ' ' + dir.toLowerCase() : '';
       return encodeURI('$orderby=' + arguments[0] + dir);
     },
+    spatialFilterFn: function spatialFilterFn(lat, lng) {
+      var far = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 200;
+      var field = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'StationPosition';
+      //預設對 PTX 找 200 公尺範圍的
+      return encodeURI('$spatialFilter=nearby(' + field + ', ' + lat + ', ' + lng + ', ' + far + ')');
+    },
     topFn: function topFn(top, formatStr) {
       top = top || 3000;
       formatStr = formatStr || 'JSON';
@@ -3911,6 +3917,13 @@
       cfg = this.setDefaultCfg(cfg);
       var myURL = busURL + '/Station/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
       myURL += ptx.filterFn(ptx.filterParam('StationID', '==', StationID.toString())) + '&' + ptx.topFn();
+      if (cfg.selectField) myURL += '&' + cfg.selectField;
+      ptx.getURL(myURL, cfg.cbFn);
+    },
+    getPositionBusStation: function getPositionBusStation(city, lat, lng, cfg) {
+      cfg = this.setDefaultCfg(cfg);
+      var myURL = busURL + '/Station/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
+      myURL += ptx.spatialFilterFn(lat, lng, cfg.far, cfg.field) + '&' + ptx.topFn();
       if (cfg.selectField) myURL += '&' + cfg.selectField;
       ptx.getURL(myURL, cfg.cbFn);
     },
