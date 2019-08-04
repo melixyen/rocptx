@@ -9,6 +9,8 @@ import tymetro_station from './datax/tymetro.station.json';
 import trtc_transfer from './datax/trtc.transfer.json';
 import krtc_transfer from './datax/krtc.transfer.json';
 
+import thsr_station from './datax/thsr.station.json';
+
 import tra_line from './datax/tra.line.json';
 import tra_station from './datax/tra.station.json';
 import tra_train from './datax/tra.train.json';
@@ -50,6 +52,9 @@ const datax = {
 	tymetro: {
 		line: tymetro_line,
 		station: tymetro_station
+	},
+	thsr: {
+		station: thsr_station
 	},
 	tra: {
 		line: tra_line,

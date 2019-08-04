@@ -8,6 +8,7 @@ import trtc from './trtc.js';
 import krtc from './krtc.js';
 import tymetro from './tymetro.js';
 import klrt from './klrt.js';
+import thsr from './thsr.js';
 import tra from './tra.js';
 import jsSHA from './jsSHA';
 import id from './id';
@@ -25,6 +26,7 @@ var combine = {
 	krtc: krtc,
 	tymetro: tymetro,
 	klrt: klrt,
+	thsr: thsr,
 	tra: tra,
 	jsSHA: jsSHA,
 	id: id,

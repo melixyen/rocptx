@@ -243,6 +243,88 @@ TimeSimple | TimeSimple(progressFn) | 向 PTX API 下載所有車站時刻表精
 Fare | Fare(progressFn) | 向 PTX API 下載所有車站票價資料，可傳入 progressFn 監看進度
 
 
+# thsr
+台灣高鐵的相關操作
+
+```javascript
+rocptx.thsr.{功能或變數名稱}
+
+rocptx.tra.v2.{功能或變數名稱}//對應 PTX 官網 v2 版相關 API
+```
+
+Name | Type | Description
+-----|------|-------------
+urls | String | 對應 PTX 操作之 API 位置
+_{ urls.Name } | String | (cfg) 操作無變數之 API，用底線加上 urls 名稱組合，回傳均為一個 Promise
+_{ urls.Name } | String | (arg1, arg2,...,cfg) 操作有變數之 API，用底線加上 urls 名稱組合，變數按照 PTX 組合 API 的順序依序傳入，最後一個參數為設定檔，回傳均為一個 Promise
+
+#### urls 對應位置及動態參數傳遞方式
+```javascript
+const urls = {
+    Station: thsrV2URL + '/Station/', //取得車站基本資料
+    ODFare: thsrV2URL + '/ODFare/', //取得票價資料
+    GeneralTimetable: thsrV2URL + '/GeneralTimetable/', //取得所有車次的定期時刻表資料
+    DailyTrainInfo_Today: thsrV2URL + '/DailyTrainInfo/Today/', //取得當天所有車次的車次資料
+    DailyTimetable_Today: thsrV2URL + '/DailyTimetable/Today/', //取得當天所有車次的時刻表資料
+    AlertInfo: thsrV2URL + '/AlertInfo', //取得即時通阻事件資料
+    News: thsrV2URL + '/News', //取得高鐵最新消息資料
+    Shape: thsrV2URL + '/Shape/', //取得指定營運業者之軌道路網實體路線圖資資料
+    StationExit: thsrV2URL + '/StationExit/', //取得車站基本資料
+    //以下為帶有變數的 API
+    ODFareFromTo: thsrV2URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
+    GeneralTimetable_TrainNo: thsrV2URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料
+    DailyTrainInfo_Today_TrainNo: thsrV2URL + '/DailyTrainInfo/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的車次資料
+    DailyTrainInfo_TrainNo_TrainDate: thsrV2URL + '/DailyTrainInfo/TrainNo/{TrainNo}/TrainDate/{TrainDate}', //取得指定[日期]與[車次]的車次資料
+    DailyTimetable_Today_TrainNo: thsrV2URL + '/DailyTimetable/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的時刻表資料
+    DailyTimetable_TrainDate_TrainDate: thsrV2URL + '/DailyTimetable/TrainDate/{TrainDate}', //取得指定[日期]所有車次的時刻表資料
+    DailyTimetable_TrainNo_TrainDate: thsrV2URL + '/DailyTimetable/TrainNo/{TrainNo}/TrainDate/{TrainDate}', //取得指定[日期],[車次]的時刻表資料
+    DailyTimetable_Station_TrainDate: thsrV2URL + '/DailyTimetable/Station/{StationID}/{TrainDate}', //取得指定[日期],[車站]的站別時刻表資料
+    DailyTimetable_OD_TrainDate: thsrV2URL + '/DailyTimetable/OD/{OriginStationID}/to/{DestinationStationID}/{TrainDate}',//取得指定[日期],[起迄站間]之站間時刻表資料
+    AvailableSeatStatusList: thsrV2URL + '/AvailableSeatStatusList/{StationID}' //取得動態指定[車站]的對號座剩餘座位資訊看板資料
+}
+```
+
+#### 呼叫範例
+```javascript
+//呼叫無參數 API 方法，以 Station 為例
+rocptx.thsr.v2._Station().then(function(data){
+    console.info(data);
+})
+
+//呼叫有參數 API 方法
+rocptx.thsr.v2._DailyTimetable_OD_TrainDate('1000','1040','2019-08-30',{top:20}).then(function(data){
+    console.info(data);
+})
+
+rocptx.thsr.v2._DailyTimetable_TrainDate_TrainDate('2019-08-30').then(function(data){
+    console.info(data);
+})
+
+```
+
+#### 操作方法
+
+Name | Method | Description
+-----|------|-------------
+getStationOfLine | getStationOfLine(LineID, cfg) 回應 Promise。 | 取得台灣高鐵的車站列表。
+getFromToFare | getFromToFare(fromID, toID, cfg) 回應 Promise。 | 取得兩個 StationID 間的車資
+getStation | getStation(StationID, cfg) 回應 Promise。 | 取得車站資料。
+getStationTodayTimeTable | getStationTodayTimeTable(StationID, cfg) 回應 Promise。 | 取得該站今天時刻表。
+getStationFare | getStationFare(StationID, cfg) 回應 Promise。 | 取得該站至所有車站的票價。
+catchData | catchData.{Object functions} | 抓資料及讀取已嵌入 datax 之固定資料的 Function 集合。
+
+
+#### catchData
+```javascript
+rocptx.thsr.v2.catchData.getDataXStationName('1000');
+//取回值為 rocptx library 內台鐵西部幹線北段的基本資料，不會連到 PTX API
+```
+Name | Method | Description
+-----|------|-------------
+getDataXStationData | getDataXStationData(StationID) | 取得車站基本資料
+getDataXStationName | getDataXStationName(StationID, isEn) | 取得車站名稱，isEn == true 時回傳英文站名
+
+
 # tra
 台灣鐵路局火車的相關操作
 

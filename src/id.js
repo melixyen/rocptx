@@ -121,6 +121,15 @@ function mrtLineTrans(objS){
     return rt;
 }
 
+let thsr = {
+    getPTXV2: function(id){
+        return id.replace('thsr_','');
+    },
+    getRPIDbyPTXV2: function(id){
+        return 'thsr_' + id;
+    }
+}
+
 let tra = {
     getPTXV2: function(id){
         return id;
@@ -189,6 +198,7 @@ let tymetro = {
 let id = {
     idTrans: idTrans,
     mrtLineTrans: mrtLineTrans,
+    thsr: thsr,
     tra: tra,
     trtc: trtc,
     tymetro: tymetro

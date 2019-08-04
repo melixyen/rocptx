@@ -227,6 +227,22 @@ var pData = {
             }
         ]
     },
+    thsr: {
+        station_ary: [
+            {id:'thsr_0990', StationID:['0990'], name: '南港', estring:'nangang', sect: 'taipei'},
+            {id:'thsr_1000', StationID:['1000'], name: '台北', estring:'taipeitaibei', sect: 'taipei'},
+            {id:'thsr_1010', StationID:['1010'], name: '板橋', estring:'banqiaobanciao', sect: 'taipei'},
+            {id:'thsr_1020', StationID:['1020'], name: '桃園', estring:'taoyuan', sect: 'taoyuan'},
+            {id:'thsr_1030', StationID:['1030'], name: '新竹', estring:'hsinchuxinzhu', sect: 'hsinchu'},
+            {id:'thsr_1035', StationID:['1035'], name: '苗栗', estring:'miaoli', sect: 'miaoli'},
+            {id:'thsr_1040', StationID:['1040'], name: '台中', estring:'taizhongtaichung', sect: 'taichung'},
+            {id:'thsr_1043', StationID:['1043'], name: '彰化', estring:'zhanghuachanghua', sect: 'changhua'},
+            {id:'thsr_1047', StationID:['1047'], name: '雲林', estring:'yunlin', sect: 'yunlin'},
+            {id:'thsr_1050', StationID:['1050'], name: '嘉義', estring:'jiayichiayi', sect: 'chiayi'},
+            {id:'thsr_1060', StationID:['1060'], name: '台南', estring:'tainan', sect: 'tainan'},
+            {id:'thsr_1070', StationID:['1070'], name: '左營', estring:'zouying', sect: 'kaohsiung'},
+        ]
+    },
     tra: {
         "CarClass": [
             {"id": "1100", "code": 3, "name": "自強號", "ename": "Tze-Chiang Limited Express", "color": "#fd7a10"},
