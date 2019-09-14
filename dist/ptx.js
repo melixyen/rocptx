@@ -6305,7 +6305,7 @@
   };
   var tra = {
     getPTXV2: function getPTXV2(id) {
-      id = id.replace(/^tra_/, '');
+      if (id) id = id.replace(/^tra_/, '');
       return id;
     },
     getPTXV3: function getPTXV3(id) {
@@ -6904,18 +6904,12 @@
 
   tra$1.v2Sv3 = function (StationID) {
     //輸入 v2 StationID 輸出 v3 id
-    var dt = ptx.data.tra.station_ary.find(function (c) {
-      return !!(c.id == StationID);
-    });
-    return dt ? dt.v3id : false;
+    return id.tra.getPTXV3byV2(StationID);
   };
 
   tra$1.v3Sv2 = function (StationID) {
     //輸入 v3 StationID 輸出 v2 id
-    var dt = ptx.data.tra.station_ary.find(function (c) {
-      return !!(c.v3id == StationID);
-    });
-    return dt ? dt.id : false;
+    return id.tra.getPTXV2byV3(StationID);
   }; //自動產生 V3 Function
 
 
@@ -6971,50 +6965,34 @@
       return rt;
     },
     getDataXStationData: function getDataXStationData(StationID) {
-      return catchData$1.getDataXStationData(id.tra.getPTXV2byV3(StationID));
-      var rt = ptx.datax['trav3'].station.find(function (c) {
-        return !!(c.StationID == StationID);
-      });
-
-      if (rt) {
-        var dt = ptx.data.tra.station_ary.find(function (c) {
-          return !!(c.v3id == StationID);
-        });
-
-        for (var k in dt) {
-          if (k == 'id') {
-            rt['id'] = dt[k];
-          } else if (!rt[k]) {
-            rt[k] = dt[k];
-          } else {
-            rt['data_' + k] = dt[k];
-          }
-        }
-      }
-
-      return rt;
+      return catchData$1.getDataXStationData(id.tra.getPTXV2byV3(StationID)); // var rt = ptx.datax['trav3'].station.find((c)=>{return !!(c.StationID==StationID)})
+      // if(rt){
+      //     var dt = ptx.data.tra.station_ary.find(c=> !!(c.v3id==StationID))
+      //     for(var k in dt){
+      //         if(k=='id'){
+      //             rt['id'] = dt[k];
+      //         }else if(!rt[k]){
+      //             rt[k] = dt[k];
+      //         }else{
+      //             rt['data_' + k] = dt[k];
+      //         }
+      //     }
+      // }
+      // return rt;
     },
     getDataXTrain: function getDataXTrain(id) {
-      return catchData$1.getDataXTrain(id);
-      var rt = ptx.datax['trav3'].train.find(function (c) {
-        return !!(c.TrainTypeID == id);
-      });
-
-      if (rt) {
-        var dt = ptx.data.tra["CarClass"].find(function (c) {
-          return !!(c.id == id);
-        });
-
-        for (var k in dt) {
-          if (!rt[k]) {
-            rt[k] = dt[k];
-          } else {
-            rt['data_' + k] = dt[k];
-          }
-        }
-      }
-
-      return rt;
+      return catchData$1.getDataXTrain(id); // var rt = ptx.datax['trav3'].train.find((c)=>{return !!(c.TrainTypeID==id)})
+      // if(rt){
+      //     var dt = ptx.data.tra["CarClass"].find(c=> !!(c.id==id))
+      //     for(var k in dt){
+      //         if(!rt[k]){
+      //             rt[k] = dt[k];
+      //         }else{
+      //             rt['data_' + k] = dt[k];
+      //         }
+      //     }
+      // }
+      // return rt;
     },
     getDataXStationName: function getDataXStationName(StationID, isEn) {
       var st = catchV3Data.getDataXStationData(StationID);

@@ -130,7 +130,7 @@ let thsr = {
 
 let tra = {
     getPTXV2: function(id){
-        id = id.replace(/^tra_/, '');
+        if(id) id = id.replace(/^tra_/, '');
         return id;
     },
     getPTXV3: function(id){

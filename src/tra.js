@@ -373,12 +373,10 @@ tra.getFromToFare = tra._ODFareFromTo;//alias
 //====================== TRA V3 Function 產生至 tra.v3 之下 ==============================
 
 tra.v2Sv3 = function(StationID){//輸入 v2 StationID 輸出 v3 id
-    let dt = ptx.data.tra.station_ary.find(c=> !!(c.id==StationID));
-    return (dt) ? dt.v3id : false;
+    return idFn.tra.getPTXV3byV2(StationID);
 }
 tra.v3Sv2 = function(StationID){//輸入 v3 StationID 輸出 v2 id
-    let dt = ptx.data.tra.station_ary.find(c=> !!(c.v3id==StationID));
-    return (dt) ? dt.id : false;
+    return idFn.tra.getPTXV2byV3(StationID);
 }
 
 //自動產生 V3 Function
@@ -425,35 +423,35 @@ let catchV3Data = {
     },
     getDataXStationData: function(StationID){
         return catchData.getDataXStationData(idFn.tra.getPTXV2byV3(StationID));
-        var rt = ptx.datax['trav3'].station.find((c)=>{return !!(c.StationID==StationID)})
-        if(rt){
-            var dt = ptx.data.tra.station_ary.find(c=> !!(c.v3id==StationID))
-            for(var k in dt){
-                if(k=='id'){
-                    rt['id'] = dt[k];
-                }else if(!rt[k]){
-                    rt[k] = dt[k];
-                }else{
-                    rt['data_' + k] = dt[k];
-                }
-            }
-        }
-        return rt;
+        // var rt = ptx.datax['trav3'].station.find((c)=>{return !!(c.StationID==StationID)})
+        // if(rt){
+        //     var dt = ptx.data.tra.station_ary.find(c=> !!(c.v3id==StationID))
+        //     for(var k in dt){
+        //         if(k=='id'){
+        //             rt['id'] = dt[k];
+        //         }else if(!rt[k]){
+        //             rt[k] = dt[k];
+        //         }else{
+        //             rt['data_' + k] = dt[k];
+        //         }
+        //     }
+        // }
+        // return rt;
     },
     getDataXTrain: function(id){
         return catchData.getDataXTrain(id);
-        var rt = ptx.datax['trav3'].train.find((c)=>{return !!(c.TrainTypeID==id)})
-        if(rt){
-            var dt = ptx.data.tra["CarClass"].find(c=> !!(c.id==id))
-            for(var k in dt){
-                if(!rt[k]){
-                    rt[k] = dt[k];
-                }else{
-                    rt['data_' + k] = dt[k];
-                }
-            }
-        }
-        return rt;
+        // var rt = ptx.datax['trav3'].train.find((c)=>{return !!(c.TrainTypeID==id)})
+        // if(rt){
+        //     var dt = ptx.data.tra["CarClass"].find(c=> !!(c.id==id))
+        //     for(var k in dt){
+        //         if(!rt[k]){
+        //             rt[k] = dt[k];
+        //         }else{
+        //             rt['data_' + k] = dt[k];
+        //         }
+        //     }
+        // }
+        // return rt;
     },
     getDataXStationName: function(StationID, isEn){
         var st = catchV3Data.getDataXStationData(StationID);
