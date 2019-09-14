@@ -27,9 +27,7 @@ function idTrans(objS){
     }
     if(!objS.company) return false;
     objS.from = objS.value;
-    if(/^tra/.test(objS.company) && objS.value.indexOf('_') > 0){
-        objS.from = objS.value.split('_')[1];
-    }
+    // if(/^tra/.test(objS.company) && objS.value.indexOf('_') > 0){ objS.from = objS.value.split('_')[1]; }
 
     let stationAry = [], stData = {}, tmpA = false, rt = false;
     switch(objS.company){
@@ -132,28 +130,25 @@ let thsr = {
 
 let tra = {
     getPTXV2: function(id){
+        id = id.replace(/^tra_/, '');
         return id;
     },
     getPTXV3: function(id){
+        if(!/^tra_/.test(id)) id = 'tra_' + id;
         return idTrans({company:'tra', value:id, toType: 'v3id'})
     },
     getPTXV3byV2: function(id){
+        id = 'tra_' + id;
         return idTrans({company:'tra', value:id, toType: 'v3id'})
     },
     getPTXV2byV3: function(id){
-        return idTrans({company:'tra', value:id, fromType:'v3id', toType: 'id'})
-    },
-    getJGSKbyPTXV2: function(id){
-        return 'tra_' + id;
-    },
-    getJGSKbyPTXV3: function(id){
-        return 'tra_' + this.getPTXV2byV3(id)
+        return this.getPTXV2(idTrans({company:'tra', value:id.toString(), fromType:'v3id', toType: 'id'}))
     },
     getRPIDbyPTXV2: function(id){//rocptx station id
-        return id;
+        return 'tra_' + id;
     },
     getRPIDbyPTXV3: function(id){
-        return idTrans({company:'tra', value:id, fromType:'v3id', toType: 'id'})
+        return idTrans({company:'tra', value:id.toString(), fromType:'v3id', toType: 'id'})
     }
 }
 

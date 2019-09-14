@@ -1,6 +1,7 @@
 import common from './common.js';
 import ptx from './ptx.js';
 import pData from './data.js';
+import idFn from './id.js';
 
 const traURL = common.traURL;
 const traV3URL = common.traV3URL;
@@ -159,10 +160,10 @@ let catchData = {
     getDataXStationData: function(StationID){
         var rt = ptx.datax['tra'].station.find((c)=>{return !!(c.StationID==StationID)})
         if(rt){
-            var dt = ptx.data.tra.station_ary.find(c=> !!(c.id==StationID))
+            var dt = ptx.data.tra.station_ary.find(c=> !!(idFn.tra.getPTXV2(c.id)==StationID))
             for(var k in dt){
                 if(k=='id'){
-                    rt['ttid'] = 'tra_' + dt[k];
+                    rt['id'] = dt[k];
                 }else if(!rt[k]){
                     rt[k] = dt[k];
                 }else{
@@ -423,12 +424,13 @@ let catchV3Data = {
         return rt;
     },
     getDataXStationData: function(StationID){
+        return catchData.getDataXStationData(idFn.tra.getPTXV2byV3(StationID));
         var rt = ptx.datax['trav3'].station.find((c)=>{return !!(c.StationID==StationID)})
         if(rt){
             var dt = ptx.data.tra.station_ary.find(c=> !!(c.v3id==StationID))
             for(var k in dt){
                 if(k=='id'){
-                    rt['ttid'] = 'tra_' + dt[k];
+                    rt['id'] = dt[k];
                 }else if(!rt[k]){
                     rt[k] = dt[k];
                 }else{
@@ -439,6 +441,7 @@ let catchV3Data = {
         return rt;
     },
     getDataXTrain: function(id){
+        return catchData.getDataXTrain(id);
         var rt = ptx.datax['trav3'].train.find((c)=>{return !!(c.TrainTypeID==id)})
         if(rt){
             var dt = ptx.data.tra["CarClass"].find(c=> !!(c.id==id))
