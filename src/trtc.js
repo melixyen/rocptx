@@ -117,6 +117,10 @@ catchData.calcBRLineTime = function(){
     return timeBack;
 }
 
+let cachePTX = {
+    station: {}
+}
+
 var fnMRT = {
     checkRouteIdOnUse: function(RouteID, LineID){
         var lineData = this.getLineData(LineID);
@@ -151,6 +155,17 @@ var fnMRT = {
             }
         });
         return rt;
+    },
+    getStationData: function(id){
+        var ary = pData.trtc.station_ary;
+        var stData = false;
+        for(var i=0; i<ary.length; i++){
+            if(ary[i].id==id){
+                stData = ary[i];
+                break;
+            }
+        }
+        return stData;
     },
     getStationIDAry: function(id){
         var ary = pData.trtc.station_ary;
@@ -269,6 +284,19 @@ var fnMRT = {
             }
         }
         return stData;
+    },
+    //使用 PTX StationID 存取
+    getByStationID: function(StationID){
+        if(cachePTX.station[StationID]) return cachePTX.station[StationID];
+        var ttid = this.getOriginalStationID(StationID);
+        var data = this.getStationData(ttid);
+        if(data){
+            data = JSON.parse(JSON.stringify(data));
+            data.targetStationID = StationID;
+            data.LineID = this.getStationIDInWhatLine(StationID);
+            cachePTX.station[StationID] = data;
+        }
+        return data;
     }
 }
 

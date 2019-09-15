@@ -1049,265 +1049,437 @@
       station_ary: [//Bannan Line
       {
         id: "trtc_031",
-        StationID: ["BL23", "BR24"]
+        StationID: ["BL23", "BR24"],
+        name: "南港展覽館",
+        estring: "nangangzhanlanguantaipeinangangexhibitioncenter"
       }, {
         id: "trtc_097",
-        StationID: ["BL22"]
+        StationID: ["BL22"],
+        name: "南港",
+        estring: "nangang"
       }, {
         id: "trtc_096",
-        StationID: ["BL21"]
+        StationID: ["BL21"],
+        name: "昆陽",
+        estring: "kunyang"
       }, {
         id: "trtc_095",
-        StationID: ["BL20"]
+        StationID: ["BL20"],
+        name: "後山埤",
+        estring: "houshanpi"
       }, {
         id: "trtc_094",
-        StationID: ["BL19"]
+        StationID: ["BL19"],
+        name: "永春",
+        estring: "yongchun"
       }, {
         id: "trtc_093",
-        StationID: ["BL18"]
+        StationID: ["BL18"],
+        name: "市政府",
+        estring: "taipeicityhallshizhengfu"
       }, {
         id: "trtc_092",
-        StationID: ["BL17"]
+        StationID: ["BL17"],
+        name: "國父紀念館",
+        estring: "sunyatsenmemorialhallguofujinianguan"
       }, {
         id: "trtc_091",
-        StationID: ["BL16"]
+        StationID: ["BL16"],
+        name: "忠孝敦化",
+        estring: "zhongxiaodunhua"
       }, {
         id: "trtc_010",
-        StationID: ["BL15", "BR10"]
+        StationID: ["BL15", "BR10"],
+        name: "忠孝復興",
+        estring: "zhongxiaofuxing"
       }, {
         id: "trtc_089",
-        StationID: ["BL14", "O07"]
+        StationID: ["BL14", "O07"],
+        name: "忠孝新生",
+        estring: "zhongxiaoxinsheng"
       }, {
         id: "trtc_088",
-        StationID: ["BL13"]
+        StationID: ["BL13"],
+        name: "善導寺",
+        estring: "shandaosishandaotemple"
       }, {
         id: "trtc_086",
-        StationID: ["BL11", "G12"]
+        StationID: ["BL11", "G12"],
+        name: "西門",
+        estring: "ximen"
       }, {
         id: "trtc_085",
-        StationID: ["BL10"]
+        StationID: ["BL10"],
+        name: "龍山寺",
+        estring: "longshansilongshantemple"
       }, {
         id: "trtc_084",
-        StationID: ["BL09"]
+        StationID: ["BL09"],
+        name: "江子翠",
+        estring: "jiangzicui"
       }, {
         id: "trtc_083",
-        StationID: ["BL08"]
+        StationID: ["BL08"],
+        name: "新埔",
+        estring: "xinpu"
       }, {
         id: "trtc_082",
-        StationID: ["BL07"]
+        StationID: ["BL07"],
+        name: "板橋",
+        estring: "banqiao"
       }, {
         id: "trtc_081",
-        StationID: ["BL06"]
+        StationID: ["BL06"],
+        name: "府中",
+        estring: "fuzhong"
       }, {
         id: "trtc_080",
-        StationID: ["BL05"]
+        StationID: ["BL05"],
+        name: "亞東醫院",
+        estring: "yadongyiyuanfareasternhospital"
       }, {
         id: "trtc_079",
-        StationID: ["BL04"]
+        StationID: ["BL04"],
+        name: "海山",
+        estring: "haishan"
       }, {
         id: "trtc_078",
-        StationID: ["BL03"]
+        StationID: ["BL03"],
+        name: "土城",
+        estring: "tucheng"
       }, {
         id: "trtc_077",
-        StationID: ["BL02"]
+        StationID: ["BL02"],
+        name: "永寧",
+        estring: "yongning"
       }, {
         id: "trtc_076",
-        StationID: ["BL01"]
+        StationID: ["BL01"],
+        name: "頂埔",
+        estring: "dingpu"
       }, //TamsuiXinyi Line
       {
         id: "trtc_071",
-        StationID: ["R28"]
+        StationID: ["R28"],
+        name: "淡水",
+        estring: "danshuitamsui"
       }, {
         id: "trtc_070",
-        StationID: ["R27"]
+        StationID: ["R27"],
+        name: "紅樹林",
+        estring: "hongshulin"
       }, {
         id: "trtc_069",
-        StationID: ["R26"]
+        StationID: ["R26"],
+        name: "竹圍",
+        estring: "zhuwei"
       }, {
         id: "trtc_068",
-        StationID: ["R25"]
+        StationID: ["R25"],
+        name: "關渡",
+        estring: "guandu"
       }, {
         id: "trtc_067",
-        StationID: ["R24"]
+        StationID: ["R24"],
+        name: "忠義",
+        estring: "zhongyi"
       }, {
         id: "trtc_066",
-        StationID: ["R23"]
+        StationID: ["R23"],
+        name: "復興崗",
+        estring: "fuxinggang"
       }, {
         id: "trtc_064",
-        StationID: ["R22"]
+        StationID: ["R22"],
+        name: "北投",
+        estring: "beitou"
       }, {
         id: "trtc_063",
-        StationID: ["R21"]
+        StationID: ["R21"],
+        name: "奇岩",
+        estring: "qiyan"
       }, {
         id: "trtc_062",
-        StationID: ["R20"]
+        StationID: ["R20"],
+        name: "唭哩岸",
+        estring: "qilian"
       }, {
         id: "trtc_061",
-        StationID: ["R19"]
+        StationID: ["R19"],
+        name: "石牌",
+        estring: "shipai"
       }, {
         id: "trtc_060",
-        StationID: ["R18"]
+        StationID: ["R18"],
+        name: "明德",
+        estring: "mingde"
       }, {
         id: "trtc_059",
-        StationID: ["R17"]
+        StationID: ["R17"],
+        name: "芝山",
+        estring: "zhishan"
       }, {
         id: "trtc_058",
-        StationID: ["R16"]
+        StationID: ["R16"],
+        name: "士林",
+        estring: "shilin"
       }, {
         id: "trtc_057",
-        StationID: ["R15"]
+        StationID: ["R15"],
+        name: "劍潭",
+        estring: "jiantan"
       }, {
         id: "trtc_056",
-        StationID: ["R14"]
+        StationID: ["R14"],
+        name: "圓山",
+        estring: "yuanshan"
       }, {
         id: "trtc_055",
-        StationID: ["R13", "O11"]
+        StationID: ["R13", "O11"],
+        name: "民權西路",
+        estring: "mingquanwrdmingquanxilu"
       }, {
         id: "trtc_054",
-        StationID: ["R12"]
+        StationID: ["R12"],
+        name: "雙連",
+        estring: "shuanglian"
       }, {
         id: "trtc_053",
-        StationID: ["R11", "G14"]
+        StationID: ["R11", "G14"],
+        name: "中山",
+        estring: "zhongshan"
       }, {
         id: "trtc_051",
-        StationID: ["R10", "BL12"]
+        StationID: ["R10", "BL12"],
+        name: "台北車站",
+        estring: "taipeichezhantaipeimainstation"
       }, {
         id: "trtc_050",
-        StationID: ["R09"]
+        StationID: ["R09"],
+        name: "台大醫院",
+        estring: "taidayiyuanntuhospital"
       }, {
         id: "trtc_134",
-        StationID: ["R07", "O06"]
+        StationID: ["R07", "O06"],
+        name: "東門",
+        estring: "dongmen"
       }, {
         id: "trtc_103",
-        StationID: ["R06"]
+        StationID: ["R06"],
+        name: "大安森林公園",
+        estring: "daanparkdaansenlingongyuan"
       }, {
         id: "trtc_011",
-        StationID: ["R05", "BR09"]
+        StationID: ["R05", "BR09"],
+        name: "大安",
+        estring: "daan"
       }, {
         id: "trtc_101",
-        StationID: ["R04"]
+        StationID: ["R04"],
+        name: "信義安和",
+        estring: "xinyianhe"
       }, {
         id: "trtc_100",
-        StationID: ["R03"]
+        StationID: ["R03"],
+        name: "台北101/世貿",
+        estring: "taipei101worldtradecentertaipei101shimao"
       }, {
         id: "trtc_099",
-        StationID: ["R02"]
+        StationID: ["R02"],
+        name: "象山",
+        estring: "xiangshan"
       }, //ZhongHeXinLu Line
       {
         id: "trtc_048",
-        StationID: ["O01"]
+        StationID: ["O01"],
+        name: "南勢角",
+        estring: "nanshijiao"
       }, {
         id: "trtc_047",
-        StationID: ["O02"]
+        StationID: ["O02"],
+        name: "景安",
+        estring: "jingan"
       }, {
         id: "trtc_046",
-        StationID: ["O03"]
+        StationID: ["O03"],
+        name: "永安市場",
+        estring: "yonganshichangyonganmarket"
       }, {
         id: "trtc_045",
-        StationID: ["O04"]
+        StationID: ["O04"],
+        name: "頂溪",
+        estring: "dingxi"
       }, {
         id: "trtc_131",
-        StationID: ["O09"]
+        StationID: ["O09"],
+        name: "行天宮",
+        estring: "xingtiantemplexingtiangong"
       }, {
         id: "trtc_130",
-        StationID: ["O10"]
+        StationID: ["O10"],
+        name: "中山國小",
+        estring: "zhongshanguoxiaozhongshanelementaryschool"
       }, {
         id: "trtc_128",
-        StationID: ["O12"]
+        StationID: ["O12"],
+        name: "大橋頭",
+        estring: "daqiaotou"
       }, {
         id: "trtc_127",
-        StationID: ["O13"]
+        StationID: ["O13"],
+        name: "台北橋",
+        estring: "taibeiqiaotaipeibridge"
       }, {
         id: "trtc_126",
-        StationID: ["O14"]
+        StationID: ["O14"],
+        name: "菜寮",
+        estring: "cailiao"
       }, {
         id: "trtc_125",
-        StationID: ["O15"]
+        StationID: ["O15"],
+        name: "三重",
+        estring: "sanchong"
       }, {
         id: "trtc_124",
-        StationID: ["O16"]
+        StationID: ["O16"],
+        name: "先嗇宮",
+        estring: "xiansetemplexiansegong"
       }, {
         id: "trtc_123",
-        StationID: ["O17"]
+        StationID: ["O17"],
+        name: "頭前庄",
+        estring: "touqianzhuang"
       }, {
         id: "trtc_122",
-        StationID: ["O18"]
+        StationID: ["O18"],
+        name: "新莊",
+        estring: "xinzhuang"
       }, {
         id: "trtc_121",
-        StationID: ["O19"]
+        StationID: ["O19"],
+        name: "輔大",
+        estring: "fudafujenuniversity"
       }, {
         id: "trtc_180",
-        StationID: ["O20"]
+        StationID: ["O20"],
+        name: "丹鳳",
+        estring: "danfeng"
       }, {
         id: "trtc_179",
-        StationID: ["O21"]
+        StationID: ["O21"],
+        name: "迴龍",
+        estring: "huilong"
       }, {
         id: "trtc_178",
-        StationID: ["O50"]
+        StationID: ["O50"],
+        name: "三重國小",
+        estring: "sanchongguoxiaosanchongelementaryschool"
       }, {
         id: "trtc_177",
-        StationID: ["O51"]
+        StationID: ["O51"],
+        name: "三和國中",
+        estring: "sanheguozhongsanhejuniorhighschool"
       }, {
         id: "trtc_176",
-        StationID: ["O52"]
+        StationID: ["O52"],
+        name: "徐匯中學",
+        estring: "xuhuizhongxuestignatiushighschool"
       }, {
         id: "trtc_175",
-        StationID: ["O53"]
+        StationID: ["O53"],
+        name: "三民高中",
+        estring: "sanmingaozhongsanminseniorhighschool"
       }, {
         id: "trtc_174",
-        StationID: ["O54"]
+        StationID: ["O54"],
+        name: "蘆洲",
+        estring: "luzhou"
       }, //SongShanXinDian Line
       {
         id: "trtc_111",
-        StationID: ["G19"]
+        StationID: ["G19"],
+        name: "松山",
+        estring: "songshan"
       }, {
         id: "trtc_110",
-        StationID: ["G18"]
+        StationID: ["G18"],
+        name: "南京三民",
+        estring: "nanjingsanmin"
       }, {
         id: "trtc_109",
-        StationID: ["G17"]
+        StationID: ["G17"],
+        name: "台北小巨蛋",
+        estring: "taipeiarenataibeixiaojudan"
       }, {
         id: "trtc_009",
-        StationID: ["G16", "BR11"]
+        StationID: ["G16", "BR11"],
+        name: "南京復興",
+        estring: "nanjingfuxing"
       }, {
         id: "trtc_132",
-        StationID: ["G15", "O08"]
+        StationID: ["G15", "O08"],
+        name: "松江南京",
+        estring: "songjiangnanjing"
       }, {
         id: "trtc_105",
-        StationID: ["G13"]
+        StationID: ["G13"],
+        name: "北門",
+        estring: "beimen"
       }, {
         id: "trtc_043",
-        StationID: ["G11"]
+        StationID: ["G11"],
+        name: "小南門",
+        estring: "xiaonanmen"
       }, {
         id: "trtc_042",
-        StationID: ["G10", "R08"]
+        StationID: ["G10", "R08"],
+        name: "中正紀念堂",
+        estring: "zhongzhengjiniantangchiangkaishekmemorialhall"
       }, {
         id: "trtc_041",
-        StationID: ["G09", "O05"]
+        StationID: ["G09", "O05"],
+        name: "古亭",
+        estring: "guting"
       }, {
         id: "trtc_040",
-        StationID: ["G08"]
+        StationID: ["G08"],
+        name: "台電大樓",
+        estring: "taidiandaloutaipowerbuilding"
       }, {
         id: "trtc_039",
-        StationID: ["G07"]
+        StationID: ["G07"],
+        name: "公館",
+        estring: "gongguan"
       }, {
         id: "trtc_038",
-        StationID: ["G06"]
+        StationID: ["G06"],
+        name: "萬隆",
+        estring: "wanlong"
       }, {
         id: "trtc_037",
-        StationID: ["G05"]
+        StationID: ["G05"],
+        name: "景美",
+        estring: "jingmei"
       }, {
         id: "trtc_036",
-        StationID: ["G04"]
+        StationID: ["G04"],
+        name: "大坪林",
+        estring: "dapinglin"
       }, {
         id: "trtc_035",
-        StationID: ["G03"]
+        StationID: ["G03"],
+        name: "七張",
+        estring: "qizhang"
       }, {
         id: "trtc_034",
-        StationID: ["G02"]
+        StationID: ["G02"],
+        name: "新店區公所",
+        estring: "xindiandistrictofficexindianqugongsuo"
       }, {
         id: "trtc_033",
-        StationID: ["G01"]
+        StationID: ["G01"],
+        name: "新店",
+        estring: "xindian"
       }],
       line: [{
         id: 'trtc_1',
@@ -5091,6 +5263,9 @@
     return timeBack;
   };
 
+  var cachePTX = {
+    station: {}
+  };
   var fnMRT = {
     checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
       var lineData = this.getLineData(LineID);
@@ -5127,6 +5302,19 @@
         }
       });
       return rt;
+    },
+    getStationData: function getStationData(id) {
+      var ary = pData.trtc.station_ary;
+      var stData = false;
+
+      for (var i = 0; i < ary.length; i++) {
+        if (ary[i].id == id) {
+          stData = ary[i];
+          break;
+        }
+      }
+
+      return stData;
     },
     getStationIDAry: function getStationIDAry(id) {
       var ary = pData.trtc.station_ary;
@@ -5256,6 +5444,21 @@
       }
 
       return stData;
+    },
+    //使用 PTX StationID 存取
+    getByStationID: function getByStationID(StationID) {
+      if (cachePTX.station[StationID]) return cachePTX.station[StationID];
+      var ttid = this.getOriginalStationID(StationID);
+      var data = this.getStationData(ttid);
+
+      if (data) {
+        data = JSON.parse(JSON.stringify(data));
+        data.targetStationID = StationID;
+        data.LineID = this.getStationIDInWhatLine(StationID);
+        cachePTX.station[StationID] = data;
+      }
+
+      return data;
     }
   };
   mrtPTXFn.methodList.forEach(function (k) {
