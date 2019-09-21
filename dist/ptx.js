@@ -1528,7 +1528,22 @@
             from: 'R22',
             to: 'R05'
           }]
-        }]
+        }],
+        name: "淡水信義線(2)",
+        color: "#cb2c30",
+        dir: "1",
+        outArea: [{
+          dir: "1",
+          station: "trtc_071~trtc_066",
+          transAt: "trtc_064",
+          waitingNextMinute: 4
+        }, {
+          dir: "1",
+          station: "trtc_101~trtc_099",
+          transAt: "trtc_011",
+          waitingNextMinute: 4
+        }],
+        station: ["trtc_071", "trtc_070", "trtc_069", "trtc_068", "trtc_067", "trtc_066", "trtc_064", "trtc_063", "trtc_062", "trtc_061", "trtc_060", "trtc_059", "trtc_058", "trtc_057", "trtc_056", "trtc_055", "trtc_054", "trtc_053", "trtc_051", "trtc_050", "trtc_042", "trtc_134", "trtc_103", "trtc_011", "trtc_101", "trtc_100", "trtc_099"]
       }, {
         id: 'trtc_3',
         LineID: 'G',
@@ -1556,7 +1571,17 @@
             from: 'G19',
             to: 'G08'
           }]
-        }]
+        }],
+        name: "松山新店線(3)",
+        color: "#007749",
+        dir: "1",
+        outArea: [{
+          dir: "1",
+          station: "trtc_039~trtc_033",
+          transAt: "trtc_040",
+          waitingNextMinute: 4
+        }],
+        station: ["trtc_111", "trtc_110", "trtc_109", "trtc_009", "trtc_132", "trtc_053", "trtc_105", "trtc_086", "trtc_043", "trtc_042", "trtc_041", "trtc_040", "trtc_039", "trtc_038", "trtc_037", "trtc_036", "trtc_035", "trtc_034", "trtc_033"]
       }, {
         id: 'trtc_4',
         LineID: 'O',
@@ -1584,7 +1609,25 @@
             from: 'O54',
             to: 'O01'
           }]
-        }]
+        }],
+        name: "中和新蘆線(4)",
+        color: "#ffa300",
+        dir: "0",
+        splitStation: ['trtc_128'],
+        outArea: [{
+          dir: "0",
+          station: "trtc_127~trtc_179",
+          transAt: "trtc_128",
+          isSubLine: true,
+          waitingNextMinute: 4
+        }, {
+          dir: "0",
+          station: "trtc_178~trtc_174",
+          transAt: "trtc_128",
+          isSubLine: true,
+          waitingNextMinute: 4
+        }],
+        station: ["trtc_048", "trtc_047", "trtc_046", "trtc_045", "trtc_041", "trtc_134", "trtc_089", "trtc_132", "trtc_131", "trtc_130", "trtc_055", "trtc_128", "trtc_127", "trtc_126", "trtc_125", "trtc_124", "trtc_123", "trtc_122", "trtc_121", "trtc_180", "trtc_179", "trtc_178", "trtc_177", "trtc_176", "trtc_175", "trtc_174"]
       }, {
         id: 'trtc_5',
         LineID: 'BL',
@@ -1612,7 +1655,17 @@
             from: 'BL23',
             to: 'BL05'
           }]
-        }]
+        }],
+        name: "板南線(5)",
+        color: "#005eb8",
+        dir: "1",
+        outArea: [{
+          dir: "1",
+          station: "trtc_079~trtc_076",
+          transAt: "trtc_080",
+          waitingNextMinute: 4
+        }],
+        station: ["trtc_031", "trtc_097", "trtc_096", "trtc_095", "trtc_094", "trtc_093", "trtc_092", "trtc_091", "trtc_010", "trtc_089", "trtc_088", "trtc_051", "trtc_086", "trtc_085", "trtc_084", "trtc_083", "trtc_082", "trtc_081", "trtc_080", "trtc_079", "trtc_078", "trtc_077", "trtc_076"]
       }]
     },
     tymetro: {
@@ -3957,7 +4010,1753 @@
         stopAll: true,
         lineOf: ['tra_jygx', 'tra_shalun']
       }]
-    }
+    },
+    //================ 以下為轉乘用途資料，非 PTX 資料 ===============================
+    transStation: [{
+      id: 'taidongtra1',
+      name: "台東",
+      changeLine: ["tra_huadong", "tra_huadong"],
+      changeStation: ['tra_1632', 'tra_1632'],
+      walkMinute: 4
+    }, {
+      id: 'yulitra1',
+      name: "玉里",
+      changeLine: ["tra_huadong", "tra_huadong"],
+      changeStation: ['tra_1619', 'tra_1619'],
+      walkMinute: 4
+    }, {
+      id: 'hualiantra1',
+      name: "花蓮",
+      changeLine: ["tra_beihui", "tra_huadong"],
+      changeStation: ['tra_1715', 'tra_1715'],
+      walkMinute: 4
+    }, {
+      id: 'xingcheng',
+      name: "新城",
+      changeLine: ["tra_beihui", "tra_beihui"],
+      changeStation: ['tra_1712', 'tra_1712'],
+      walkMinute: 2
+    }, {
+      id: 'nanaotra1',
+      name: "南澳",
+      changeLine: ["tra_beihui", "tra_beihui"],
+      changeStation: ['tra_1705', 'tra_1705'],
+      walkMinute: 2
+    }, {
+      id: 'suaoxintra1',
+      name: "蘇澳新",
+      changeLine: ["tra_yilan", "tra_beihui"],
+      changeStation: ['tra_1826', 'tra_1826'],
+      walkMinute: 4
+    }, {
+      id: 'luodongtra1',
+      name: "羅東",
+      changeLine: ["tra_yilan", "tra_yilan"],
+      changeStation: ['tra_1823', 'tra_1823'],
+      walkMinute: 4
+    }, {
+      id: 'yilantra1',
+      name: "宜蘭",
+      changeLine: ["tra_yilan", "tra_yilan"],
+      changeStation: ['tra_1820', 'tra_1820'],
+      walkMinute: 4
+    }, {
+      id: 'toucheng1',
+      name: "頭城",
+      changeLine: ["tra_yilan", "tra_yilan"],
+      changeStation: ['tra_1816', 'tra_1816'],
+      walkMinute: 4
+    }, {
+      id: 'ruifangtra1',
+      name: "瑞芳",
+      changeLine: ["tra_yilan", "tra_pingxi"],
+      changeStation: ['tra_1804', 'tra_1804'],
+      walkMinute: 4
+    }, {
+      id: 'badutra1',
+      name: "八堵",
+      changeLine: ["tra_xibu", "tra_yilan"],
+      changeStation: ['tra_1002', 'tra_1002'],
+      walkMinute: 3
+    }, {
+      id: 'qidutra1',
+      name: "七堵",
+      changeLine: ["tra_xibu", "tra_xibu"],
+      changeStation: ['tra_1003', 'tra_1003'],
+      walkMinute: 3
+    }, {
+      id: 'songshantra1',
+      name: "松山",
+      changeLine: ["tra_xibu", "tra_xibu"],
+      changeStation: ['tra_1007', 'tra_1007'],
+      walkMinute: 3
+    }, {
+      id: 'taipeitra1',
+      name: "台北",
+      changeLine: ["tra_xibu", "tra_xibu"],
+      changeStation: ['tra_1008', 'tra_1008'],
+      walkMinute: 3
+    }, {
+      id: 'banqiaotra1',
+      name: "板橋",
+      changeLine: ["tra_xibu", "tra_xibu"],
+      changeStation: ['tra_1011', 'tra_1011'],
+      walkMinute: 3
+    }, {
+      id: 'taoyuantra1',
+      name: "桃園",
+      changeLine: ["tra_xibu", "tra_xibu"],
+      changeStation: ['tra_1015', 'tra_1015'],
+      walkMinute: 3
+    }, {
+      id: 'zhonglitra1',
+      name: "中壢",
+      changeLine: ["tra_xibu", "tra_xibu"],
+      changeStation: ['tra_1017', 'tra_1017'],
+      walkMinute: 3
+    }, {
+      id: 'northhsinchutra1',
+      name: "北新竹",
+      changeLine: ["tra_xibu", "tra_liujia"],
+      changeStation: ['tra_1024', 'tra_1024'],
+      walkMinute: 4
+    }, {
+      id: 'hsinchutra1',
+      name: "新竹",
+      changeLine: ["tra_xibu", "tra_liujia"],
+      changeStation: ['tra_1025', 'tra_1025'],
+      walkMinute: 4
+    }, {
+      id: 'zhunantra1',
+      name: "竹南",
+      changeLine: ["tra_xibu", "tra_shan"],
+      changeStation: ['tra_1028', 'tra_1028'],
+      walkMinute: 3
+    }, {
+      id: 'zhunantra2',
+      name: "竹南",
+      changeLine: ["tra_xibu", "tra_hai"],
+      changeStation: ['tra_1028', 'tra_1028'],
+      walkMinute: 3
+    }, {
+      id: 'zhunantra3',
+      name: "竹南",
+      changeLine: ["tra_shan", "tra_hai"],
+      changeStation: ['tra_1028', 'tra_1028'],
+      walkMinute: 3
+    }, {
+      id: 'miaolitra1',
+      name: "苗栗",
+      changeLine: ["tra_shan", "tra_shan"],
+      changeStation: ['tra_1305', 'tra_1305'],
+      walkMinute: 4
+    }, {
+      id: 'fengyuantra1',
+      name: "豐原",
+      changeLine: ["tra_shan", "tra_shan"],
+      changeStation: ['tra_1317', 'tra_1317'],
+      walkMinute: 4
+    }, {
+      id: 'taizhongtra1',
+      name: "台中",
+      changeLine: ["tra_shan", "tra_shan"],
+      changeStation: ['tra_1319', 'tra_1319'],
+      walkMinute: 4
+    }, {
+      id: 'zhanghuatra1',
+      name: "彰化",
+      changeLine: ["tra_shan", "tra_zhjy"],
+      changeStation: ['tra_1120', 'tra_1120'],
+      walkMinute: 4
+    }, {
+      id: 'zhanghuatra2',
+      name: "彰化",
+      changeLine: ["tra_hai", "tra_zhjy"],
+      changeStation: ['tra_1120', 'tra_1120'],
+      walkMinute: 4
+    }, {
+      id: 'zhanghuatra3',
+      name: "彰化",
+      changeLine: ["tra_shan", "tra_hai"],
+      changeStation: ['tra_1120', 'tra_1120'],
+      walkMinute: 4
+    }, {
+      id: 'yuanlintra1',
+      name: "員林",
+      changeLine: ["tra_zhjy", "tra_zhjy"],
+      changeStation: ['tra_1203', 'tra_1203'],
+      walkMinute: 4
+    }, {
+      id: 'douliutra1',
+      name: "斗六",
+      changeLine: ["tra_zhjy", "tra_zhjy"],
+      changeStation: ['tra_1210', 'tra_1210'],
+      walkMinute: 4
+    }, {
+      id: 'jiayitra1',
+      name: "嘉義",
+      changeLine: ["tra_zhjy", "tra_jygx"],
+      changeStation: ['tra_1215', 'tra_1215'],
+      walkMinute: 4
+    }, {
+      id: 'xinyingtra1',
+      name: "新營",
+      changeLine: ["tra_jygx", "tra_jygx"],
+      changeStation: ['tra_1220', 'tra_1220'],
+      walkMinute: 4
+    }, {
+      id: 'tainantra1',
+      name: "台南",
+      changeLine: ["tra_jygx", "tra_shalun"],
+      changeStation: ['tra_1228', 'tra_1228'],
+      walkMinute: 4
+    }, {
+      id: 'zhongzhoutra1',
+      name: "中洲",
+      changeLine: ["tra_jygx", "tra_shalun"],
+      changeStation: ['tra_1230', 'tra_1230'],
+      walkMinute: 4
+    }, {
+      id: 'gangshantra1',
+      name: "岡山",
+      changeLine: ["tra_jygx", "tra_jygx"],
+      changeStation: ['tra_1233', 'tra_1233'],
+      walkMinute: 4
+    }, {
+      id: 'gaoxungtra1',
+      name: "高雄",
+      changeLine: ["tra_jygx", "tra_pingdong"],
+      changeStation: ['tra_1238', 'tra_1238'],
+      walkMinute: 4
+    }, {
+      id: 'fongshantra1',
+      name: "鳳山",
+      changeLine: ["tra_pingdong", "tra_pingdong"],
+      changeStation: ['tra_1402', 'tra_1402'],
+      walkMinute: 1
+    }, {
+      id: 'pingdongtra1',
+      name: "屏東",
+      changeLine: ["tra_pingdong", "tra_pingdong"],
+      changeStation: ['tra_1406', 'tra_1406'],
+      walkMinute: 1
+    }, {
+      id: 'chaozhoutra1',
+      name: "潮州",
+      changeLine: ["tra_pingdong", "tra_pingdong"],
+      changeStation: ['tra_1411', 'tra_1411'],
+      walkMinute: 1
+    }, {
+      id: 'holongtra1',
+      name: "後龍",
+      changeLine: ["tra_hai", "tra_hai"],
+      changeStation: ['tra_1105', 'tra_1105'],
+      walkMinute: 1
+    }, {
+      id: 'tongxiaotra1',
+      name: "通霄",
+      changeLine: ["tra_hai", "tra_hai"],
+      changeStation: ['tra_1109', 'tra_1109'],
+      walkMinute: 1
+    }, {
+      id: 'yuanlitra1',
+      name: "苑裡",
+      changeLine: ["tra_hai", "tra_hai"],
+      changeStation: ['tra_1110', 'tra_1110'],
+      walkMinute: 1
+    }, {
+      id: 'dajiatra1',
+      name: "大甲",
+      changeLine: ["tra_hai", "tra_hai"],
+      changeStation: ['tra_1112', 'tra_1112'],
+      walkMinute: 1
+    }, {
+      id: 'qingshuitra1',
+      name: "清水",
+      changeLine: ["tra_hai", "tra_hai"],
+      changeStation: ['tra_1114', 'tra_1114'],
+      walkMinute: 1
+    }, {
+      id: 'shalutra1',
+      name: "沙鹿",
+      changeLine: ["tra_hai", "tra_hai"],
+      changeStation: ['tra_1115', 'tra_1115'],
+      walkMinute: 1
+    }, {
+      id: 'zhuzhongtra1',
+      name: "竹中",
+      changeLine: ["tra_liujia", "tra_liujia"],
+      changeStation: ['tra_2203', 'tra_2203'],
+      walkMinute: 3
+    }, {
+      id: 'nangang1',
+      name: "南港",
+      changeLine: ["tra_xibu", "trtc_5"],
+      changeStation: ['tra_1006', 'trtc_097'],
+      video: {
+        "tra_1006": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/AIQETgZdBKM'
+        },
+        "trtc_097": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/HNBdfyBxMa8'
+        }
+      },
+      walkMinute: 5
+    }, {
+      id: 'songshan1',
+      name: "松山",
+      changeLine: ["tra_xibu", "trtc_3"],
+      changeStation: ['tra_1007', 'trtc_111'],
+      video: {
+        "tra_1007": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/CFX9EdLwT9A'
+        },
+        "trtc_111": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/64ADnwMTLyQ'
+        }
+      },
+      walkMinute: 6
+    }, {
+      id: 'ximen1',
+      name: "西門",
+      changeLine: ["trtc_5", "trtc_3"],
+      changeStation: ['trtc_086', 'trtc_086'],
+      walkMinute: 1
+    }, {
+      id: 'zhongshan1',
+      name: "中山",
+      changeLine: ["trtc_3", "trtc_2"],
+      changeStation: ['trtc_053', 'trtc_053'],
+      walkMinute: 2
+    }, {
+      id: 'taipei1',
+      name: "台北",
+      changeLine: ["tra_xibu", "trtc_5"],
+      changeStation: ['tra_1008', 'trtc_051'],
+      walkMinute: 7
+    }, {
+      id: 'taipei2',
+      name: "台北",
+      changeLine: ["tra_xibu", "trtc_2"],
+      changeStation: ['tra_1008', 'trtc_051'],
+      walkMinute: 4
+    }, {
+      id: 'taipei3',
+      name: "台北",
+      changeLine: ["trtc_5", "trtc_2"],
+      changeStation: ['trtc_051', 'trtc_051'],
+      walkMinute: 3
+    }, {
+      id: 'taipei4',
+      name: "台北",
+      //機捷台鐵
+      changeLine: ["tra_xibu", "tymetro_1"],
+      changeStation: ['tra_1008', 'tymetro_a01'],
+      video: {
+        "tra_1008": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/dxfIJJ0b_3o'
+        },
+        "tymetro_a01": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/ulOu7N85QRo'
+        }
+      },
+      walkMinute: 7
+    }, {
+      id: 'taipei5',
+      name: "台北",
+      //機捷淡水線
+      changeLine: ["trtc_2", "tymetro_1"],
+      changeStation: ['trtc_051', 'tymetro_a01'],
+      video: {
+        "trtc_2": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/gq7FJbhUN7U'
+        },
+        "tymetro_a01": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/A6PPO4zqxJI'
+        }
+      },
+      walkMinute: 12
+    }, {
+      id: 'taipei6',
+      name: "台北",
+      //機捷板南線
+      changeLine: ["trtc_5", "tymetro_1"],
+      changeStation: ['trtc_051', 'tymetro_a01'],
+      video: {
+        "trtc_5": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/n7FgZ1-sDyk'
+        },
+        "tymetro_a01": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/uaLbpXkDiX4'
+        }
+      },
+      walkMinute: 11
+    }, {
+      id: 'taipei7',
+      name: "北門",
+      //機捷松山線
+      changeLine: ["trtc_3", "tymetro_1"],
+      changeStation: ['trtc_105', 'tymetro_a01'],
+      video: {
+        "trtc_105": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/X_sjsSHqsoU'
+        },
+        "tymetro_a01": {
+          width: 420,
+          height: 315,
+          src: 'https://www.youtube.com/embed/g5nm5Sbn6bw'
+        }
+      },
+      walkMinute: 11
+    }, {
+      id: 'sanchong1',
+      name: "三重",
+      //機捷新莊線
+      changeLine: ["trtc_4", "tymetro_1"],
+      changeStation: ['trtc_125', 'tymetro_a02'],
+      walkMinute: 7
+    }, {
+      id: 'cksmh1',
+      name: "中正紀念堂",
+      changeLine: ["trtc_3", "trtc_2"],
+      changeStation: ['trtc_042', 'trtc_042'],
+      walkMinute: 1
+    }, {
+      id: 'banqiao1',
+      name: "板橋",
+      changeLine: ["tra_xibu", "trtc_5"],
+      changeStation: ['tra_1011', 'trtc_082'],
+      walkMinute: 7
+    }, {
+      id: 'mqxl1',
+      name: "民權西路",
+      changeLine: ["trtc_2", "trtc_4"],
+      changeStation: ['trtc_055', 'trtc_055'],
+      walkMinute: 3
+    }, {
+      id: 'dongmen1',
+      name: "東門",
+      changeLine: ["trtc_2", "trtc_4"],
+      changeStation: ['trtc_134', 'trtc_134'],
+      walkMinute: 1
+    }, {
+      id: 'guting1',
+      name: "古亭",
+      changeLine: ["trtc_3", "trtc_4"],
+      changeStation: ['trtc_041', 'trtc_041'],
+      walkMinute: 1
+    }, {
+      id: 'zhongxiaoxs1',
+      name: "忠孝新生",
+      changeLine: ["trtc_5", "trtc_4"],
+      changeStation: ['trtc_089', 'trtc_089'],
+      walkMinute: 2
+    }, {
+      id: 'sjnanjing1',
+      name: "松江南京",
+      changeLine: ["trtc_3", "trtc_4"],
+      changeStation: ['trtc_132', 'trtc_132'],
+      walkMinute: 2
+    }, {
+      id: 'daqiaotou1',
+      name: "大橋頭",
+      changeLine: ["trtc_4", "trtc_4"],
+      changeStation: ['trtc_128', 'trtc_128'],
+      walkMinute: 1
+    }, {
+      id: 'changgengyiyuan1',
+      name: "長庚醫院",
+      changeLine: ["tymetro_1", "tymetro_1"],
+      changeStation: ['tymetro_a08', 'tymetro_a08'],
+      walkMinute: 0
+    }],
+    routeMap: [{
+      id: 'traInnerTrans_tra_xibu,tra_jygx',
+      fromToLine: ["tra_xibu", "tra_jygx"],
+      sect: ['keelung', 'taipei', 'taoyuan', 'hsinchu', 'chiayi', 'tainan', 'kaohsiung'],
+      route: [{
+        line: ["tra_xibu", "tra_jygx"],
+        transStation: ["qidutra1"]
+      }, {
+        line: ["tra_xibu", "tra_jygx"],
+        transStation: ["songshantra1"]
+      }, {
+        line: ["tra_xibu", "tra_jygx"],
+        transStation: ["taipeitra1"]
+      }, {
+        line: ["tra_xibu", "tra_jygx"],
+        transStation: ["banqiaotra1"]
+      }, {
+        line: ["tra_xibu", "tra_jygx"],
+        transStation: ["taoyuantra1"]
+      }, {
+        line: ["tra_xibu", "tra_jygx"],
+        transStation: ["zhonglitra1"]
+      }, {
+        line: ["tra_xibu", "tra_jygx"],
+        transStation: ["hsinchutra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["jiayitra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["xinyingtra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["tainantra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["gangshantra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["gaoxungtra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_xibu,tra_zhjy',
+      fromToLine: ["tra_xibu", "tra_zhjy"],
+      sect: ['keelung', 'taipei', 'taoyuan', 'hsinchu', 'changhua', 'yunlin', 'chiayi'],
+      route: [{
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["qidutra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["songshantra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["taipeitra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["banqiaotra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["taoyuantra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["zhonglitra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["hsinchutra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["zhunantra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["zhanghuatra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["yuanlintra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["douliutra1"]
+      }, {
+        line: ["tra_xibu", "tra_zhjy"],
+        transStation: ["jiayitra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_xibu,tra_shan',
+      fromToLine: ["tra_xibu", "tra_shan"],
+      sect: ['keelung', 'taipei', 'taoyuan', 'hsinchu', 'miaoli', 'taichung', 'changhua'],
+      route: [{
+        line: ["tra_xibu", "tra_xibu"],
+        transStation: ["qidutra1"]
+      }, {
+        line: ["tra_xibu", "tra_xibu"],
+        transStation: ["songshantra1"]
+      }, {
+        line: ["tra_xibu", "tra_xibu"],
+        transStation: ["taipeitra1"]
+      }, {
+        line: ["tra_xibu", "tra_xibu"],
+        transStation: ["banqiaotra1"]
+      }, {
+        line: ["tra_xibu", "tra_xibu"],
+        transStation: ["taoyuantra1"]
+      }, {
+        line: ["tra_xibu", "tra_xibu"],
+        transStation: ["zhonglitra1"]
+      }, {
+        line: ["tra_xibu", "tra_xibu"],
+        transStation: ["hsinchutra1"]
+      }, {
+        line: ["tra_xibu", "tra_shan"],
+        transStation: ["zhunantra1"]
+      }, {
+        line: ["tra_xibu", "tra_shan"],
+        transStation: ["miaolitra1"]
+      }, {
+        line: ["tra_xibu", "tra_shan"],
+        transStation: ["fengyuantra1"]
+      }, {
+        line: ["tra_xibu", "tra_shan"],
+        transStation: ["taizhongtra1"]
+      }, {
+        line: ["tra_xibu", "tra_shan"],
+        transStation: ["zhanghuatra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_shan,tra_zhjy',
+      fromToLine: ["tra_shan", "tra_zhjy"],
+      sect: ['miaoli', 'taichung', 'changhua', 'yunlin', 'chiayi'],
+      route: [{
+        line: ["tra_shan", "tra_shan"],
+        transStation: ["miaolitra1"]
+      }, {
+        line: ["tra_shan", "tra_shan"],
+        transStation: ["fengyuantra1"]
+      }, {
+        line: ["tra_shan", "tra_shan"],
+        transStation: ["taizhongtra1"]
+      }, {
+        line: ["tra_shan", "tra_zhjy"],
+        transStation: ["zhanghuatra1"]
+      }, {
+        line: ["tra_shan", "tra_zhjy"],
+        transStation: ["yuanlintra1"]
+      }, {
+        line: ["tra_shan", "tra_zhjy"],
+        transStation: ["douliutra1"]
+      }, {
+        line: ["tra_shan", "tra_zhjy"],
+        transStation: ["jiayitra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_shan,tra_jygx',
+      fromToLine: ["tra_shan", "tra_jygx"],
+      sect: ['miaoli', 'taichung', 'changhua', 'chiayi', 'tainan', 'kaohsiung'],
+      route: [{
+        line: ["tra_shan", "tra_shan"],
+        transStation: ["miaolitra1"]
+      }, {
+        line: ["tra_shan", "tra_shan"],
+        transStation: ["fengyuantra1"]
+      }, {
+        line: ["tra_shan", "tra_shan"],
+        transStation: ["taizhongtra1"]
+      }, {
+        line: ["tra_shan", "tra_jygx"],
+        transStation: ["zhanghuatra1"]
+      }, {
+        line: ["tra_shan", "tra_jygx"],
+        transStation: ["jiayitra1"]
+      }, {
+        line: ["tra_shan", "tra_jygx"],
+        transStation: ["xinyingtra1"]
+      }, {
+        line: ["tra_shan", "tra_jygx"],
+        transStation: ["tainantra1"]
+      }, {
+        line: ["tra_shan", "tra_jygx"],
+        transStation: ["gangshantra1"]
+      }, {
+        line: ["tra_shan", "tra_jygx"],
+        transStation: ["gaoxungtra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_zhjy,tra_jygx',
+      fromToLine: ["tra_zhjy", "tra_jygx"],
+      sect: ['changhua', 'yunlin', 'chiayi', 'tainan', 'kaohsiung'],
+      route: [{
+        line: ["tra_zhjy", "tra_zhjy"],
+        transStation: ["zhanghuatra1"]
+      }, {
+        line: ["tra_zhjy", "tra_zhjy"],
+        transStation: ["yuanlintra1"]
+      }, {
+        line: ["tra_zhjy", "tra_zhjy"],
+        transStation: ["douliutra1"]
+      }, {
+        line: ["tra_zhjy", "tra_jygx"],
+        transStation: ["jiayitra1"]
+      }, {
+        line: ["tra_zhjy", "tra_jygx"],
+        transStation: ["xinyingtra1"]
+      }, {
+        line: ["tra_zhjy", "tra_jygx"],
+        transStation: ["tainantra1"]
+      }, {
+        line: ["tra_zhjy", "tra_jygx"],
+        transStation: ["gangshantra1"]
+      }, {
+        line: ["tra_zhjy", "tra_jygx"],
+        transStation: ["gaoxungtra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_jygx,tra_pingdong',
+      fromToLine: ["tra_jygx", "tra_pingdong"],
+      sect: ['chiayi', 'tainan', 'kaohsiung', 'pingdong'],
+      route: [{
+        line: ["tra_jygx", "tra_pingdong"],
+        transStation: ["gaoxungtra1"]
+      }, {
+        line: ["tra_pingdong", "tra_pingdong"],
+        transStation: ["fongshantra1"]
+      }, {
+        line: ["tra_pingdong", "tra_pingdong"],
+        transStation: ["chaozhoutra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_pingdong',
+      fromToLine: ["tra_pingdong", "tra_pingdong"],
+      sect: ['kaohsiung', 'pingdong'],
+      route: [{
+        line: ["tra_pingdong", "tra_pingdong"],
+        transStation: ["chaozhoutra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_yilan,tra_beihui',
+      fromToLine: ["tra_yilan", "tra_beihui"],
+      sect: ['northeast', 'yilan', 'beihui', 'hualian'],
+      route: [{
+        line: ["tra_beihui", "tra_beihui"],
+        transStation: ["hualiantra1"]
+      }, {
+        line: ["tra_yilan", "tra_beihui"],
+        transStation: ["suaoxintra1"]
+      }, {
+        line: ["tra_yilan", "tra_yilan"],
+        transStation: ["luodongtra1"]
+      }, {
+        line: ["tra_yilan", "tra_yilan"],
+        transStation: ["yilantra1"]
+      }, {
+        line: ["tra_yilan", "tra_yilan"],
+        transStation: ["ruifangtra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_yilan,tra_huadong',
+      fromToLine: ["tra_yilan", "tra_huadong"],
+      sect: ['northeast', 'yilan', 'beihui', 'hualian', 'taidong'],
+      route: [{
+        line: ["tra_huadong", "tra_huadong"],
+        transStation: ["taidongtra1"]
+      }, {
+        line: ["tra_huadong", "tra_huadong"],
+        transStation: ["yulitra1"]
+      }, {
+        line: ["tra_beihui", "tra_huadong"],
+        transStation: ["hualiantra1"]
+      }, {
+        line: ["tra_yilan", "tra_beihui"],
+        transStation: ["suaoxintra1"]
+      }, {
+        line: ["tra_yilan", "tra_yilan"],
+        transStation: ["luodongtra1"]
+      }, {
+        line: ["tra_yilan", "tra_yilan"],
+        transStation: ["yilantra1"]
+      }, {
+        line: ["tra_yilan", "tra_yilan"],
+        transStation: ["ruifangtra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_beihui,tra_huadong',
+      fromToLine: ["tra_beihui", "tra_huadong"],
+      sect: ['yilan', 'beihui', 'hualian', 'taidong'],
+      route: [{
+        line: ["tra_huadong", "tra_huadong"],
+        transStation: ["taidongtra1"]
+      }, {
+        line: ["tra_huadong", "tra_huadong"],
+        transStation: ["yulitra1"]
+      }, {
+        line: ["tra_beihui", "tra_huadong"],
+        transStation: ["hualiantra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_yilan,tra_pingxi',
+      fromToLine: ["tra_yilan", "tra_pingxi"],
+      fromToLineReg: ["^tra_pingxi$", "^tra_yilan$|^tra_beihui$|^tra_huadong$"],
+      sect: ['northeast', 'yilan', 'beihui', 'hualian', 'taidong'],
+      route: [{
+        line: ["tra_yilan", "tra_pingxi"],
+        transStation: ["ruifangtra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_xibu,tra_yilan',
+      fromToLine: ["tra_xibu", "tra_yilan"],
+      fromToLineReg: ["^tra_xibu$|^tra_shan$|^tra_zhjy$|^tra_jygx$|^tra_shalun$", "^tra_yilan$|^tra_beihui$|^tra_huadong$"],
+      sect: ['kaohsiung', 'tainan', 'chiayi', 'yunlin', 'changhua', 'taichung', 'miaoli', 'hsinchu', 'taoyuan', 'taipei', 'keelung', 'northeast', 'yilan', 'beihui', 'hualian', 'taidong'],
+      route: [{
+        line: ["tra_xibu", "tra_yilan"],
+        transStation: ["banqiaotra1"]
+      }, {
+        line: ["tra_xibu", "tra_yilan"],
+        transStation: ["taipeitra1"]
+      }, {
+        line: ["tra_xibu", "tra_yilan"],
+        transStation: ["songshantra1"]
+      }, {
+        line: ["tra_xibu", "tra_yilan"],
+        transStation: ["qidutra1"]
+      }, {
+        line: ["tra_xibu", "tra_yilan"],
+        transStation: ["badutra1"]
+      }]
+      /*}, {
+          id: 'traInnerTrans_tra_xibu,tra_beihui',
+          fromToLine: ["tra_xibu","tra_beihui"],
+          sect: ['taoyuan','taipei','keelung','northeast','yilan','beihui','hualian'],
+          route: [
+              {
+                  line: ["tra_xibu", "tra_beihui"],
+                  transStation: ["banqiaotra1"]
+              },
+              {
+                  line: ["tra_xibu", "tra_beihui"],
+                  transStation: ["taipeitra1"]
+              },
+              {
+                  line: ["tra_xibu", "tra_beihui"],
+                  transStation: ["songshantra1"]
+              },
+              {
+                  line: ["tra_xibu", "tra_beihui"],
+                  transStation: ["qidutra1"]
+              },
+              {
+                  line: ["tra_xibu", "tra_beihui"],
+                  transStation: ["badutra1"]
+              }
+          ]*/
+
+    }, {
+      id: 'traInnerTrans_tra_shan,tra_pingxi',
+      fromToLine: ["tra_shan", "tra_pingxi"],
+      fromToLineReg: ["^tra_shan$|^tra_zhjy$|^tra_jygx$", "^tra_pingxi$"],
+      sect: ['northeast', 'miaoli', 'taichung', 'changhua', 'yunlin', 'chiayi', 'tainan', 'kaohsiung'],
+      route: [{
+        line: ["tra_shan", "tra_pingxi"],
+        transStation: ["banqiaotra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_xibu,tra_pingxi',
+      fromToLine: ["tra_xibu", "tra_pingxi"],
+      fromToLineReg: ["^tra_xibu$|^tra_shan$|^tra_zhjy$|^tra_jygx$", "^tra_pingxi$"],
+      sect: ['hsinchu', 'taoyuan', 'taipei', 'keelung', 'northeast'],
+      route: [{
+        line: ["tra_yilan", "tra_pingxi"],
+        transStation: ["ruifangtra1"]
+      }, {
+        line: ["tra_xibu", "tra_yilan", "tra_pingxi"],
+        transStation: ["banqiaotra1", "ruifangtra1"]
+      }, {
+        line: ["tra_xibu", "tra_yilan", "tra_pingxi"],
+        transStation: ["taipeitra1", "ruifangtra1"]
+      }, {
+        line: ["tra_xibu", "tra_yilan", "tra_pingxi"],
+        transStation: ["songshantra1", "ruifangtra1"]
+      }, {
+        line: ["tra_xibu", "tra_yilan", "tra_pingxi"],
+        transStation: ["qidutra1", "ruifangtra1"]
+      }, {
+        line: ["tra_xibu", "tra_yilan", "tra_pingxi"],
+        transStation: ["badutra1", "ruifangtra1"]
+      }, {
+        line: ["tra_shan", "tra_yilan", "tra_pingxi"],
+        transStation: ["banqiaotra1", "ruifangtra1"]
+      }, {
+        line: ["tra_zhjy", "tra_yilan", "tra_pingxi"],
+        transStation: ["banqiaotra1", "ruifangtra1"]
+      }, {
+        line: ["tra_jygx", "tra_yilan", "tra_pingxi"],
+        transStation: ["banqiaotra1", "ruifangtra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_xibu,tra_liujia',
+      fromToLine: ["tra_xibu", "tra_liujia"],
+      sect: ['hsinchu', 'taoyuan', 'taipei', 'keelung', 'northeast'],
+      route: [{
+        line: ["tra_xibu", "tra_liujia"],
+        transStation: ["hsinchutra1"]
+      }, {
+        line: ["tra_xibu", "tra_liujia"],
+        transStation: ["northhsinchutra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_shan,tra_liujia',
+      fromToLine: ["tra_shan", "tra_liujia"],
+      fromToLineReg: ["^tra_shan$|^tra_zhjy$|^tra_jygx$", "^tra_liujia$"],
+      sect: ['hsinchu', 'miaoli', 'taichung', 'changhua', 'yunlin', 'chiayi', 'tainan', 'kaohsiung'],
+      route: [{
+        line: ["tra_xibu", "tra_liujia"],
+        transStation: ["hsinchutra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_yilan,tra_liujia',
+      fromToLine: ["tra_yilan", "tra_liujia"],
+      fromToLineReg: ["^tra_liujia$", "^tra_yilan$|^tra_beihui$|^tra_huadong$"],
+      sect: ['hsinchu', 'yilan', 'northeast', 'beihui', 'hualian', 'taidong'],
+      route: [{
+        line: ["tra_yilan", "tra_xibu"],
+        transStation: ["banqiaotra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_jygx,tra_shalun',
+      fromToLine: ["tra_jygx", "tra_shalun"],
+      sect: ['chiayi', 'tainan', 'kaohsiung'],
+      route: [{
+        line: ["tra_jygx", "tra_shalun"],
+        transStation: ["zhongzhoutra1"]
+      }, {
+        line: ["tra_jygx", "tra_shalun"],
+        transStation: ["tainantra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_xibu,tra_shalun',
+      fromToLine: ["tra_xibu", "tra_shalun"],
+      fromToLineReg: ["^tra_xibu$|^tra_shan$|^tra_zhjy$", "^tra_shalun$"],
+      sect: ['northeast', 'keelung', 'taipei', 'taoyuan', 'hsinchu', 'miaoli', 'taichung', 'changhua', 'yunlin', 'chiayi', 'tainan'],
+      route: [{
+        line: ["tra_xibu", "tra_shalun"],
+        transStation: ["tainantra1"]
+      }]
+    }, {
+      //TRA sub line to sub line
+      id: 'traInnerTrans_tra_pingxi,tra_liujia',
+      fromToLine: ["tra_pingxi", "tra_liujia"],
+      sect: ['hsinchu', 'northeast'],
+      route: [{
+        line: ["tra_pingxi", "tra_xibu", "tra_yilan", "tra_liujia"],
+        transStation: ["ruifangtra1", "banqiaotra1", "hsinchutra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_pingxi,tra_shalun',
+      fromToLine: ["tra_pingxi", "tra_shalun"],
+      sect: ['northeast', 'tainan'],
+      route: [{
+        line: ["tra_pingxi", "tra_yilan", "tra_xibu", "tra_shalun"],
+        transStation: ["ruifangtra1", "banqiaotra1", "tainantra1"]
+      }]
+    }, {
+      id: 'traInnerTrans_tra_liujia,tra_shalun',
+      fromToLine: ["tra_liujia", "tra_shalun"],
+      sect: ['hsinchu', 'tainan'],
+      route: [{
+        line: ["tra_liujia", "tra_xibu", "tra_shalun"],
+        transStation: ["hsinchutra1", "tainantra1"]
+      }]
+    }, {
+      //TRA to TRTC
+      id: 'tra_xibu,trtc_3',
+      fromToLine: ["tra_xibu", "trtc_3"],
+      sect: ['taipei', 'keelung', 'taoyuan', 'hsinchu'],
+      route: [{
+        bypassStationReg: '^trtc_086$|^trtc_04[0-3]$|^trtc_03[2-9]$',
+        line: ["tra_xibu", "trtc_3"],
+        transStation: ["songshan1"]
+      }, {
+        bypassStationReg: '^trtc_086$|^trtc_04[0-3]$|^trtc_03[2-9]$',
+        line: ["tra_xibu", "trtc_2", "trtc_3"],
+        transStation: ["taipei2", "zhongshan1"]
+      }, {
+        line: ["tra_xibu", "trtc_5", "trtc_3"],
+        transStation: ["banqiao1", "ximen1"]
+      }, {
+        bypassStationReg: '^trtc_111$|^trtc_110$|^trtc_109$|^trtc_009$|^trtc_132$|^trtc_053$|^trtc_105$|^trtc_086$',
+        line: ["tra_xibu", "trtc_2", "trtc_3"],
+        transStation: ["taipei2", "cksmh1"]
+      }]
+    }, {
+      id: 'tra_xibu,trtc_5',
+      fromToLine: ["tra_xibu", "trtc_5"],
+      sect: ['taipei', 'keelung', 'taoyuan', 'hsinchu'],
+      route: [{
+        bypassStationReg: '^trtc_08[0-2]$|^trtc_07[6-9]$',
+        line: ["tra_xibu", "trtc_5"],
+        transStation: ["nangang1"]
+      }, {
+        line: ["tra_xibu", "trtc_5"],
+        transStation: ["taipei1"]
+      }, {
+        bypassStationReg: '^trtc_031$|^trtc_097$|^trtc_096$',
+        line: ["tra_xibu", "trtc_5"],
+        transStation: ["banqiao1"]
+      }]
+    }, {
+      id: 'tra_xibu,trtc_2',
+      fromToLine: ["tra_xibu", "trtc_2"],
+      sect: ['taipei', 'keelung', 'taoyuan', 'hsinchu'],
+      route: [{
+        line: ["tra_xibu", "trtc_2"],
+        transStation: ["taipei2"]
+      }]
+    }, {
+      id: 'tra_xibu,trtc_4',
+      fromToLine: ["tra_xibu", "trtc_4"],
+      sect: ['taipei', 'keelung', 'taoyuan', 'hsinchu'],
+      route: [{
+        bypassStationReg: '^trtc_089$|^trtc_13[0-2]$|^trtc_055$|^trtc_12[1-8]$|^trtc_180$|^trtc_17[4-9]$',
+        line: ["tra_xibu", "trtc_2", "trtc_4"],
+        transStation: ["taipei2", "dongmen1"]
+      }, {
+        bypassStationReg: '^trtc_132$|^trtc_089$|^trtc_134$|^trtc_041$|^trtc_04[5-8]$',
+        line: ["tra_xibu", "trtc_2", "trtc_4"],
+        transStation: ["taipei2", "mqxl1"]
+      }, {
+        bypassStationReg: '^trtc_089$|^trtc_13[0-2]$|^trtc_055$|^trtc_12[1-8]$|^trtc_180$|^trtc_17[4-9]$',
+        line: ["tra_xibu", "trtc_2", "trtc_3", "trtc_4"],
+        transStation: ["taipei2", "cksmh1", "guting1"]
+      }, {
+        bypassStationReg: '^trtc_132$|^trtc_089$|^trtc_134$|^trtc_041$|^trtc_04[5-8]$',
+        line: ["tra_xibu", "trtc_3", "trtc_4"],
+        transStation: ["songshan1", "sjnanjing1"]
+      }]
+    }, {
+      //TRA to TTYMETRO
+      id: 'tra_xibu,tymetro_1',
+      fromToLine: ["tra_xibu", "tymetro_1"],
+      sect: ['taipei', 'keelung', 'taoyuan', 'hsinchu'],
+      route: [{
+        line: ["tra_xibu", "tymetro_1"],
+        transStation: ["taipei4"]
+      }]
+    }, {
+      //TRTC inner trans
+      id: 'trtc_5,trtc_2',
+      fromToLine: ["trtc_5", "trtc_2"],
+      sect: ['taipei'],
+      route: [{
+        line: ["trtc_5", "trtc_2"],
+        transStation: ["taipei3"]
+      }, {
+        bypassBothStationReg: '^trtc_08[8-9]$|^trtc_010$|^trtc_09[1-7]$|^trtc_031$|^trtc_05[1-9]$|^trtc_06[0-9]$|^trtc_07[0-1]$',
+        line: ["trtc_5", "trtc_3", "trtc_2"],
+        transStation: ["ximen1", "cksmh1"]
+      }]
+    }, {
+      id: 'trtc_4,trtc_2',
+      fromToLine: ["trtc_4", "trtc_2"],
+      sect: ['taipei'],
+      route: [{
+        bypassBothStationReg: '^trtc_05[0-4]$|^trtc_089$|^trtc_13[0-2]$|^trtc_055$|^trtc_12[1-8]$|^trtc_180$|^trtc_17[4-9]$',
+        line: ["trtc_4", "trtc_2"],
+        transStation: ["dongmen1"]
+      }, {
+        bypassBothStationReg: '^trtc_05[0-4]$|^trtc_132$|^trtc_089$|^trtc_134$|^trtc_041$|^trtc_04[5-8]$',
+        line: ["trtc_4", "trtc_2"],
+        transStation: ["mqxl1"]
+      }, {
+        bypassBothStationReg: '^trtc_05[0-4]$|^trtc_089$|^trtc_13[0-2]$|^trtc_055$|^trtc_12[1-8]$|^trtc_180$|^trtc_17[4-9]$',
+        line: ["trtc_4", "trtc_3", "trtc_2"],
+        transStation: ["guting1", "cksmh1"]
+      }]
+    }, {
+      id: 'trtc_3,trtc_2',
+      fromToLine: ["trtc_3", "trtc_2"],
+      sect: ['taipei'],
+      route: [{
+        bypassBothStationReg: '^trtc_105$|^trtc_132$|^trtc_009$|^trtc_11[0-1]$|^trtc_109$|^trtc_05[0-9]$|^trtc_06[0-9]$|^trtc_07[0-1]$',
+        line: ["trtc_3", "trtc_2"],
+        transStation: ["cksmh1"]
+      }, {
+        bypassStationReg: '^trtc_04[0-3]$|^trtc_03[2-9]$',
+        line: ["trtc_3", "trtc_2"],
+        transStation: ["zhongshan1"]
+      }]
+    }, {
+      id: 'trtc_3,trtc_5',
+      fromToLine: ["trtc_3", "trtc_5"],
+      sect: ['taipei'],
+      route: [{
+        line: ["trtc_3", "trtc_5"],
+        transStation: ["ximen1"]
+      }, {
+        bypassStationReg: '^trtc_07[6-9]$|^trtc_08[0-9]$|^trtc_09[1-5]$|^trtc_05[1-3]$|^trtc_010$|^trtc_03[2-9]$|^trtc_04[0-3]$|^trtc_132$',
+        line: ["trtc_3", "tra_xibu", "trtc_5"],
+        transStation: ["songshan1", "nangang1"]
+      }]
+    }, {
+      id: 'trtc_4,trtc_5',
+      fromToLine: ["trtc_4", "trtc_5"],
+      sect: ['taipei'],
+      route: [{
+        line: ["trtc_4", "trtc_5"],
+        transStation: ["zhongxiaoxs1"]
+      }, {
+        bypassBothStationReg: '^trtc_08[8-9]$|^trtc_010$|^trtc_09[1-7]$|^trtc_031$|^trtc_051$|^trtc_055$|^trtc_13[0-2]$|^trtc_12[1-8]$|^trtc_17[4-9]$|^trtc_180$',
+        line: ["trtc_4", "trtc_3", "trtc_5"],
+        transStation: ["guting1", "ximen1"]
+      }]
+    }, {
+      id: 'trtc_3,trtc_4',
+      fromToLine: ["trtc_3", "trtc_4"],
+      sect: ['taipei'],
+      route: [{
+        bypassBothStationReg: '^trtc_009$|^trtc_109$|^trtc_11[0-1]$|^trtc_105$|^trtc_053$|^trtc_055$|^trtc_13[0-2]$|^trtc_12[1-8]$|^trtc_17[4-9]$|^trtc_180$',
+        line: ["trtc_3", "trtc_4"],
+        transStation: ["guting1"]
+      }, {
+        bypassBothStationReg: '^trtc_04[5-8]$|^trtc_105$|^trtc_086$|^trtc_04[0-3]$|^trtc_03[2-9]$|^trtc_134$|^trtc_089$',
+        line: ["trtc_3", "trtc_4"],
+        transStation: ["sjnanjing1"]
+      }]
+    }, {
+      id: 'trtc_4,trtc_4',
+      fromToLine: ["trtc_4", "trtc_4"],
+      sect: ['taipei'],
+      route: [{
+        line: ["trtc_4", "trtc_4"],
+        transStation: ["daqiaotou1"]
+      }]
+    }, {
+      //TYMETRO to TRTC
+      id: 'tymetro_1,trtc_3',
+      fromToLine: ["tymetro_1", "trtc_3"],
+      sect: ['taipei', 'taoyuan'],
+      route: [{
+        line: ["tymetro_1", "trtc_3"],
+        transStation: ["taipei7"]
+      }, {
+        bypassStationReg: '^trtc_111$|^trtc_110$|^trtc_109$|^trtc_009$|^trtc_132$|^trtc_105$|^trtc_086$',
+        line: ["tymetro_1", "trtc_2", "trtc_3"],
+        transStation: ["taipei5", "cksmh1"]
+      }]
+    }, {
+      id: 'tymetro_1,trtc_5',
+      fromToLine: ["tymetro_1", "trtc_5"],
+      sect: ['taipei', 'taoyuan'],
+      route: [{
+        line: ["tymetro_1", "trtc_5"],
+        transStation: ["taipei6"]
+      }]
+    }, {
+      id: 'tymetro_1,trtc_2',
+      fromToLine: ["tymetro_1", "trtc_2"],
+      sect: ['taipei', 'taoyuan'],
+      route: [{
+        line: ["tymetro_1", "trtc_2"],
+        transStation: ["taipei5"]
+      }]
+    }, {
+      id: 'tymetro_1,trtc_4',
+      fromToLine: ["tymetro_1", "trtc_4"],
+      sect: ['taipei', 'taoyuan'],
+      route: [{
+        bypassStationReg: '^trtc_17[4-8]$',
+        line: ["tymetro_1", "trtc_4"],
+        transStation: ["sanchong1"]
+      }, {
+        bypassStationReg: '^trtc_089$|^trtc_055$|^trtc_041$|^trtc_04[5-8]$|^trtc_12[1-8]$|^trtc_180$|^trtc_179$|^trtc_13[0-1]$',
+        line: ["tymetro_1", "trtc_4", "trtc_4"],
+        transStation: ["sanchong1", "daqiaotou1"]
+      }, {
+        bypassStationReg: '^trtc_089$|^trtc_13[0-2]$|^trtc_055$|^trtc_12[1-8]$|^trtc_180$|^trtc_17[4-9]$',
+        line: ["tymetro_1", "trtc_2", "trtc_4"],
+        transStation: ["taipei5", "dongmen1"]
+      }, {
+        bypassStationReg: '^trtc_132$|^trtc_089$|^trtc_134$|^trtc_041$|^trtc_04[5-8]$',
+        line: ["tymetro_1", "trtc_2", "trtc_4"],
+        transStation: ["taipei5", "mqxl1"]
+      }, {
+        bypassStationReg: '^trtc_089$|^trtc_13[0-2]$|^trtc_055$|^trtc_12[1-8]$|^trtc_180$|^trtc_17[4-9]$',
+        line: ["tymetro_1", "trtc_2", "trtc_3", "trtc_4"],
+        transStation: ["taipei5", "cksmh1", "guting1"]
+      }]
+    }, {
+      //TYMETRO Route
+      id: 'tymetroInnerTrans_tymetro_1,tymetro_1',
+      fromToLine: ["tymetro_1", "tymetro_1"],
+      sect: ['taoyuan', 'taipei'],
+      route: [{
+        line: ["tymetro_1", "tymetro_1"],
+        transStation: ["changgengyiyuan1"]
+      }]
+    }],
+    routeSystem: [{
+      id: 'tra_r1',
+      rType: 'direct',
+      //direct , trans 
+      company: 'tra',
+      big: 'e',
+      lineStr: 'tra_xibu,tra_huadong,tra_beihui,tra_yilan',
+      directSect: 'taipei,keeling,northeast,yilan,beihui,hualian,taidong'
+    }, {
+      id: 'tra_r2',
+      rType: 'direct',
+      //direct , trans 
+      company: 'tra',
+      big: 'w',
+      lineStr: 'tra_xibu,tra_shan,tra_zhjy,tra_jygx,tra_pingdong',
+      directSect: 'keeling,taipei,taoyuan,hsinchu,miaoli,taichung,chungha,yunlin,chiayi,tainan,kaohsiung,pingdong'
+    }, {
+      id: 'tra_r4',
+      rType: 'direct',
+      //direct , trans 
+      company: 'tra',
+      big: 'w',
+      lineStr: 'tra_huadong,tra_beihui,tra_yilan,tra_shan,tra_zhjy,tra_jygx,tra_pingdong',
+      directSect: 'northeast,yilan,beihui,hualian,taidong,miaoli,taichung,chungha,yunlin,chiayi,tainan,kaohsiung,pingdong'
+    }, {
+      id: 'tra_r5',
+      rType: 'direct',
+      //direct , trans 
+      company: 'tra',
+      big: 'w',
+      lineStr: 'tra_liujia',
+      directSect: 'hsinchu'
+    }, {
+      id: 'tra_r6',
+      rType: 'direct',
+      //direct , trans 
+      company: 'tra',
+      big: 'w',
+      lineStr: 'tra_shalun,tra_jygx',
+      directSect: 'tainan'
+    }, {
+      id: 'tra_route_line_map',
+      rType: 'map',
+      //Do not remove this route system , important
+      company: 'tra',
+      dir: "0",
+      link: ['tra_pingdong,tra_jygx,tra_zhjy,tra_shan,tra_xibu,tra_yilan,tra_pingxi', 'tra_pingdong,tra_jygx,tra_zhjy,tra_hai,tra_xibu,tra_yilan,tra_pingxi', 'tra_pingdong,tra_jygx,tra_zhjy,tra_shan,tra_xibu,tra_yilan,tra_beihui,tra_huadong', 'tra_pingdong,tra_jygx,tra_zhjy,tra_hai,tra_xibu,tra_yilan,tra_beihui,tra_huadong', 'tra_jiji,tra_zhjy,tra_shan,tra_xibu,tra_yilan,tra_beihui,tra_huadong', 'tra_jiji,tra_zhjy,tra_hai,tra_xibu,tra_yilan,tra_beihui,tra_huadong', 'tra_shalun,tra_jygx,tra_zhjy,tra_shan,tra_xibu,tra_yilan,tra_beihui,tra_huadong', 'tra_shalun,tra_jygx,tra_zhjy,tra_hai,tra_xibu,tra_yilan,tra_beihui,tra_huadong']
+    }, {
+      id: 'tra_west_east_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_xibu,tra_yilan,tra_beihui,tra_huadong',
+      lineInclude: [['tra_xibu', 'tra_shan', 'tra_zhjy', 'tra_jygx', 'tra_liujia', 'tra_shalun', 'tra_jiji'], ['tra_yilan', 'tra_beihui', 'tra_huadong', 'tra_pingxi']],
+      rule: [{
+        line: ['tra_jygx', 'tra_zhjy', 'tra_shan', 'tra_yilan', 'tra_beihui', 'tra_huadong', 'tra_pingxi'],
+        sect: ['taoyuan', 'hsinchu', 'miaoli', 'taichung', 'changhua', 'yunlin', 'chiayi', 'tainan', 'kaohsiung', 'pingdong'],
+        station: ["tra_1032", "tra_1012", "tra_1013", "tra_1014"],
+        transStation: 'banqiaotra1'
+      }, {
+        line: ['tra_yilan', 'tra_beihui', 'tra_huadong', 'tra_pingxi'],
+        station: ["tra_1009", "tra_1006", "tra_1031", "tra_1005", "tra_1004"],
+        transStation: 'songshantra1'
+      }, {
+        line: ['tra_yilan', 'tra_beihui', 'tra_huadong', 'tra_pingxi'],
+        station: ["tra_1031", "tra_1005", "tra_1004", "tra_1030", "tra_1002", "tra_1029", "tra_1001"],
+        transStation: 'qidutra1'
+      }, {
+        line: ['tra_yilan', 'tra_beihui', 'tra_huadong', 'tra_pingxi'],
+        station: ["tra_1030", "tra_1003", "tra_1029", "tra_1001"],
+        transStation: 'badutra1'
+      }, {
+        line: ['tra_shalun', 'tra_pingxi'],
+        station: ["tra_1228"],
+        transStation: 'tainantra1'
+      }]
+    }, {
+      id: 'tra_xibu_shan_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_xibu,tra_shan',
+      lineInclude: [['tra_xibu', 'tra_liujia'], ['tra_shan']],
+      rule: [{
+        line: ['tra_shan'],
+        sect: ['keelung'],
+        transStation: 'qidutra1'
+      }, {
+        line: ['tra_shan'],
+        station: ["tra_1004", "tra_1005", "tra_1031", "tra_1006"],
+        transStation: 'songshantra1'
+      }, {
+        line: ['tra_shan'],
+        station: ["tra_1009", "tra_1032", "tra_1012", "tra_1013"],
+        transStation: 'banqiaotra1'
+      }, {
+        line: ['tra_shan'],
+        station: ["tra_1012", "tra_1013", "tra_1014"],
+        transStation: 'taoyuantra1'
+      }, {
+        line: ['tra_shan'],
+        station: ["tra_1016", "tra_1018"],
+        transStation: 'zhonglitra1'
+      }, {
+        line: ['tra_shan'],
+        station: ["tra_1019", "tra_1020", "tra_1036"],
+        sect: ['hsinchu'],
+        transStation: 'hsinchutra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        station: ["tra_1019", "tra_1020", "tra_1036"],
+        sect: ['miaoli'],
+        transStation: 'miaolitra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        station: ["tra_1315", "tra_1318"],
+        transStation: 'fengyuantra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        sect: ['taichung'],
+        transStation: 'taizhongtra1'
+      }]
+    }, {
+      id: 'tra_xibu_zhjy_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_xibu,tra_zhjy',
+      lineInclude: [['tra_xibu', 'tra_liujia'], ['tra_zhjy']],
+      rule: [{
+        line: ['tra_zhjy'],
+        sect: ['keelung'],
+        transStation: 'qidutra1'
+      }, {
+        line: ['tra_zhjy'],
+        station: ["tra_1004", "tra_1005", "tra_1031", "tra_1006"],
+        transStation: 'songshantra1'
+      }, {
+        line: ['tra_zhjy'],
+        station: ["tra_1009", "tra_1032", "tra_1012", "tra_1013"],
+        transStation: 'banqiaotra1'
+      }, {
+        line: ['tra_zhjy'],
+        station: ["tra_1012", "tra_1013", "tra_1014"],
+        transStation: 'taoyuantra1'
+      }, {
+        line: ['tra_zhjy'],
+        station: ["tra_1016", "tra_1018"],
+        transStation: 'zhonglitra1'
+      }, {
+        line: ['tra_zhjy'],
+        station: ["tra_1019", "tra_1020", "tra_1036"],
+        sect: ['hsinchu'],
+        transStation: 'hsinchutra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        sect: ['changhua'],
+        transStation: 'zhanghuatra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        station: ["tra_1208", "tra_1209"],
+        sect: ['changhua'],
+        transStation: 'yuanlintra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        sect: ['yunlin'],
+        transStation: 'douliutra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        sect: ['chiayi'],
+        transStation: 'jiayitra1'
+      }]
+    }, {
+      id: 'tra_xibu_jygx_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_xibu,tra_jygx',
+      lineInclude: [['tra_xibu', 'tra_liujia'], ['tra_jygx', 'tra_shalun']],
+      rule: [{
+        line: ['tra_jygx', 'tra_shalun'],
+        sect: ['keelung'],
+        transStation: 'qidutra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        station: ["tra_1004", "tra_1005", "tra_1031", "tra_1006"],
+        transStation: 'songshantra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        station: ["tra_1009", "tra_1032", "tra_1012", "tra_1013"],
+        transStation: 'banqiaotra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        station: ["tra_1012", "tra_1013", "tra_1014"],
+        transStation: 'taoyuantra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        station: ["tra_1016", "tra_1018"],
+        transStation: 'zhonglitra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        station: ["tra_1019", "tra_1020", "tra_1036"],
+        sect: ['hsinchu'],
+        transStation: 'hsinchutra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        sect: ['chiayi'],
+        transStation: 'jiayitra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        sect: ['tainan'],
+        transStation: 'tainantra1'
+      }, {
+        line: ['tra_xibu', 'tra_liujia'],
+        sect: ['kaohsiung'],
+        transStation: 'gaoxungtra1'
+      }]
+    }, {
+      id: 'tra_shan_zhjy_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_shan,tra_zhjy',
+      lineInclude: [['tra_shan'], ['tra_zhjy']],
+      rule: [{
+        line: ['tra_zhjy'],
+        sect: ['miaoli'],
+        transStation: 'miaolitra1'
+      }, {
+        line: ['tra_zhjy'],
+        station: ["tra_1315", "tra_1314", "tra_1310"],
+        transStation: 'fengyuantra1'
+      }, {
+        line: ['tra_zhjy'],
+        sect: ['taichung'],
+        transStation: 'taizhongtra1'
+      }, {
+        line: ['tra_shan'],
+        sect: ['changhua'],
+        station: ["tra_1321", "tra_1324"],
+        transStation: 'zhanghuatra1'
+      }, {
+        line: ['tra_shan'],
+        sect: ['changhua'],
+        transStation: 'yuanlintra1'
+      }, {
+        line: ['tra_shan'],
+        sect: ['yunlin'],
+        transStation: 'douliutra1'
+      }, {
+        line: ['tra_shan'],
+        sect: ['chiayi'],
+        transStation: 'jiayitra1'
+      }]
+    }, {
+      id: 'tra_shan_jygx_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_shan,tra_jygx',
+      lineInclude: [['tra_shan'], ['tra_jygx', 'tra_shalun']],
+      rule: [{
+        line: ['tra_jygx', 'tra_shalun'],
+        sect: ['miaoli'],
+        transStation: 'miaolitra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        station: ["tra_1315", "tra_1314", "tra_1310"],
+        transStation: 'fengyuantra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        sect: ['taichung'],
+        transStation: 'taizhongtra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        sect: ['changhua'],
+        station: ["tra_1321", "tra_1324"],
+        transStation: 'zhanghuatra1'
+      }, {
+        line: ['tra_shan'],
+        sect: ['chiayi'],
+        transStation: 'jiayitra1'
+      }, {
+        line: ['tra_shan'],
+        sect: ['tainan'],
+        transStation: 'tainantra1'
+      }, {
+        line: ['tra_shan'],
+        sect: ['kaohsiung'],
+        transStation: 'gaoxungtra1'
+      }]
+    }, {
+      id: 'tra_zhjy_jygx_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_zhjy,tra_jygx',
+      lineInclude: [['tra_zhjy'], ['tra_jygx', 'tra_shalun']],
+      rule: [{
+        line: ['tra_jygx', 'tra_shalun'],
+        sect: ['changhua'],
+        transStation: 'yuanlintra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        sect: ['yunlin'],
+        transStation: 'douliutra1'
+      }, {
+        line: ['tra_jygx', 'tra_shalun'],
+        sect: ['chiayi'],
+        transStation: 'jiayitra1'
+      }, {
+        line: ['tra_zhjy'],
+        sect: ['tainan'],
+        transStation: 'tainantra1'
+      }, {
+        line: ['tra_zhjy'],
+        sect: ['kaohsiung'],
+        transStation: 'gaoxungtra1'
+      }]
+    }, {
+      id: 'tra_xibu_shan_zhjy_pingdong_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_zhjy,tra_pingdong',
+      lineInclude: [['tra_xibu', 'tra_shan', 'tra_zhjy', 'tra_liujia'], ['tra_pingdong']],
+      rule: [{
+        line: ['tra_pingdong'],
+        sect: ['keelung'],
+        transStation: 'qidutra1'
+      }, {
+        line: ['tra_pingdong'],
+        station: ["tra_1004", "tra_1005", "tra_1031", "tra_1006"],
+        transStation: 'songshantra1'
+      }, {
+        line: ['tra_pingdong'],
+        station: ["tra_1009", "tra_1032", "tra_1012", "tra_1013"],
+        transStation: 'banqiaotra1'
+      }, {
+        line: ['tra_pingdong'],
+        station: ["tra_1012", "tra_1013", "tra_1014"],
+        transStation: 'taoyuantra1'
+      }, {
+        line: ['tra_pingdong'],
+        station: ["tra_1016", "tra_1018"],
+        sect: ["taoyuan"],
+        transStation: 'zhonglitra1'
+      }, {
+        line: ['tra_pingdong'],
+        station: ["tra_1019", "tra_1020", "tra_1036"],
+        sect: ['hsinchu'],
+        transStation: 'hsinchutra1'
+      }, {
+        line: ['tra_pingdong'],
+        sect: ['miaoli'],
+        transStation: 'miaolitra1'
+      }, {
+        line: ['tra_pingdong'],
+        sect: ['taichung'],
+        transStation: 'taizhongtra1'
+      }, {
+        line: ['tra_pingdong'],
+        sect: ['changhua'],
+        transStation: 'zhanghuatra1'
+      }, {
+        line: ['tra_pingdong'],
+        sect: ['changhua'],
+        transStation: 'yuanlintra1'
+      }, {
+        line: ['tra_pingdong'],
+        sect: ['yunlin'],
+        transStation: 'douliutra1'
+      }, {
+        line: ['tra_pingdong'],
+        sect: ['chiayi'],
+        transStation: 'jiayitra1'
+      }, {
+        line: ['tra_zhjy'],
+        sect: ['kaohsiung'],
+        transStation: 'gaoxungtra1'
+      }, {
+        line: ['tra_zhjy'],
+        sect: ['kaohsiung'],
+        transStation: 'fongshantra1'
+      }, {
+        line: ['tra_zhjy'],
+        sect: ['pingdong'],
+        transStation: 'pingdongtra1'
+      }, {
+        line: ['tra_zhjy'],
+        sect: ['pingdong'],
+        transStation: 'chaozhoutra1'
+      }]
+    }, {
+      id: 'tra_jygx_pingdong_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_jygx,tra_pingdong',
+      lineInclude: [['tra_jygx', 'tra_shalun'], ['tra_pingdong']],
+      rule: [{
+        line: ['tra_jygx', 'tra_shalun', 'tra_pingdong'],
+        sect: ['pingdong', 'kaohsiung', 'tainan'],
+        transStation: 'chaozhoutra1'
+      }, {
+        line: ['tra_pingdong'],
+        sect: ['tainan'],
+        transStation: 'tainantra1'
+      }, {
+        line: ['tra_pingdong'],
+        sect: ['kaohsiung', 'tainan'],
+        transStation: 'gaoxungtra1'
+      }]
+    }, {
+      id: 'tra_pingdong_inner_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_pingdong',
+      lineInclude: [['tra_pingdong'], ['tra_pingdong']],
+      rule: [{
+        line: ['tra_pingdong'],
+        sect: ['pingdong', 'kaohsiung'],
+        transStation: 'chaozhoutra1'
+      }]
+    }, {
+      id: 'tra_yilan_beihui_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_yilan,tra_beihui',
+      lineInclude: [['tra_beihui'], ['tra_yilan', 'tra_pingxi']],
+      rule: [{
+        line: ['tra_beihui'],
+        station: ["tra_1802", "tra_1803", "tra_1805", "tra_1806"],
+        transStation: 'ruifangtra1'
+      }, {
+        line: ['tra_beihui'],
+        station: ["tra_1807", "tra_1808", "tra_1809", "tra_1810", "tra_1811", "tra_1812", "tra_1813", "tra_1814", "tra_1815", "tra_1816", "tra_1817", "tra_1818", "tra_1819"],
+        transStation: 'yilantra1'
+      }, {
+        line: ['tra_beihui'],
+        station: ["tra_1821", "tra_1822", "tra_1824", "tra_1825"],
+        transStation: 'luodongtra1'
+      }, {
+        line: ['tra_beihui'],
+        station: ["tra_1827", "tra_1825", "tra_1824"],
+        transStation: 'suaoxintra1'
+      }, {
+        line: ['tra_yilan', 'tra_pingxi'],
+        sect: ['hualian'],
+        transStation: 'hualiantra1'
+      }]
+    }, {
+      id: 'tra_yilan_huadong_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_yilan,tra_huadong',
+      lineInclude: [['tra_huadong'], ['tra_yilan', 'tra_pingxi']],
+      rule: [{
+        line: ['tra_huadong'],
+        station: ["tra_1802", "tra_1803", "tra_1805", "tra_1806"],
+        transStation: 'ruifangtra1'
+      }, {
+        line: ['tra_huadong'],
+        station: ["tra_1807", "tra_1808", "tra_1809", "tra_1810", "tra_1811", "tra_1812", "tra_1813", "tra_1814", "tra_1815", "tra_1816", "tra_1817", "tra_1818", "tra_1819"],
+        transStation: 'yilantra1'
+      }, {
+        line: ['tra_huadong'],
+        station: ["tra_1821", "tra_1822", "tra_1824", "tra_1825"],
+        transStation: 'luodongtra1'
+      }, {
+        line: ['tra_huadong'],
+        station: ["tra_1827", "tra_1825", "tra_1824"],
+        transStation: 'suaoxintra1'
+      }, {
+        line: ['tra_yilan', 'tra_pingxi'],
+        sect: ['hualian'],
+        transStation: 'hualiantra1'
+      }, {
+        line: ['tra_yilan', 'tra_pingxi'],
+        sect: ['hualian'],
+        station: ["tra_1624", "tra_1625", "tra_1626"],
+        transStation: 'yulitra1'
+      }, {
+        line: ['tra_yilan', 'tra_pingxi'],
+        sect: ['taidong'],
+        transStation: 'taidongtra1'
+      }]
+    }, {
+      id: 'tra_beihui_huadong_trans',
+      rType: 'trans',
+      company: 'tra',
+      routeMapID: 'traInnerTrans_tra_yilan,tra_huadong',
+      lineInclude: [['tra_huadong'], ['tra_beihui']],
+      rule: [{
+        line: ['tra_huadong'],
+        sect: ['beihui', 'hualian'],
+        transStation: 'hualiantra1'
+      }]
+    }, {
+      id: 'tymetro_1_fast_normal_trans',
+      rType: 'trans',
+      company: 'tymetro',
+      routeMapID: 'tymetroInnerTrans_tymetro_1,tymetro_1',
+      rule: [{
+        line: ['tymetro_1'],
+        sect: ['taoyuan', 'taipei'],
+        transStation: 'changgengyiyuan1'
+      }]
+    }, {
+      id: 'trtc_trans_tra_east',
+      rType: 'cross',
+      //direct , trans 
+      company: ['trtc', 'tra'],
+      // cross company serial
+      regLine: "^trtc_1$|^trtc_2$|^trtc_3$|^trtc_4|^trtc_5$|^tra_yilan$|^tra_beihui$|^tra_huadong$|^tra_pingxi$|^tra_liujia$",
+      lineIsSame: {
+        "tra_xibu": "^tra_yilan$|^tra_beihui$|^tra_huadong$|^tra_pingxi$|^tra_liujia$"
+      },
+      link: [{
+        regLine: "^trtc_5|^tra_",
+        transStation: [['banqiao1', 'taipei1', 'nangang1']]
+      }, {
+        regLine: "^trtc_3$|^trtc_4|^tra_",
+        transStation: [['taipei2', 'songshan1']]
+      }, {
+        regLine: "^trtc_2$|^tra_",
+        transStation: [['taipei2']]
+      }],
+      sect: ['hsinchu', 'taoyuan', 'taipei', 'keeling', 'northeast', 'yilan', 'beihui', 'hualian', 'taidong']
+    }, {
+      id: 'trtc_trans_tra_west',
+      rType: 'cross',
+      //direct , trans 
+      company: ['trtc', 'tra'],
+      // cross company serial
+      regLine: "^trtc_1$|^trtc_2$|^trtc_3$|^trtc_4|^trtc_5$|^tra_shan$|^tra_zhjy$|^tra_jygx$|^tra_pingdong|^tra_shalun$|^tra_hai$|^tra_jiji$",
+      lineIsSame: {
+        "tra_xibu": "^tra_shan$|^tra_zhjy$|^tra_jygx$|^tra_pingdong$|^tra_shalun$|^tra_hai$|^tra_jiji$"
+      },
+      link: [{
+        regLine: "^trtc_5|^tra_",
+        transStation: [['banqiao1', 'taipei1']]
+      }, {
+        regLine: "^trtc_3$|^trtc_4|^tra_",
+        transStation: [['taipei2', 'songshan1']]
+      }, {
+        regLine: "^trtc_2$|^tra_",
+        transStation: [['taipei2']]
+      }],
+      sect: ['hsinchu', 'taoyuan', 'taipei', 'keeling', 'miaoli', 'taichung', 'changhua', 'yunlin', 'chiayi', 'tainan', 'kaohsiung', 'pingdong']
+    }, {
+      //TRA and TYMETRO trans
+      id: 'tymetro_trans_tra_east',
+      rType: 'cross',
+      //direct , trans 
+      company: ['tymetro', 'tra'],
+      // cross company serial
+      regLine: "^tymetro_1$|^tra_yilan$|^tra_beihui$|^tra_huadong$|^tra_pingxi$|^tra_liujia$",
+      lineIsSame: {
+        "tra_xibu": "^tra_yilan$|^tra_beihui$|^tra_huadong$|^tra_pingxi$|^tra_liujia$"
+      },
+      link: [{
+        regLine: "^tymetro_1|^tra_",
+        transStation: [['taipei4']]
+      }],
+      sect: ['hsinchu', 'taoyuan', 'taipei', 'keeling', 'northeast', 'yilan', 'beihui', 'hualian', 'taidong']
+    }, {
+      id: 'tymetro_trans_tra_west',
+      rType: 'cross',
+      //direct , trans 
+      company: ['tymetro', 'tra'],
+      // cross company serial
+      regLine: "^tymetro_1$|^tra_shan$|^tra_zhjy$|^tra_jygx$|^tra_pingdong$|^tra_shalun$|^tra_hai$|^tra_hai$|^tra_jiji$",
+      lineIsSame: {
+        "tra_xibu": "^tra_shan$|^tra_zhjy$|^tra_jygx$|^tra_pingdong$|^tra_shalun$|^tra_hai$|^tra_hai$|^tra_jiji$"
+      },
+      link: [{
+        regLine: "^tymetro_1|^tra_",
+        transStation: [['taipei4']]
+      }],
+      sect: ['hsinchu', 'taoyuan', 'taipei', 'keeling', 'miaoli', 'taichung', 'changhua', 'yunlin', 'chiayi', 'tainan', 'kaohsiung', 'pingdong']
+    }]
   };
 
   var trtc_line = [{"LineID":"BR","LineName":{"Zh_tw":"文湖線","En":"Wenhu Line"},"LineColor":"#b57a25","IsBranch":false,"Route":[{"RouteID":"BR-1","Direction":0,"LineID":"BR","Stations":["BR01","BR02","BR03","BR04","BR05","BR06","BR07","BR08","BR09","BR10","BR11","BR12","BR13","BR14","BR15","BR16","BR17","BR18","BR19","BR20","BR21","BR22","BR23","BR24"],"TravelTime":{"RunTime":[67,47,99,106,124,72,122,69,67,86,66,142,172,103,110,65,72,78,71,121,78,85,78,0],"StopTime":[0,25,18,20,18,18,20,25,30,45,35,35,18,25,25,25,25,25,20,18,20,20,18,0]}},{"RouteID":"BR-1","Direction":1,"LineID":"BR","Stations":["BR24","BR23","BR22","BR21","BR20","BR19","BR18","BR17","BR16","BR15","BR14","BR13","BR12","BR11","BR10","BR09","BR08","BR07","BR06","BR05","BR04","BR03","BR02","BR01"],"TravelTime":{"RunTime":[78,85,78,121,71,78,72,65,110,103,172,142,66,86,67,69,122,72,124,106,99,47,67,0],"StopTime":[0,18,20,20,18,20,25,25,25,25,25,18,35,35,45,30,25,20,18,18,20,18,25,0]}}],"Transfer":[{"FromLineID":"BR","FromStationID":"BR09","ToLineID":"R","ToStationID":"R05","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BR","FromStationID":"BR11","ToLineID":"G","ToStationID":"G16","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BR","FromStationID":"BR24","ToLineID":"BL","ToStationID":"BL23","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BR","FromStationID":"BR10","ToLineID":"BL","ToStationID":"BL15","IsOnSiteTransfer":1,"TransferTime":5}],"Frequency":[{"LineID":"BR","RouteID":"BR-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["06:00","07:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":2,"MaxHeadwayMins":4,"Time":["07:00","09:00"],"AveMins":3},{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["09:00","17:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":2,"MaxHeadwayMins":4,"Time":["17:00","19:30"],"AveMins":3},{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["19:30","23:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"BR","RouteID":"BR-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["06:00","23:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]}],"main":["BR-1"]},{"LineID":"R","LineName":{"Zh_tw":"淡水信義線","En":"Tamsui-Xinyi Line"},"LineColor":"#d90023","IsBranch":false,"Route":[{"RouteID":"R-1","Direction":0,"LineID":"R","Stations":["R02","R03","R04","R05","R06","R07","R08","R09","R10","R11","R12","R13","R14","R15","R16","R17","R18","R19","R20","R21","R22","R23","R24","R25","R26","R27","R28"],"TravelTime":{"RunTime":[93,81,81,70,65,165,83,63,65,58,57,90,109,92,91,76,61,100,73,91,145,109,78,145,136,175,0],"StopTime":[0,30,30,30,30,35,35,25,45,30,25,35,25,25,25,25,25,25,25,25,25,25,25,25,25,25,0]}},{"RouteID":"R-1","Direction":1,"LineID":"R","Stations":["R28","R27","R26","R25","R24","R23","R22","R21","R20","R19","R18","R17","R16","R15","R14","R13","R12","R11","R10","R09","R08","R07","R06","R05","R04","R03","R02"],"TravelTime":{"RunTime":[175,136,145,78,109,145,91,73,100,61,76,91,92,109,90,57,58,65,63,83,165,65,70,81,81,93,0],"StopTime":[0,25,25,25,25,25,25,25,25,25,25,25,25,25,25,35,25,30,45,25,35,35,30,30,30,30,0]}},{"RouteID":"R-2","Direction":0,"LineID":"R","Stations":["R05","R06","R07","R08","R09","R10","R11","R12","R13","R14","R15","R16","R17","R18","R19","R20","R21","R22"],"TravelTime":{"RunTime":[70,65,165,83,63,65,58,57,90,109,92,91,76,61,100,73,91,0],"StopTime":[0,30,35,35,25,45,30,25,35,25,25,25,25,25,25,25,25,0]}},{"RouteID":"R-2","Direction":1,"LineID":"R","Stations":["R22","R21","R20","R19","R18","R17","R16","R15","R14","R13","R12","R11","R10","R09","R08","R07","R06","R05"],"TravelTime":{"RunTime":[91,73,100,61,76,91,92,109,90,57,58,65,63,83,165,65,70,0],"StopTime":[0,25,25,25,25,25,25,25,25,35,25,30,45,25,35,35,30,0]}},{"RouteID":"R-3","Direction":0,"LineID":"R","Stations":["R22","R22A"],"TravelTime":{"RunTime":[157,0],"StopTime":[0,0]}},{"RouteID":"R-3","Direction":1,"LineID":"R","Stations":["R22A","R22"],"TravelTime":{"RunTime":[157,0],"StopTime":[0,0]}}],"Transfer":[{"FromLineID":"R","FromStationID":"R22","ToLineID":"R","ToStationID":"R22","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"R","FromStationID":"R13","ToLineID":"O","ToStationID":"O11","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"R","FromStationID":"R11","ToLineID":"G","ToStationID":"G14","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"R","FromStationID":"R10","ToLineID":"BL","ToStationID":"BL12","IsOnSiteTransfer":1,"TransferTime":4},{"FromLineID":"R","FromStationID":"R08","ToLineID":"G","ToStationID":"G10","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"R","FromStationID":"R07","ToLineID":"O","ToStationID":"O06","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"R","FromStationID":"R05","ToLineID":"BR","ToStationID":"BR09","IsOnSiteTransfer":1,"TransferTime":5}],"Frequency":[{"LineID":"R","RouteID":"R-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","09:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"R","RouteID":"R-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"R","RouteID":"R-2","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"R","RouteID":"R-2","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","09:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"R","RouteID":"R-3","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["06:00","06:30"],"AveMins":14},{"PeakFlag":"1","MinHeadwayMins":7,"MaxHeadwayMins":8,"Time":["06:30","09:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":10,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":10},{"PeakFlag":"1","MinHeadwayMins":7,"MaxHeadwayMins":8,"Time":["17:00","19:30"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["23:00","00:00"],"AveMins":14}]},{"LineID":"R","RouteID":"R-3","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":10,"MaxHeadwayMins":12,"Time":["06:00","23:00"],"AveMins":11},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["23:00","00:00"],"AveMins":14}]}],"main":["R-1","R-2"]},{"LineID":"G","LineName":{"Zh_tw":"松山新店線","En":"Songshan-Xindian Line"},"LineColor":"#107547","IsBranch":false,"Route":[{"RouteID":"G-1","Direction":0,"LineID":"G","Stations":["G01","G02","G03","G04","G05","G06","G07","G08","G09","G10","G11","G12","G13","G14","G15","G16","G17","G18","G19"],"TravelTime":{"RunTime":[111,78,75,89,87,119,67,88,83,75,81,75,114,106,92,84,102,138,0],"StopTime":[0,22,25,25,25,25,25,25,25,25,25,35,30,35,35,35,30,30,0]}},{"RouteID":"G-1","Direction":1,"LineID":"G","Stations":["G19","G18","G17","G16","G15","G14","G13","G12","G11","G10","G09","G08","G07","G06","G05","G04","G03","G02","G01"],"TravelTime":{"RunTime":[138,102,84,92,106,114,75,81,75,83,88,67,119,87,89,75,78,111,0],"StopTime":[0,30,30,35,35,35,30,35,25,25,25,25,25,25,25,25,25,22,0]}},{"RouteID":"G-2","Direction":0,"LineID":"G","Stations":["G08","G09","G10","G11","G12","G13","G14","G15","G16","G17","G18","G19"],"TravelTime":{"RunTime":[88,83,75,81,75,114,106,92,84,102,138,0],"StopTime":[0,25,25,25,35,30,35,35,35,30,30,0]}},{"RouteID":"G-2","Direction":1,"LineID":"G","Stations":["G19","G18","G17","G16","G15","G14","G13","G12","G11","G10","G09","G08"],"TravelTime":{"RunTime":[138,102,84,92,106,114,75,81,75,83,88,0],"StopTime":[0,30,30,35,35,35,30,35,25,25,25,0]}},{"RouteID":"G-3","Direction":0,"LineID":"G","Stations":["G03","G03A"],"TravelTime":{"RunTime":[203,0],"StopTime":[0,0]}},{"RouteID":"G-3","Direction":1,"LineID":"G","Stations":["G03A","G03"],"TravelTime":{"RunTime":[203,0],"StopTime":[0,0]}}],"Transfer":[{"FromLineID":"G","FromStationID":"G14","ToLineID":"R","ToStationID":"R11","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"G","FromStationID":"G10","ToLineID":"R","ToStationID":"R08","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G16","ToLineID":"BR","ToStationID":"BR11","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"G","FromStationID":"G15","ToLineID":"O","ToStationID":"O08","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G12","ToLineID":"BL","ToStationID":"BL11","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G09","ToLineID":"O","ToStationID":"O05","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G03","ToLineID":"G","ToStationID":"G03","IsOnSiteTransfer":1,"TransferTime":3}],"Frequency":[{"LineID":"G","RouteID":"G-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","09:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"G","RouteID":"G-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["06:00","07:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":5},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","17:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":5},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["19:30","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"G","RouteID":"G-2","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["06:00","07:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":5},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","17:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":5},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["19:30","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"G","RouteID":"G-2","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","09:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"G","RouteID":"G-3","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":20,"Time":["06:00","00:00"],"AveMins":16}]},{"LineID":"G","RouteID":"G-3","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":20,"Time":["06:00","00:00"],"AveMins":16}]}],"main":["G-1","G-2"]},{"LineID":"O","LineName":{"Zh_tw":"中和新蘆線","En":"Zhonghe-Xinlu Line"},"LineColor":"#f5a818","IsBranch":false,"Route":[{"RouteID":"O-1","Direction":0,"LineID":"O","Stations":["O01","O02","O03","O04","O05","O06","O07","O08","O09","O10","O11","O12","O13","O14","O15","O16","O17","O18","O19","O20","O21"],"TravelTime":{"RunTime":[103,88,100,187,192,118,114,75,89,72,75,115,93,84,142,105,93,130,110,159,0],"StopTime":[0,25,25,25,40,35,35,35,35,35,45,35,25,25,25,25,25,25,25,25,0]}},{"RouteID":"O-1","Direction":1,"LineID":"O","Stations":["O21","O20","O19","O18","O17","O16","O15","O14","O13","O12","O11","O10","O09","O08","O07","O06","O05","O04","O03","O02","O01"],"TravelTime":{"RunTime":[159,110,130,93,105,142,84,93,115,75,72,89,75,114,118,192,187,100,88,103,0],"StopTime":[0,25,25,25,25,25,25,25,25,35,45,35,35,35,35,35,40,25,25,25,0]}},{"RouteID":"O-2","Direction":0,"LineID":"O","Stations":["O01","O02","O03","O04","O05","O06","O07","O08","O09","O10","O11","O12","O50","O51","O52","O53","O54"],"TravelTime":{"RunTime":[103,88,100,187,192,118,114,75,89,72,75,148,104,82,87,110,0],"StopTime":[0,25,25,25,40,35,35,35,35,35,45,35,30,30,30,30,0]}},{"RouteID":"O-2","Direction":1,"LineID":"O","Stations":["O54","O53","O52","O51","O50","O12","O11","O10","O09","O08","O07","O06","O05","O04","O03","O02","O01"],"TravelTime":{"RunTime":[110,87,82,104,148,75,72,89,75,114,118,192,187,100,88,103,0],"StopTime":[0,30,30,30,30,35,45,35,35,35,35,35,40,25,25,25,0]}}],"Transfer":[{"FromLineID":"O","FromStationID":"O11","ToLineID":"R","ToStationID":"R13","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"O","FromStationID":"O06","ToLineID":"R","ToStationID":"R07","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O08","ToLineID":"G","ToStationID":"G15","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O05","ToLineID":"G","ToStationID":"G09","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O12","ToLineID":"O","ToStationID":"O12","IsOnSiteTransfer":1,"TransferTime":1},{"FromLineID":"O","FromStationID":"O07","ToLineID":"BL","ToStationID":"BL14","IsOnSiteTransfer":1,"TransferTime":2}],"Frequency":[{"LineID":"O","RouteID":"O-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["06:00","23:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"O","RouteID":"O-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"O","RouteID":"O-2","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["06:00","23:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"O","RouteID":"O-2","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]}],"main":["O-1","O-2"]},{"LineID":"BL","LineName":{"Zh_tw":"板南線","En":"Bannan Line"},"LineColor":"#0a59ae","IsBranch":false,"Route":[{"RouteID":"BL-1","Direction":0,"LineID":"BL","Stations":["BL01","BL02","BL03","BL04","BL05","BL06","BL07","BL08","BL09","BL10","BL11","BL12","BL13","BL14","BL15","BL16","BL17","BL18","BL19","BL20","BL21","BL22","BL23"],"TravelTime":{"RunTime":[180,95,106,142,92,89,102,74,190,103,132,64,76,84,63,67,72,82,73,99,105,114,0],"StopTime":[0,25,25,25,25,25,25,30,28,28,30,40,30,28,40,28,28,28,25,25,25,25,0]}},{"RouteID":"BL-1","Direction":1,"LineID":"BL","Stations":["BL23","BL22","BL21","BL20","BL19","BL18","BL17","BL16","BL15","BL14","BL13","BL12","BL11","BL10","BL09","BL08","BL07","BL06","BL05","BL04","BL03","BL02","BL01"],"TravelTime":{"RunTime":[114,105,99,73,82,72,67,63,84,76,64,132,103,190,74,102,89,92,142,106,95,180,0],"StopTime":[0,25,25,25,25,28,28,28,40,28,30,40,30,28,28,30,25,25,25,25,25,25,0]}},{"RouteID":"BL-2","Direction":0,"LineID":"BL","Stations":["BL05","BL06","BL07","BL08","BL09","BL10","BL11","BL12","BL13","BL14","BL15","BL16","BL17","BL18","BL19","BL20","BL21","BL22","BL23"],"TravelTime":{"RunTime":[92,89,102,74,190,103,132,64,76,84,63,67,72,82,73,99,105,114,0],"StopTime":[0,25,25,30,28,28,30,40,30,28,40,28,28,28,25,25,25,25,0]}},{"RouteID":"BL-2","Direction":1,"LineID":"BL","Stations":["BL23","BL22","BL21","BL20","BL19","BL18","BL17","BL16","BL15","BL14","BL13","BL12","BL11","BL10","BL09","BL08","BL07","BL06","BL05"],"TravelTime":{"RunTime":[114,105,99,73,82,72,67,63,84,76,64,132,103,190,74,102,89,92,0],"StopTime":[0,25,25,25,25,28,28,28,40,28,30,40,30,28,28,30,25,25,0]}}],"Transfer":[{"FromLineID":"BL","FromStationID":"BL12","ToLineID":"R","ToStationID":"R10","IsOnSiteTransfer":1,"TransferTime":4},{"FromLineID":"BL","FromStationID":"BL11","ToLineID":"G","ToStationID":"G12","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"BL","FromStationID":"BL14","ToLineID":"O","ToStationID":"O07","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"BL","FromStationID":"BL23","ToLineID":"BR","ToStationID":"BR24","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BL","FromStationID":"BL15","ToLineID":"BR","ToStationID":"BR10","IsOnSiteTransfer":1,"TransferTime":5}],"Frequency":[{"LineID":"BL","RouteID":"BL-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10}]},{"LineID":"BL","RouteID":"BL-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":8,"Time":["06:00","09:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":9,"Time":["09:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10}]},{"LineID":"BL","RouteID":"BL-2","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":8,"Time":["06:00","09:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":9,"Time":["09:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10}]},{"LineID":"BL","RouteID":"BL-2","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10}]}],"main":["BL-1","BL-2"]}];
@@ -7392,6 +9191,122 @@
 
   tra$1.v3.getFromToFare = tra$1.v3._ODFareFromTo; //alias
 
+  var router = {};
+
+  function blockMRTLineStation(company) {
+    var mDataX = datax[company];
+    if (mDataX.block) return mDataX.block;
+    var aryBlock = [];
+    mDataX.line.forEach(function (line) {
+      var afterStation = [];
+      var transferStation = line.Transfer.map(function (c) {
+        return c.FromStationID;
+      });
+      var aryLinieBlock = [];
+      var LineID = line.LineID;
+      line.Route.forEach(function (route) {
+        var tmpSt = [];
+
+        if (route.Direction == 0) {
+          route.Stations.forEach(function (st) {
+            if (afterStation.indexOf(st) == -1) {
+              afterStation.push(st);
+
+              if (transferStation.indexOf(st) == -1) {
+                tmpSt.push(st);
+              } else {
+                if (tmpSt.length > 0) aryLinieBlock.push({
+                  BlockID: LineID + '_' + (aryLinieBlock.length + 1),
+                  LineID: LineID,
+                  station: tmpSt
+                });
+                tmpSt = [];
+                var transSt = line.Transfer.find(function (c) {
+                  return !!(c.FromStationID == st);
+                });
+                var tst = {
+                  BlockID: LineID + '_' + (aryLinieBlock.length + 1),
+                  LineID: LineID,
+                  station: transSt.FromStationID,
+                  transfer: transSt
+                };
+                var transStation1 = id.trtc.getRPIDbyPTXV2(transSt.FromStationID),
+                    transLine1 = id.trtc.getLINE_RPIDbyLineID(transSt.FromLineID),
+                    transLine2 = id.trtc.getLINE_RPIDbyLineID(transSt.ToLineID),
+                    transStation2 = id.trtc.getRPIDbyPTXV2(transSt.ToStationID);
+                var transStation = pData.transStation.find(function (c) {
+                  var flg = false;
+
+                  if (c.changeLine[0] == transLine1 && c.changeLine[1] == transLine2 || c.changeLine[0] == transLine2 && c.changeLine[1] == transLine1) {
+                    if (c.changeStation[0] == transStation1 && c.changeStation[1] == transStation2 || c.changeStation[0] == transStation2 && c.changeStation[1] == transStation1) flg = true;
+                  }
+
+                  return flg;
+                });
+                if (transStation) tst.transStation = transStation;
+                aryLinieBlock.push(tst);
+              }
+            }
+          });
+        }
+
+        if (tmpSt.length > 0) aryLinieBlock.push({
+          BlockID: LineID + '_' + (aryLinieBlock.length + 1),
+          LineID: LineID,
+          type: 'station',
+          station: tmpSt
+        });
+      });
+      aryBlock.push(aryLinieBlock);
+    });
+    mDataX.block = aryBlock;
+    return aryBlock;
+  }
+
+  var trtc$1 = function () {
+    var company = 'trtc';
+    var mrt = {};
+
+    mrt.getBlockData = function () {
+      return blockMRTLineStation(company);
+    };
+
+    return mrt;
+  }();
+
+  var krtc = function () {
+    var company = 'krtc';
+    var mrt = {};
+
+    mrt.getBlockData = function () {
+      return blockMRTLineStation(company);
+    };
+
+    return mrt;
+  }();
+
+  var tymetro$1 = function () {
+    var company = 'tymetro';
+    var mrt = {};
+
+    mrt.getBlockData = function () {
+      return blockMRTLineStation(company);
+    };
+
+    return mrt;
+  }();
+
+  var router$1 = {
+    trtc: trtc$1,
+    krtc: krtc,
+    tymetro: tymetro$1
+  };
+
+  var router$2 = {
+    v1: router,
+    v2: router$1
+  };
+
   var inBrowser = CM.inBrowser;
   var combine = {
     data: pData,
@@ -7404,6 +9319,7 @@
     klrt: fnMRT$3,
     thsr: thsr,
     tra: tra$1,
+    router: router$2,
     jsSHA: jsSHA,
     id: id,
     common: CM

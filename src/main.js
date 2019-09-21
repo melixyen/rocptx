@@ -10,6 +10,7 @@ import tymetro from './tymetro.js';
 import klrt from './klrt.js';
 import thsr from './thsr.js';
 import tra from './tra.js';
+import router from './router.js';
 import jsSHA from './jsSHA';
 import id from './id';
 
@@ -28,6 +29,7 @@ var combine = {
 	klrt: klrt,
 	thsr: thsr,
 	tra: tra,
+	router: router,
 	jsSHA: jsSHA,
 	id: id,
 	common: common
