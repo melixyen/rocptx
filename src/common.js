@@ -6,6 +6,8 @@ var CM = {
         '30','31','32','33','34','35','36','37','38','39','40','41','42','43','44','45','46','47','48','49','50','51','52','53','54','55','56','57','58','59'],
     weekStringAry: ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'],
     inBrowser: !!(typeof(window)!='undefined' && window.document),
+    assign: function(objA, objB){for(var k in objB){objA[k] = objB[k];}; return objA;},
+    assignIf: function(objA, objB){for(var k in objB){if(!objA[k]){objA[k] = objB[k];}}; return objA;},
     clone: function(objA){return JSON.parse(JSON.stringify(objA));},
     findArrayTarget: function(ary, testFn){
         for(var i=0; i<ary.length; i++){

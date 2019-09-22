@@ -1,6 +1,15 @@
 
 import pData from './data.js';
 
+//====================== ID 提取 ==============================
+
+function getMRTStationIDInWhatLine(StatioinID){
+    if(/^[a-zA-Z]{1}\d{2}/gi.test(StatioinID)){
+        return StatioinID.substr(0,1);
+    }else if(/^[a-zA-Z]{2}\d{2}/gi.test(StatioinID)){
+        return StatioinID.substr(0,2);
+    }
+}
 
 //====================== ID 轉換 ==============================
 
@@ -196,7 +205,8 @@ let id = {
     thsr: thsr,
     tra: tra,
     trtc: trtc,
-    tymetro: tymetro
+    tymetro: tymetro,
+    getMRTStationIDInWhatLine: getMRTStationIDInWhatLine
 }
 
 
