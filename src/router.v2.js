@@ -138,29 +138,74 @@ function getStationBlockByID(station){
     let blockData = this.getBlockData();
     let aryBlock = blockData.reduce((c, n)=>c.concat(n), []);
     for(var i=0; i<aryBlock.length; i++){
-        if(aryBlock[i].transer){
+        if(aryBlock[i].type=='transfer' || typeof(aryBlock[i].station)=='string'){
             if(aryBlock[i].station==station) return aryBlock[i];
         }else{
             if(aryBlock[i].station.indexOf(station)!=-1) return aryBlock[i];
         }
     }
 }
+function findBlock(BlockID){
+    let blockData = this.getBlockData();
+    let aryBlock = blockData.reduce((c, n)=>c.concat(n), []);
+    for(var i=0; i<aryBlock.length; i++){
+        if(aryBlock[i].BlockID==BlockID) return aryBlock[i];
+    }
+}
 
 function getAllLineRoute(from, to, maxCnt=5){
-    // var blockData = this.getBlockData();
-    // var fromObj = this.getStationBlockByID(from);
-    // var toObj = this.getStationBlockByID(to);
-    // var cnt = 0;
-    // var travel = [];
-    // var alreadyBlock = {};
-    // if(fromObj.BlockID==toObj.BlockID){
-    //     travel.push([fromObj.BlockID]);
-    // }else{
-    //     //1.指定站 BlockID出發，往陣列前後或本身是轉乘站的話往外路線查
-    //     //2.不走回頭路，查找到走過的 BlockID 就結束該條路徑
-        
-    // }
-    // return travel;
+    var me = this;
+    var fromObj = this.getStationBlockByID(from);
+    var toObj = this.getStationBlockByID(to);
+    var cnt = 0;
+    var travel = [];
+    if(fromObj.BlockID==toObj.BlockID){
+        travel.push([fromObj.BlockID]);
+    }else{
+        //1.指定站 BlockID出發，往陣列前後或本身是轉乘站的話往外路線查
+        //2.不走回頭路，查找到走過的 BlockID 就結束該條路徑
+        //3.當任一路線從 from 走到 to 後加入 travel 成為一條 route
+        var fullRoute = [[fromObj.BlockID]];
+        var bObj, linkTarget;
+        while(cnt < maxCnt){
+            var tmpRouteAry = [];
+            fullRoute.map(function(stAry){
+                var nowID = stAry[stAry.length-1];
+                linkTarget = [];
+                bObj = me.findBlock(nowID);
+                bObj.near.map(function(near){
+                    if(stAry.indexOf(near)==-1){
+                        linkTarget.push(near);
+                        if(near==toObj.BlockID){
+                            cnt++;
+                            travel.push(stAry.concat([near]));
+                        }
+                    }
+                })
+                if(bObj.toIDList){
+                    bObj.toIDList.map(function(trans){
+                        var tmpBlockID = me.getStationBlockByID(trans).BlockID;
+                        if(stAry.indexOf(tmpBlockID)==-1){
+                            linkTarget.push(tmpBlockID);
+                            if(tmpBlockID==toObj.BlockID){
+                                cnt++;
+                                travel.push(stAry.concat([tmpBlockID]));
+                            }
+                        }
+                    })
+                }
+                linkTarget.map(function(blockID){
+                    tmpRouteAry.push(stAry.concat([blockID]));
+                })
+            })
+            fullRoute = tmpRouteAry;
+        }
+    }
+    return travel.map((ary)=>{
+        return ary.map((c)=>{
+            return this.findBlock(c);
+        })
+    });
 }
 
 function baseMRT(company){
@@ -169,6 +214,7 @@ function baseMRT(company){
     mrt.getBlockData = ()=>blockMRTLineStation(company);
     mrt.getAllLineRoute = getAllLineRoute.bind(mrt);
     mrt.getStationBlockByID = getStationBlockByID.bind(mrt);
+    mrt.findBlock = findBlock.bind(mrt);
 
     return mrt;
 }
