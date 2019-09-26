@@ -145,14 +145,19 @@ function getStationBlockByID(station){
         }
     }
 }
+var findMapBlock = {};
 function findBlock(BlockID){
+    if(findMapBlock[BlockID]) return findMapBlock[BlockID];
     let blockData = this.getBlockData();
     let aryBlock = blockData.reduce((c, n)=>c.concat(n), []);
     for(var i=0; i<aryBlock.length; i++){
-        if(aryBlock[i].BlockID==BlockID) return aryBlock[i];
+        if(aryBlock[i].BlockID==BlockID){
+            findMapBlock[BlockID] = aryBlock[i];
+            return aryBlock[i];
+        }
     }
 }
-
+s
 function getAllLineRoute(from, to, maxCnt=5){
     var me = this;
     var fromObj = this.getStationBlockByID(from);
@@ -200,6 +205,27 @@ function getAllLineRoute(from, to, maxCnt=5){
             })
             fullRoute = tmpRouteAry;
         }
+        //4.路線重覆經過同一車站但不同路線視為迂迴要過濾掉不採用
+        travel = travel.filter(function(blockAry){
+            let rt = true;
+            let already = [], overLine = [];
+            blockAry.forEach((c)=>{
+                c = me.findBlock(c);
+                if(c.type=='transfer'){
+                    let stidx = already.indexOf(c.station);
+                    if(stidx!=-1 && stidx!=already.length-1){
+                        rt = false;
+                    }else{
+                        already = already.concat(c.toIDList);
+                    }
+                }else{
+                    already = already.concat(c.station);
+                }
+                if(overLine[overLine.length-1]!=c.LineID) overLine.push(c.LineID);
+            })
+            if(overLine.length>3) rt = false;// 最多只搭三條線，轉乘兩次，超過就濾掉
+            return rt;
+        })
     }
     return travel.map((ary)=>{
         return ary.map((c)=>{
