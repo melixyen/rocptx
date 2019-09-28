@@ -3,6 +3,21 @@ import common from './common.js';
 import pData from './data.js';
 import dataX from './datax.js';
 import idFn from './id';
+import ptx_trtc from './trtc.js';
+import ptx_krtc from './krtc.js';
+import ptx_tymetro from './tymetro.js';
+// import ptx_klrt from './klrt.js';
+// import ptx_thsr from './thsr.js';
+// import ptx_tra from './tra.js';
+
+const ptxFn = {
+    trtc: ptx_trtc,
+    krtc: ptx_krtc,
+    tymetro: ptx_tymetro
+    // klrt: ptx_klrt,
+    // thsr: ptx_thsr,
+    // tra: ptx_tra
+}
 
 //=========== MRT Router Function ==========
 function findMRTpDataTransStation(company, FromStationID, ToStationID){
@@ -181,6 +196,7 @@ function getAllLineRoute(from, to, maxCnt=5){
     var me = this;
     var fromObj = this.getStationBlockByID(from);
     var toObj = this.getStationBlockByID(to);
+    if(!fromObj || !toObj) return [];
     var cnt = 0;
     var travel = [];
     if(fromObj.BlockID==toObj.BlockID){
@@ -257,7 +273,7 @@ function getAllLineRoute(from, to, maxCnt=5){
                 let nextSt = (typeof(nextBk.station)=='string') ? nextBk.station : nextBk.station[0];
                 if(idx==arr.length-2) nextSt = to;
                 if(!startStation) startStation = mySt;
-                let tmpRoute = me.getMRTThrough(startStation, nextSt);
+                var tmpRoute = me.getMRTThrough(startStation, nextSt);
                 if(tmpRoute){
                     var lastMainRoute = mainRoute[mainRoute.length -1];
                     if(lastMainRoute && lastMainRoute.Stations[0]==tmpRoute.Stations[0]){
@@ -268,6 +284,9 @@ function getAllLineRoute(from, to, maxCnt=5){
                 }else{
                     startStation = false;
                 }
+            }else if(arr.length==1){
+                var tmpRoute = me.getMRTThrough(from, to);
+                if(tmpRoute) mainRoute.push(tmpRoute);
             }else{
                 var lastMainRoute = mainRoute[mainRoute.length -1];
                 var tmpA = true;
@@ -282,21 +301,49 @@ function getAllLineRoute(from, to, maxCnt=5){
             return bk;
         })
 
+        //組合有包括轉乘站的 travelRoute
+        let travelRoute = [];
+        mainRoute.forEach((route, idx, arr)=>{
+            if(idx==0 && from!=route.Stations[0]){
+                var transSt = me.findTransfer(from, route.Stations[0]);
+                if(transSt) travelRoute.push(transSt);
+            }
+            travelRoute.push(route);
+            if(arr[idx+1]){
+                var transSt = me.findTransfer(route.Stations.slice(-1)[0], arr[idx+1].Stations[0]);
+                if(transSt) travelRoute.push(transSt);
+            }
+            if(idx==arr.length-1 && to!=route.Stations[route.Stations.length-1]){
+                var transSt = me.findTransfer(route.Stations[route.Stations.length-1], to);
+                if(transSt) travelRoute.push(transSt);
+            }
+        })
+
         return {
             block: blockRoute,
-            route: mainRoute
+            route: mainRoute,
+            travelRoute: travelRoute
         }
     });
 }
 
 function baseMRT(company){
     let mrt = {company:company}
+    mrt.dataX = dataX[company];
 
     mrt.getBlockData = ()=>blockMRTLineStation(company);
     mrt.getAllLineRoute = getAllLineRoute.bind(mrt);
     mrt.getStationBlockByID = getStationBlockByID.bind(mrt);
     mrt.findBlock = findBlock.bind(mrt);
     mrt.getMRTThrough = getMRTThrough.bind(mrt);
+
+    mrt.findTransfer = (from, to)=>{
+        let LineID = ptxFn[company].getStationIDInWhatLine(from);
+        let transferList = ptxFn[company].catchData.getDataXTransferOfLine(LineID);
+        return transferList.find(function(c){
+            return c.FromStationID==from && c.ToStationID==to;
+        });
+    }
 
     return mrt;
 }
