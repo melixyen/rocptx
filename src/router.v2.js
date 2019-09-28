@@ -22,18 +22,14 @@ function findMRTpDataTransStation(company, FromStationID, ToStationID){
     return transStation;
 }
 
-function findMRTnearBlock(blockData, blockStation){
-    let rt = [];
-    if(blockStation.transferList){
-        //是轉乘站，要找別線
-        blockData.forEach(arr=>{
-            for(var i=0; i<arr.length; i++){
-                if(arr[i].toIDList.indexOf(blockStation.station)!=-1){
-                    rt.push(arr[i]);
-                }
-            }
-        })
-    }
+function checkHasSameMRTRoute(a, b){
+    let rt = false;
+    a = (typeof(a)=='string') ? [a] : a;
+    b = (typeof(a)=='string') ? [b] : b;
+    a.forEach((c)=>{
+        if(b.indexOf(c)!=-1) rt = true;
+    })
+    return rt;
 }
 
 function blockMRTLineStation(company){
@@ -145,6 +141,29 @@ function getStationBlockByID(station){
         }
     }
 }
+function getMRTThrough(from, to){
+    let LineID = idFn.getMRTStationIDInWhatLine(from),
+        ToLineID = idFn.getMRTStationIDInWhatLine(to);
+    if(LineID != ToLineID) return false;
+    let mDataX = dataX[this.company];
+    let line = mDataX.line.find(function(c){
+        return c.LineID==LineID;
+    })
+    let rt = {RouteID: []};
+    line.Route.forEach((route)=>{
+        let a = route.Stations.indexOf(from), b = route.Stations.indexOf(to);
+        if(a!=-1 && b!=-1 && a<b){
+            rt.Direction = route.Direction;
+            rt.RouteID.push(route.RouteID);
+            rt.Stations = route.Stations.filter((st, idx)=>{
+                return !!(idx >= a && idx <= b);
+            })
+        }
+    })
+    if(rt.RouteID.length==0) rt = false;
+    return rt;
+}
+
 var findMapBlock = {};
 function findBlock(BlockID){
     if(findMapBlock[BlockID]) return findMapBlock[BlockID];
@@ -153,7 +172,7 @@ function findBlock(BlockID){
     for(var i=0; i<aryBlock.length; i++){
         if(aryBlock[i].BlockID==BlockID){
             findMapBlock[BlockID] = aryBlock[i];
-            return aryBlock[i];
+            return common.assign({},aryBlock[i]);
         }
     }
 }
@@ -223,14 +242,50 @@ function getAllLineRoute(from, to, maxCnt=5){
                 }
                 if(overLine[overLine.length-1]!=c.LineID) overLine.push(c.LineID);
             })
-            if(overLine.length>3) rt = false;// 最多只搭三條線，轉乘兩次，超過就濾掉
+            //if(overLine.length>3) rt = false;// 最多只搭三條線，轉乘兩次，超過就濾掉
             return rt;
         })
     }
     return travel.map((ary)=>{
-        return ary.map((c)=>{
-            return this.findBlock(c);
+        let mainRoute = [], startStation = false;
+        let blockRoute = ary.map((c, idx, arr)=>{
+            let bk = this.findBlock(c);
+            if(arr[idx+1]){
+                let nextBk = this.findBlock(arr[idx+1]);
+                let mySt = (typeof(bk.station)=='string') ? bk.station : bk.station[0];
+                if(idx==0) mySt = from;
+                let nextSt = (typeof(nextBk.station)=='string') ? nextBk.station : nextBk.station[0];
+                if(idx==arr.length-2) nextSt = to;
+                if(!startStation) startStation = mySt;
+                let tmpRoute = me.getMRTThrough(startStation, nextSt);
+                if(tmpRoute){
+                    var lastMainRoute = mainRoute[mainRoute.length -1];
+                    if(lastMainRoute && lastMainRoute.Stations[0]==tmpRoute.Stations[0]){
+                        mainRoute[mainRoute.length -1] = tmpRoute;
+                    }else{
+                        mainRoute.push(tmpRoute);
+                    }
+                }else{
+                    startStation = false;
+                }
+            }else{
+                var lastMainRoute = mainRoute[mainRoute.length -1];
+                var tmpA = true;
+                lastMainRoute.Stations = lastMainRoute.Stations.filter((st)=>{
+                    if(tmpA){
+                        if(st==to) tmpA = false;
+                        return true;
+                    }
+                    return false;
+                })
+            }
+            return bk;
         })
+
+        return {
+            block: blockRoute,
+            route: mainRoute
+        }
     });
 }
 
@@ -241,6 +296,7 @@ function baseMRT(company){
     mrt.getAllLineRoute = getAllLineRoute.bind(mrt);
     mrt.getStationBlockByID = getStationBlockByID.bind(mrt);
     mrt.findBlock = findBlock.bind(mrt);
+    mrt.getMRTThrough = getMRTThrough.bind(mrt);
 
     return mrt;
 }
