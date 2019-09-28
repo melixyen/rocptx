@@ -192,7 +192,7 @@ function findBlock(BlockID){
     }
 }
 s
-function getAllLineRoute(from, to, maxCnt=5){
+function getAllLineRoute(from, to, maxCnt=100){
     var me = this;
     var fromObj = this.getStationBlockByID(from);
     var toObj = this.getStationBlockByID(to);
@@ -207,8 +207,9 @@ function getAllLineRoute(from, to, maxCnt=5){
         //3.當任一路線從 from 走到 to 後加入 travel 成為一條 route
         var fullRoute = [[fromObj.BlockID]];
         var bObj, linkTarget;
-        while(cnt < maxCnt){
+        while(cnt < maxCnt && travel.length<20){
             var tmpRouteAry = [];
+            cnt++;
             fullRoute.map(function(stAry){
                 var nowID = stAry[stAry.length-1];
                 linkTarget = [];
@@ -217,7 +218,7 @@ function getAllLineRoute(from, to, maxCnt=5){
                     if(stAry.indexOf(near)==-1){
                         linkTarget.push(near);
                         if(near==toObj.BlockID){
-                            cnt++;
+                            cnt++
                             travel.push(stAry.concat([near]));
                         }
                     }
@@ -228,7 +229,7 @@ function getAllLineRoute(from, to, maxCnt=5){
                         if(stAry.indexOf(tmpBlockID)==-1){
                             linkTarget.push(tmpBlockID);
                             if(tmpBlockID==toObj.BlockID){
-                                cnt++;
+                                cnt++
                                 travel.push(stAry.concat([tmpBlockID]));
                             }
                         }
@@ -274,6 +275,8 @@ function getAllLineRoute(from, to, maxCnt=5){
                 if(idx==arr.length-2) nextSt = to;
                 if(!startStation) startStation = mySt;
                 var tmpRoute = me.getMRTThrough(startStation, nextSt);
+                var isSameLineTrans = (bk.type=='transfer' && bk.toIDList.indexOf(bk.station!=-1) && ptxFn.trtc.getStationIDInWhatLine(mySt)==ptxFn.trtc.getStationIDInWhatLine(nextSt));
+
                 if(tmpRoute){
                     var lastMainRoute = mainRoute[mainRoute.length -1];
                     if(lastMainRoute && lastMainRoute.Stations[0]==tmpRoute.Stations[0]){
@@ -283,7 +286,14 @@ function getAllLineRoute(from, to, maxCnt=5){
                     }
                 }else{
                     startStation = false;
+                    if(isSameLineTrans){
+                        startStation = mySt;
+                        tmpRoute = me.getMRTThrough(startStation, nextSt);
+                        mainRoute.push(tmpRoute);
+                    }
                 }
+                //同線轉乘站的處理
+                
             }else if(arr.length==1){
                 var tmpRoute = me.getMRTThrough(from, to);
                 if(tmpRoute) mainRoute.push(tmpRoute);
@@ -302,7 +312,7 @@ function getAllLineRoute(from, to, maxCnt=5){
         })
 
         //組合有包括轉乘站的 travelRoute
-        let travelRoute = [];
+        let travelRoute = [], station = [];
         mainRoute.forEach((route, idx, arr)=>{
             if(idx==0 && from!=route.Stations[0]){
                 var transSt = me.findTransfer(from, route.Stations[0]);
@@ -317,13 +327,26 @@ function getAllLineRoute(from, to, maxCnt=5){
                 var transSt = me.findTransfer(route.Stations[route.Stations.length-1], to);
                 if(transSt) travelRoute.push(transSt);
             }
+            station = station.concat(route.Stations);
         })
+        station = station.filter((c,idx,arr)=>arr.indexOf(c)==idx);
+        let travelStation = station.slice();
+        if(travelStation[0]!=from) travelStation.splice(0,0,from);
+        if(travelStation[travelStation.length-1]!=to) travelStation.push(to);
 
         return {
             block: blockRoute,
+            station: station,
+            travelStation: travelStation,
             route: mainRoute,
             travelRoute: travelRoute
         }
+    }).sort((a,b)=>{
+        var rt = (a.route.length>b.route.length) ? 1 : -1;
+        if(a.route.length==b.route.length){
+            rt = (a.station.length>b.station.length) ? 1 : -1;
+        }
+        return rt;
     });
 }
 

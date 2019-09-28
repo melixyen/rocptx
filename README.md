@@ -477,6 +477,29 @@ rocptx.tra.v3Sv2("7000"); //回應 "1715"
 
 ```
 
+# router
+
+rocptx.router 下提供交通運具路網轉乘功能路由查詢
+
+## v2
+
+#### MRT (trtc / krtc 等)
+
+使用 PTX 捷運系統車站 ID (rocptx id 可透過 getPTXV2 function 取得車站 ID) 查詢兩站間的轉乘路由
+```javascript
+rocptx.router.v2.trtc.getAllLineRoute('R22A','BR24')
+```
+
+#### 方法
+
+Name | Method | Description
+-----|------|-------------
+getAllLineRoute | getAllLineRoute(from, to) | 用 rocptx id 找起站(from)至目的地(to) 間走法
+getBlockData | getBlockData() | 取得捷運路網一般站與轉乘站區塊化資料
+getStationBlockByID | getStationBlockByID(StationID) | 取得車站所屬區塊資料
+getMRTThrough | getMRTThrough(from, to) | 取得同線同 RouteID 時兩站間的方向與經過車站資料
+
+
 # id 轉換工具
 
 rocptx.id 下依照各營運公司不同而有不同 id 轉換工具

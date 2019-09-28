@@ -9217,6 +9217,19 @@
 
   var router = {};
 
+  // import ptx_thsr from './thsr.js';
+  // import ptx_tra from './tra.js';
+
+  var ptxFn = {
+    trtc: fnMRT,
+    krtc: fnMRT$1,
+    tymetro: fnMRT$2 // klrt: ptx_klrt,
+    // thsr: ptx_thsr,
+    // tra: ptx_tra
+    //=========== MRT Router Function ==========
+
+  };
+
   function findMRTpDataTransStation(company, FromStationID, ToStationID) {
     var FromLineID = id.getMRTStationIDInWhatLine(FromStationID),
         ToLineID = id.getMRTStationIDInWhatLine(ToStationID);
@@ -9386,24 +9399,58 @@
     }
   }
 
+  function getMRTThrough(from, to) {
+    var LineID = id.getMRTStationIDInWhatLine(from),
+        ToLineID = id.getMRTStationIDInWhatLine(to);
+    if (LineID != ToLineID) return false;
+    var mDataX = datax[this.company];
+    var line = mDataX.line.find(function (c) {
+      return c.LineID == LineID;
+    });
+    var rt = {
+      RouteID: []
+    };
+    line.Route.forEach(function (route) {
+      var a = route.Stations.indexOf(from),
+          b = route.Stations.indexOf(to);
+
+      if (a != -1 && b != -1 && a < b) {
+        rt.Direction = route.Direction;
+        rt.RouteID.push(route.RouteID);
+        rt.Stations = route.Stations.filter(function (st, idx) {
+          return !!(idx >= a && idx <= b);
+        });
+      }
+    });
+    if (rt.RouteID.length == 0) rt = false;
+    return rt;
+  }
+
+  var findMapBlock = {};
+
   function findBlock(BlockID) {
+    if (findMapBlock[BlockID]) return findMapBlock[BlockID];
     var blockData = this.getBlockData();
     var aryBlock = blockData.reduce(function (c, n) {
       return c.concat(n);
     }, []);
 
     for (var i = 0; i < aryBlock.length; i++) {
-      if (aryBlock[i].BlockID == BlockID) return aryBlock[i];
+      if (aryBlock[i].BlockID == BlockID) {
+        findMapBlock[BlockID] = aryBlock[i];
+        return CM.assign({}, aryBlock[i]);
+      }
     }
   }
 
   function getAllLineRoute(from, to) {
     var _this = this;
 
-    var maxCnt = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 5;
+    var maxCnt = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 100;
     var me = this;
     var fromObj = this.getStationBlockByID(from);
     var toObj = this.getStationBlockByID(to);
+    if (!fromObj || !toObj) return [];
     var cnt = 0;
     var travel = [];
 
@@ -9416,8 +9463,9 @@
       var fullRoute = [[fromObj.BlockID]];
       var bObj, linkTarget;
 
-      while (cnt < maxCnt) {
+      while (cnt < maxCnt && travel.length < 20) {
         var tmpRouteAry = [];
+        cnt++;
         fullRoute.map(function (stAry) {
           var nowID = stAry[stAry.length - 1];
           linkTarget = [];
@@ -9453,13 +9501,132 @@
           });
         });
         fullRoute = tmpRouteAry;
-      }
+      } //4.路線重覆經過同一車站但不同路線視為迂迴要過濾掉不採用
+
+
+      travel = travel.filter(function (blockAry) {
+        var rt = true;
+        var already = [],
+            overLine = [];
+        blockAry.forEach(function (c) {
+          c = me.findBlock(c);
+
+          if (c.type == 'transfer') {
+            var stidx = already.indexOf(c.station);
+
+            if (stidx != -1 && stidx != already.length - 1) {
+              rt = false;
+            } else {
+              already = already.concat(c.toIDList);
+            }
+          } else {
+            already = already.concat(c.station);
+          }
+
+          if (overLine[overLine.length - 1] != c.LineID) overLine.push(c.LineID);
+        }); //if(overLine.length>3) rt = false;// 最多只搭三條線，轉乘兩次，超過就濾掉
+
+        return rt;
+      });
     }
 
     return travel.map(function (ary) {
-      return ary.map(function (c) {
-        return _this.findBlock(c);
+      var mainRoute = [],
+          startStation = false;
+      var blockRoute = ary.map(function (c, idx, arr) {
+        var bk = _this.findBlock(c);
+
+        if (arr[idx + 1]) {
+          var nextBk = _this.findBlock(arr[idx + 1]);
+
+          var mySt = typeof bk.station == 'string' ? bk.station : bk.station[0];
+          if (idx == 0) mySt = from;
+          var nextSt = typeof nextBk.station == 'string' ? nextBk.station : nextBk.station[0];
+          if (idx == arr.length - 2) nextSt = to;
+          if (!startStation) startStation = mySt;
+          var tmpRoute = me.getMRTThrough(startStation, nextSt);
+          var isSameLineTrans = bk.type == 'transfer' && bk.toIDList.indexOf(bk.station != -1) && ptxFn.trtc.getStationIDInWhatLine(mySt) == ptxFn.trtc.getStationIDInWhatLine(nextSt);
+
+          if (tmpRoute) {
+            var lastMainRoute = mainRoute[mainRoute.length - 1];
+
+            if (lastMainRoute && lastMainRoute.Stations[0] == tmpRoute.Stations[0]) {
+              mainRoute[mainRoute.length - 1] = tmpRoute;
+            } else {
+              mainRoute.push(tmpRoute);
+            }
+          } else {
+            startStation = false;
+
+            if (isSameLineTrans) {
+              startStation = mySt;
+              tmpRoute = me.getMRTThrough(startStation, nextSt);
+              mainRoute.push(tmpRoute);
+            }
+          } //同線轉乘站的處理
+
+        } else if (arr.length == 1) {
+          var tmpRoute = me.getMRTThrough(from, to);
+          if (tmpRoute) mainRoute.push(tmpRoute);
+        } else {
+          var lastMainRoute = mainRoute[mainRoute.length - 1];
+          var tmpA = true;
+          lastMainRoute.Stations = lastMainRoute.Stations.filter(function (st) {
+            if (tmpA) {
+              if (st == to) tmpA = false;
+              return true;
+            }
+
+            return false;
+          });
+        }
+
+        return bk;
+      }); //組合有包括轉乘站的 travelRoute
+
+      var travelRoute = [],
+          station = [];
+      mainRoute.forEach(function (route, idx, arr) {
+        if (idx == 0 && from != route.Stations[0]) {
+          var transSt = me.findTransfer(from, route.Stations[0]);
+          if (transSt) travelRoute.push(transSt);
+        }
+
+        travelRoute.push(route);
+
+        if (arr[idx + 1]) {
+          var transSt = me.findTransfer(route.Stations.slice(-1)[0], arr[idx + 1].Stations[0]);
+          if (transSt) travelRoute.push(transSt);
+        }
+
+        if (idx == arr.length - 1 && to != route.Stations[route.Stations.length - 1]) {
+          var transSt = me.findTransfer(route.Stations[route.Stations.length - 1], to);
+          if (transSt) travelRoute.push(transSt);
+        }
+
+        station = station.concat(route.Stations);
       });
+      station = station.filter(function (c, idx, arr) {
+        return arr.indexOf(c) == idx;
+      });
+      var travelStation = station.slice();
+      if (travelStation[0] != from) travelStation.splice(0, 0, from);
+      if (travelStation[travelStation.length - 1] != to) travelStation.push(to);
+      return {
+        block: blockRoute,
+        station: station,
+        travelStation: travelStation,
+        route: mainRoute,
+        travelRoute: travelRoute
+      };
+    }).sort(function (a, b) {
+      var rt = a.route.length > b.route.length ? 1 : -1;
+
+      if (a.route.length == b.route.length) {
+        rt = a.station.length > b.station.length ? 1 : -1;
+      }
+
+      return rt;
     });
   }
 
@@ -9467,6 +9634,7 @@
     var mrt = {
       company: company
     };
+    mrt.dataX = datax[company];
 
     mrt.getBlockData = function () {
       return blockMRTLineStation(company);
@@ -9475,6 +9643,16 @@
     mrt.getAllLineRoute = getAllLineRoute.bind(mrt);
     mrt.getStationBlockByID = getStationBlockByID.bind(mrt);
     mrt.findBlock = findBlock.bind(mrt);
+    mrt.getMRTThrough = getMRTThrough.bind(mrt);
+
+    mrt.findTransfer = function (from, to) {
+      var LineID = ptxFn[company].getStationIDInWhatLine(from);
+      var transferList = ptxFn[company].catchData.getDataXTransferOfLine(LineID);
+      return transferList.find(function (c) {
+        return c.FromStationID == from && c.ToStationID == to;
+      });
+    };
+
     return mrt;
   }
 
