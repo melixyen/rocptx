@@ -19,6 +19,22 @@ const ptxFn = {
     // tra: ptx_tra
 }
 
+//動態加入機捷用的 Transfer
+dataX.tymetro.line.forEach((line)=>{
+    if(line.LineID=='A' && line.Transfer.length==0){
+        line.Transfer.push({
+            FromLineID: "A",
+            FromStationID: "A8",
+            IsOnSiteTransfer: 1,
+            IsTrainTypeTransfer: true,
+            TrainType: ['TrainType1','TrainType2'],
+            ToLineID: "A",
+            ToStationID: "A8",
+            TransferTime: 2
+        })
+    }
+})
+
 //=========== MRT Router Function ==========
 function findMRTpDataTransStation(company, FromStationID, ToStationID){
     let FromLineID = idFn.getMRTStationIDInWhatLine(FromStationID),
