@@ -6619,6 +6619,45 @@
         var r = lineObj.Route[0].Stations;
         return [r[0], r[r.length - 1]];
       },
+      getDataXS2STravelTime: function getDataXS2STravelTime(fromID, toID, TrainType) {
+        var LineID = getStationOnWhatLineID(fromID);
+        var lineObj = catchData.getDataXLineObj(LineID);
+        var fidx = 0,
+            tidx = 0;
+        var routeData = lineObj.Route.find(function (c) {
+          fidx = c.Stations.indexOf(fromID);
+          tidx = c.Stations.indexOf(toID);
+          return fidx != -1 && tidx != -1 && fidx < tidx;
+        });
+        var rt = false;
+
+        if (routeData) {
+          var aryA = [];
+
+          if (routeData.TravelTime && routeData.TravelTime.RunTime) {
+            for (var i = fidx; i < tidx; i++) {
+              aryA.push({
+                from: routeData.Stations[i],
+                to: routeData.Stations[i + 1],
+                RunTime: routeData.TravelTime.RunTime[i],
+                StopTime: i > fidx && routeData.TravelTime.StopTime ? routeData.TravelTime.StopTime[i] : 0
+              });
+            }
+
+            rt = {
+              list: aryA,
+              sec: aryA.reduce(function (val, ac) {
+                return val + ac.RunTime + ac.StopTime;
+              }, 0)
+            };
+            rt.min = Math.ceil(rt.sec / 60);
+          } else if (routeData.TravelTimeBetween) {
+            console.log('TYMetro need rewrite metro.js >> getDataXS2STravelTime()');
+          }
+        }
+
+        return rt;
+      },
       getDataXStationData: function getDataXStationData(StationID) {
         return ptx.datax[compName].station.find(function (c) {
           return !!(c.StationID == StationID);
@@ -9400,6 +9439,7 @@
   }
 
   function getMRTThrough(from, to) {
+    var me = this;
     var LineID = id.getMRTStationIDInWhatLine(from),
         ToLineID = id.getMRTStationIDInWhatLine(to);
     if (LineID != ToLineID) return false;
@@ -9420,6 +9460,7 @@
         rt.Stations = route.Stations.filter(function (st, idx) {
           return !!(idx >= a && idx <= b);
         });
+        rt.travelTime = ptxFn[me.company].catchData.getDataXS2STravelTime(from, to);
       }
     });
     if (rt.RouteID.length == 0) rt = false;
@@ -9448,6 +9489,7 @@
 
     var maxCnt = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 100;
     var me = this;
+    var company = me.company;
     var fromObj = this.getStationBlockByID(from);
     var toObj = this.getStationBlockByID(to);
     if (!fromObj || !toObj) return [];
@@ -9545,7 +9587,7 @@
           if (idx == arr.length - 2) nextSt = to;
           if (!startStation) startStation = mySt;
           var tmpRoute = me.getMRTThrough(startStation, nextSt);
-          var isSameLineTrans = bk.type == 'transfer' && bk.toIDList.indexOf(bk.station != -1) && ptxFn.trtc.getStationIDInWhatLine(mySt) == ptxFn.trtc.getStationIDInWhatLine(nextSt);
+          var isSameLineTrans = bk.type == 'transfer' && bk.toIDList.indexOf(bk.station != -1) && ptxFn[company].getStationIDInWhatLine(mySt) == ptxFn[company].getStationIDInWhatLine(nextSt);
 
           if (tmpRoute) {
             var lastMainRoute = mainRoute[mainRoute.length - 1];
@@ -9606,6 +9648,15 @@
 
         station = station.concat(route.Stations);
       });
+      var travelTime = travelRoute.reduce(function (val, tr) {
+        if (tr.travelTime && tr.travelTime.min) {
+          val += tr.travelTime.min;
+        } else if (tr.TransferTime) {
+          val += tr.TransferTime;
+        }
+
+        return val;
+      }, 0);
       station = station.filter(function (c, idx, arr) {
         return arr.indexOf(c) == idx;
       });
@@ -9617,13 +9668,15 @@
         station: station,
         travelStation: travelStation,
         route: mainRoute,
-        travelRoute: travelRoute
+        travelRoute: travelRoute,
+        travelTime: travelTime
       };
     }).sort(function (a, b) {
       var rt = a.route.length > b.route.length ? 1 : -1;
 
       if (a.route.length == b.route.length) {
         rt = a.station.length > b.station.length ? 1 : -1;
+        if (a.travelTime && b.travelTime) rt = a.travelTime > b.travelTime ? 1 : -1;
       }
 
       return rt;

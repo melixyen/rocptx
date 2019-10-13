@@ -469,6 +469,38 @@ class baseMethod {
                 let r = lineObj.Route[0].Stations;
                 return [r[0], r[r.length-1]];
             },
+            getDataXS2STravelTime: function(fromID, toID, TrainType){
+                var LineID = getStationOnWhatLineID(fromID);
+                var lineObj = catchData.getDataXLineObj(LineID);
+                var fidx = 0, tidx = 0;
+                var routeData = lineObj.Route.find((c)=>{
+                    fidx = c.Stations.indexOf(fromID);
+                    tidx = c.Stations.indexOf(toID);
+                    return (fidx!=-1 && tidx!=-1 && fidx<tidx)
+                })
+                var rt = false;
+                if(routeData){
+                    var aryA = [];
+                    if(routeData.TravelTime && routeData.TravelTime.RunTime){
+                        for(var i=fidx; i<tidx; i++){
+                            aryA.push({
+                                from: routeData.Stations[i],
+                                to: routeData.Stations[i+1],
+                                RunTime:routeData.TravelTime.RunTime[i],
+                                StopTime: (i>fidx && routeData.TravelTime.StopTime) ? routeData.TravelTime.StopTime[i] : 0
+                            })
+                        }
+                        rt = {
+                            list: aryA,
+                            sec: aryA.reduce((val, ac)=>{return val + ac.RunTime + ac.StopTime;}, 0)
+                        };
+                        rt.min = Math.ceil(rt.sec/60);
+                    }else if(routeData.TravelTimeBetween){
+                        console.log('TYMetro need rewrite metro.js >> getDataXS2STravelTime()');
+                    }
+                }
+                return rt;
+            },
             getDataXStationData: function(StationID){
                 return ptx.datax[compName].station.find((c)=>{return !!(c.StationID==StationID)})
             },

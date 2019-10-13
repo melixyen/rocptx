@@ -157,6 +157,7 @@ function getStationBlockByID(station){
     }
 }
 function getMRTThrough(from, to){
+    var me = this;
     let LineID = idFn.getMRTStationIDInWhatLine(from),
         ToLineID = idFn.getMRTStationIDInWhatLine(to);
     if(LineID != ToLineID) return false;
@@ -173,6 +174,7 @@ function getMRTThrough(from, to){
             rt.Stations = route.Stations.filter((st, idx)=>{
                 return !!(idx >= a && idx <= b);
             })
+            rt.travelTime = ptxFn[me.company].catchData.getDataXS2STravelTime(from, to);
         }
     })
     if(rt.RouteID.length==0) rt = false;
@@ -194,6 +196,7 @@ function findBlock(BlockID){
 s
 function getAllLineRoute(from, to, maxCnt=100){
     var me = this;
+    var company = me.company;
     var fromObj = this.getStationBlockByID(from);
     var toObj = this.getStationBlockByID(to);
     if(!fromObj || !toObj) return [];
@@ -275,7 +278,7 @@ function getAllLineRoute(from, to, maxCnt=100){
                 if(idx==arr.length-2) nextSt = to;
                 if(!startStation) startStation = mySt;
                 var tmpRoute = me.getMRTThrough(startStation, nextSt);
-                var isSameLineTrans = (bk.type=='transfer' && bk.toIDList.indexOf(bk.station!=-1) && ptxFn.trtc.getStationIDInWhatLine(mySt)==ptxFn.trtc.getStationIDInWhatLine(nextSt));
+                var isSameLineTrans = (bk.type=='transfer' && bk.toIDList.indexOf(bk.station!=-1) && ptxFn[company].getStationIDInWhatLine(mySt)==ptxFn[company].getStationIDInWhatLine(nextSt));
 
                 if(tmpRoute){
                     var lastMainRoute = mainRoute[mainRoute.length -1];
@@ -329,6 +332,14 @@ function getAllLineRoute(from, to, maxCnt=100){
             }
             station = station.concat(route.Stations);
         })
+        let travelTime = travelRoute.reduce((val, tr)=>{
+            if(tr.travelTime && tr.travelTime.min){
+                val += tr.travelTime.min;
+            }else if(tr.TransferTime){
+                val += tr.TransferTime;
+            }
+            return val;
+        }, 0)
         station = station.filter((c,idx,arr)=>arr.indexOf(c)==idx);
         let travelStation = station.slice();
         if(travelStation[0]!=from) travelStation.splice(0,0,from);
@@ -339,12 +350,14 @@ function getAllLineRoute(from, to, maxCnt=100){
             station: station,
             travelStation: travelStation,
             route: mainRoute,
-            travelRoute: travelRoute
+            travelRoute: travelRoute,
+            travelTime: travelTime
         }
     }).sort((a,b)=>{
         var rt = (a.route.length>b.route.length) ? 1 : -1;
         if(a.route.length==b.route.length){
             rt = (a.station.length>b.station.length) ? 1 : -1;
+            if(a.travelTime && b.travelTime) rt = (a.travelTime>b.travelTime) ? 1 : -1;
         }
         return rt;
     });
