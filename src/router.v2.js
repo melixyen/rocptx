@@ -262,7 +262,6 @@ function getAllLineRoute(from, to, maxCnt=100){
                 }
                 if(overLine[overLine.length-1]!=c.LineID) overLine.push(c.LineID);
             })
-            //if(overLine.length>3) rt = false;// 最多只搭三條線，轉乘兩次，超過就濾掉
             return rt;
         })
     }

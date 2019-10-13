@@ -8,6 +8,8 @@ function getMRTStationIDInWhatLine(StatioinID){
         return StatioinID.substr(0,1);
     }else if(/^[a-zA-Z]{2}\d{2}/gi.test(StatioinID)){
         return StatioinID.substr(0,2);
+    }else if(/^[a-zA-Z]{1}\d{1}/gi.test(StatioinID)){
+        return StatioinID.substr(0,1);
     }
 }
 

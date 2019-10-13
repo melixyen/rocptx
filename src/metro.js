@@ -469,7 +469,7 @@ class baseMethod {
                 let r = lineObj.Route[0].Stations;
                 return [r[0], r[r.length-1]];
             },
-            getDataXS2STravelTime: function(fromID, toID, TrainType){
+            getDataXS2STravelTime: function(fromID, toID){
                 var LineID = getStationOnWhatLineID(fromID);
                 var lineObj = catchData.getDataXLineObj(LineID);
                 var fidx = 0, tidx = 0;
@@ -495,8 +495,29 @@ class baseMethod {
                             sec: aryA.reduce((val, ac)=>{return val + ac.RunTime + ac.StopTime;}, 0)
                         };
                         rt.min = Math.ceil(rt.sec/60);
-                    }else if(routeData.TravelTimeBetween){
-                        console.log('TYMetro need rewrite metro.js >> getDataXS2STravelTime()');
+                    }else if(lineObj.TravelTimeBetween){
+                        var aryTT = Object.keys(lineObj.TravelTimeBetween);
+                        var aryTmpType = [], tmpType = false, fastSec = 999999, fastType = '';
+                        aryTT.forEach((tp)=>{
+                            tmpType = lineObj.TravelTimeBetween[tp];
+                            if(tmpType[fromID] && tmpType[fromID][toID]){
+                                if(fastSec > tmpType[fromID][toID]){
+                                    fastSec = tmpType[fromID][toID];
+                                    fastType = tp;
+                                }
+                                aryTmpType.push({
+                                    TrainType: tp,
+                                    sec: tmpType[fromID][toID],
+                                    min: Math.ceil(tmpType[fromID][toID]/60)
+                                })
+                            }
+                        })
+                        rt = {
+                            allType: aryTmpType,
+                            sec: fastSec,
+                            min: Math.ceil(fastSec/60)
+                        }
+
                     }
                 }
                 return rt;
