@@ -53,6 +53,10 @@
     defaultCrossDayTime: '04:00',
     timeHour: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'],
     timeMinSec: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59'],
+    today: function () {
+      var d = new Date();
+      return d.getFullYear() + '-' + ("0" + (d.getMonth() + 1)).slice(-2) + '-' + ("0" + d.getDate()).slice(-2);
+    }(),
     weekStringAry: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
     inBrowser: !!(typeof window != 'undefined' && window.document),
     assign: function assign(objA, objB) {
@@ -89,6 +93,11 @@
       }
 
       return rt;
+    },
+    transTime2Date: function transTime2Date(time) {
+      var str = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '-';
+      var d = _typeof(time) == 'object' && typeof time.getTime == 'function' ? time : new Date(time).getTime();
+      return d.getFullYear() + str + ("0" + (d.getMonth() + 1)).slice(-2) + str + ("0" + d.getDate()).slice(-2);
     },
     weekArray2WeekStr: function weekArray2WeekStr(week) {
       return week.map(function (c, i) {
@@ -8595,7 +8604,6 @@
     TrainType: traV3URL + '/TrainType',
     //取得所有列車車種資料
     //ODFare: traURL + '/ODFare/', //取得票價資料 , v3 已移除
-    //Shape: traURL + '/Shape/', //取得指定營運業者之軌道路網實體路線圖資資料 , v3 已移除
     //GeneralTrainInfo: traURL + '/GeneralTrainInfo/', //取得所有車次的定期車次資料 , v3 已移除
     GeneralTrainTimetable: traV3URL + '/GeneralTrainTimetable/',
     //取得所有車次的定期時刻表資料
@@ -8619,6 +8627,8 @@
     //取得最新消息
     Alert: traV3URL + '/Alert/',
     //取得營運通阻資料
+    Shape: traV3URL + '/Shape/',
+    //取得線型基本資料
     //以下為帶有變數的 API
     ODFareFromTo: traV3URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}',
     //取得指定[起訖站間]之票價資料
@@ -8632,6 +8642,10 @@
     //取得當天指定[車次]的時刻表資料
     DailyTrainTimetable_TrainDate: traV3URL + '/DailyTrainTimetable/TrainDate/{TrainDate}',
     //取得指定[日期]所有車次的時刻表資料(台鐵提供近60天每日時刻表)
+    DailyTrainTimetable_OD_TrainDate: traV3URL + '/DailyTrainTimetable/OD/{OriginStationID}/to/{DestinationStationID}/{TrainDate}',
+    //取得指定[日期],[起迄站]之站間時刻表資料
+    DailyTrainTimetable_OD_Inclusive_TrainDate: traV3URL + '/DailyTrainTimetable/OD/Inclusive/{OriginStationID}/to/{DestinationStationID}/{TrainDate}',
+    //取得指定[日期],[起迄站間]之站間全經過站時刻表資料
     DailyStationTimetable_Today_Station: traV3URL + '/DailyStationTimetable/Today/Station/{StationID}',
     //取得當天指定[車站]的時刻表資料
     DailyStationTimetable_TrainDate: traV3URL + '/DailyStationTimetable/TrainDate/{TrainDate}',
@@ -8716,6 +8730,48 @@
       var date = new Date();
       var dateStr = date.getFullYear() + '-' + CM.appendNumber0(date.getMonth() + 1) + '-' + CM.appendNumber0(date.getDate());
       return tra$1._DailyTimetable_Station_TrainDate(StationID, dateStr, cfg);
+    },
+    //以下均使用 rpID 並轉換為 v3id 呼叫
+    getStationLiveBoard: function getStationLiveBoard(StationID) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      if (!StationID) {
+        return tra$1.v3._StationLiveBoard(cfg).then(function (e) {
+          e.data.StationLiveBoards.forEach(function (c) {
+            c.rpStationID = id.tra.getRPIDbyPTXV3(c.StationID);
+          });
+          return e;
+        });
+      } else {
+        StationID = id.tra.getPTXV3(StationID) || StationID;
+        return tra$1.v3._StationLiveBoard_Station(StationID, cfg).then(function (e) {
+          e.data.StationLiveBoards.forEach(function (c) {
+            c.rpStationID = id.tra.getRPIDbyPTXV3(c.StationID);
+          });
+          return e;
+        });
+      }
+    },
+    getFromToTimeTable: function getFromToTimeTable(from, to, date) {
+      var Inclusive = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      from = id.tra.getPTXV3(from) || from;
+      to = id.tra.getPTXV3(to) || to;
+
+      if (!date) {
+        date = CM.transTime2Date(new Date());
+      } else if (_typeof(date) == 'object' && typeof date.toLocaleDateString == 'function') {
+        date = CM.transTime2Date(date);
+      }
+
+      var fn = Inclusive ? tra$1.v3._DailyTrainTimetable_OD_Inclusive_TrainDate : tra$1.v3._DailyTrainTimetable_OD_TrainDate;
+      return fn(from, to, date).then(function (e) {
+        e.data.TrainTimetables.sort(function (a, b) {
+          a.dep = a.StopTimes[0].DepartureTime;
+          b.dep = b.StopTimes[0].DepartureTime;
+          return a.dep > b.dep ? 1 : -1;
+        });
+        return e;
+      });
     } //產生整包抓取 Function
 
   };
@@ -8987,8 +9043,6 @@
     }
   });
   tra$1.ptxAutoTRAFunctionKey = ptxAutoTRAFunctionKey;
-  tra$1.getStationLiveBoard = tra$1._LiveBoard_Station; //alias
-
   tra$1.getFromToFare = tra$1._ODFareFromTo; //alias
   //====================== TRA V3 Function 產生至 tra.v3 之下 ==============================
 
@@ -9290,9 +9344,23 @@
     tymetro: fnMRT$2 // klrt: ptx_klrt,
     // thsr: ptx_thsr,
     // tra: ptx_tra
-    //=========== MRT Router Function ==========
+    //動態加入機捷用的 Transfer
 
   };
+  datax.tymetro.line.forEach(function (line) {
+    if (line.LineID == 'A' && line.Transfer.length == 0) {
+      line.Transfer.push({
+        FromLineID: "A",
+        FromStationID: "A8",
+        IsOnSiteTransfer: 1,
+        IsTrainTypeTransfer: true,
+        TrainType: ['TrainType1', 'TrainType2'],
+        ToLineID: "A",
+        ToStationID: "A8",
+        TransferTime: 2
+      });
+    }
+  }); //=========== MRT Router Function ==========
 
   function findMRTpDataTransStation(company, FromStationID, ToStationID) {
     var FromLineID = id.getMRTStationIDInWhatLine(FromStationID),

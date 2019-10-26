@@ -4,6 +4,10 @@ var CM = {
     timeHour: ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'],
     timeMinSec: ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29',
         '30','31','32','33','34','35','36','37','38','39','40','41','42','43','44','45','46','47','48','49','50','51','52','53','54','55','56','57','58','59'],
+    today: function(){
+        var d = new Date();
+        return d.getFullYear() + '-' + ("0"+(d.getMonth()+1)).slice(-2) + '-' + ("0" + d.getDate()).slice(-2);
+    }(),
     weekStringAry: ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'],
     inBrowser: !!(typeof(window)!='undefined' && window.document),
     assign: function(objA, objB){for(var k in objB){objA[k] = objB[k];}; return objA;},
@@ -24,6 +28,10 @@ var CM = {
             }
         }
         return rt;
+    },
+    transTime2Date: function(time, str='-'){
+        var d = (typeof(time)=='object' && typeof(time.getTime)=='function') ? time : new Date(time).getTime();
+        return d.getFullYear() + str + ("0"+(d.getMonth()+1)).slice(-2) + str + ("0" + d.getDate()).slice(-2);
     },
     weekArray2WeekStr: function(week){
         return week.map((c,i)=>{return (c) ? i : '';}).join('');

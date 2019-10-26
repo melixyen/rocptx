@@ -43,7 +43,6 @@ const v3urls = {
     StationOfLine: traV3URL + '/StationOfLine/', //取得路線車站基本資料
     TrainType: traV3URL + '/TrainType',//取得所有列車車種資料
     //ODFare: traURL + '/ODFare/', //取得票價資料 , v3 已移除
-    //Shape: traURL + '/Shape/', //取得指定營運業者之軌道路網實體路線圖資資料 , v3 已移除
     //GeneralTrainInfo: traURL + '/GeneralTrainInfo/', //取得所有車次的定期車次資料 , v3 已移除
     GeneralTrainTimetable: traV3URL + '/GeneralTrainTimetable/', //取得所有車次的定期時刻表資料
     GeneralStationTimetable: traV3URL + '/GeneralStationTimetable', //取得各站的定期站別時刻表資料
@@ -56,6 +55,7 @@ const v3urls = {
     StationTransfer: traV3URL + '/StationTransfer/', //取得車站跨運具轉乘資訊
     News: traV3URL + '/News/', //取得最新消息
     Alert: traV3URL + '/Alert/', //取得營運通阻資料
+    Shape: traV3URL + '/Shape/', //取得線型基本資料
     //以下為帶有變數的 API
     ODFareFromTo: traV3URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
     GeneralTimetable_TrainNo: traV3URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料
@@ -63,6 +63,8 @@ const v3urls = {
     SpecificTrainTimetable_TrainNo : traV3URL + '/SpecificTrainTimetable/TrainNo/{TrainNo}', //取得指定[車次]的特殊車次時刻表資料
     DailyTrainTimetable_Today_TrainNo: traV3URL + '/DailyTrainTimetable/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的時刻表資料
     DailyTrainTimetable_TrainDate: traV3URL + '/DailyTrainTimetable/TrainDate/{TrainDate}', //取得指定[日期]所有車次的時刻表資料(台鐵提供近60天每日時刻表)
+    DailyTrainTimetable_OD_TrainDate: traV3URL + '/DailyTrainTimetable/OD/{OriginStationID}/to/{DestinationStationID}/{TrainDate}', //取得指定[日期],[起迄站]之站間時刻表資料
+    DailyTrainTimetable_OD_Inclusive_TrainDate: traV3URL + '/DailyTrainTimetable/OD/Inclusive/{OriginStationID}/to/{DestinationStationID}/{TrainDate}', //取得指定[日期],[起迄站間]之站間全經過站時刻表資料
     DailyStationTimetable_Today_Station: traV3URL + '/DailyStationTimetable/Today/Station/{StationID}', //取得當天指定[車站]的時刻表資料
     DailyStationTimetable_TrainDate: traV3URL + '/DailyStationTimetable/TrainDate/{TrainDate}', //取得各站每日站別時刻表資料 yyyy-MM-dd
     StationLiveBoard_Station: traV3URL + '/StationLiveBoard/Station/{StationID}', //取得指定[車站]列車即時到離站電子看板(動態前後30分鐘的車次)
@@ -130,6 +132,44 @@ var tra = {
         let date = new Date();
         let dateStr = date.getFullYear() + '-' + common.appendNumber0(date.getMonth()+1) + '-' + common.appendNumber0(date.getDate());
         return tra._DailyTimetable_Station_TrainDate(StationID, dateStr, cfg);
+    },
+    //以下均使用 rpID 並轉換為 v3id 呼叫
+    getStationLiveBoard: function(StationID, cfg={}){
+        if(!StationID){
+            return tra.v3._StationLiveBoard(cfg).then((e)=>{
+                e.data.StationLiveBoards.forEach((c)=>{
+                    c.rpStationID = idFn.tra.getRPIDbyPTXV3(c.StationID);
+                })
+                return e;
+            })
+        }else{
+            StationID = idFn.tra.getPTXV3(StationID) || StationID;
+            return tra.v3._StationLiveBoard_Station(StationID, cfg).then((e)=>{
+                e.data.StationLiveBoards.forEach((c)=>{
+                    c.rpStationID = idFn.tra.getRPIDbyPTXV3(c.StationID);
+                })
+                return e;
+            })
+
+        }
+    },
+    getFromToTimeTable: function(from, to, date, Inclusive=false, cfg={}){
+        from = idFn.tra.getPTXV3(from) || from;
+        to = idFn.tra.getPTXV3(to) || to;
+        if(!date){
+            date = common.transTime2Date(new Date());
+        }else if(typeof(date)=='object' && typeof(date.toLocaleDateString)=='function'){
+            date = common.transTime2Date(date);
+        }
+        var fn = (Inclusive) ? tra.v3._DailyTrainTimetable_OD_Inclusive_TrainDate : tra.v3._DailyTrainTimetable_OD_TrainDate;
+        return fn(from, to, date).then(function(e){
+            e.data.TrainTimetables.sort((a,b)=>{
+                a.dep = a.StopTimes[0].DepartureTime;
+                b.dep = b.StopTimes[0].DepartureTime;
+                return (a.dep > b.dep) ? 1 : -1;
+            })
+            return e;
+        })
     }
 }
 
@@ -367,7 +407,6 @@ aryMakeFunction.forEach(function(fn){
     }
 })
 tra.ptxAutoTRAFunctionKey = ptxAutoTRAFunctionKey;
-tra.getStationLiveBoard = tra._LiveBoard_Station;//alias
 tra.getFromToFare = tra._ODFareFromTo;//alias
 
 //====================== TRA V3 Function 產生至 tra.v3 之下 ==============================

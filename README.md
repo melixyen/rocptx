@@ -393,6 +393,7 @@ const v3urls = {
     StationTransfer: traV3URL + '/StationTransfer/', //取得車站跨運具轉乘資訊
     News: traV3URL + '/News/', //取得最新消息
     Alert: traV3URL + '/Alert/', //取得營運通阻資料
+    Shape: traV3URL + '/Shape/', //取得線型基本資料
     //以下為帶有變數的 API
     ODFareFromTo: traV3URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
     GeneralTimetable_TrainNo: traV3URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料
@@ -400,6 +401,8 @@ const v3urls = {
     SpecificTrainTimetable_TrainNo : traV3URL + '/SpecificTrainTimetable/TrainNo/{TrainNo}', //取得指定[車次]的特殊車次時刻表資料
     DailyTrainTimetable_Today_TrainNo: traV3URL + '/DailyTrainTimetable/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的時刻表資料
     DailyTrainTimetable_TrainDate: traV3URL + '/DailyTrainTimetable/TrainDate/{TrainDate}', //取得指定[日期]所有車次的時刻表資料(台鐵提供近60天每日時刻表)
+    DailyTrainTimetable_OD_TrainDate: traV3URL + '/DailyTrainTimetable/OD/{OriginStationID}/to/{DestinationStationID}/{TrainDate}', //取得指定[日期],[起迄站]之站間時刻表資料
+    DailyTrainTimetable_OD_Inclusive_TrainDate: traV3URL + '/DailyTrainTimetable/OD/Inclusive/{OriginStationID}/to/{DestinationStationID}/{TrainDate}', //取得指定[日期],[起迄站間]之站間全經過站時刻表資料
     DailyStationTimetable_Today_Station: traV3URL + '/DailyStationTimetable/Today/Station/{StationID}', //取得當天指定[車站]的時刻表資料
     DailyStationTimetable_TrainDate: traV3URL + '/DailyStationTimetable/TrainDate/{TrainDate}', //取得各站每日站別時刻表資料 yyyy-MM-dd
     StationLiveBoard_Station: traV3URL + '/StationLiveBoard/Station/{StationID}', //取得指定[車站]列車即時到離站電子看板(動態前後30分鐘的車次)
@@ -442,7 +445,8 @@ getFromToFare | getFromToFare(fromID, toID, cfg) 回應 Promise。 | 取得兩�
 getStation | getStation(StationID, cfg) 回應 Promise。 | 取得車站資料。
 getStationTodayTimeTable | getStationTodayTimeTable(StationID, cfg) 回應 Promise。 | 取得該站今天時刻表。
 getStationFare | getStationFare(StationID, cfg) 回應 Promise。 | 取得該站至所有車站的票價。
-getStationLiveBoard | getStationLiveBoard(StationID, cfg) 回應 Promise。 | 取得車站看板資料。
+getStationLiveBoard | getStationLiveBoard(rpStationID, cfg) 回應 Promise。 | 取得車站看板資料，若不輸入 rpStationID 則回應全線可取得所有資料。
+getFromToTimeTable | getFromToTimeTable(from rpStationID, to rpStationID, date, Inclusive=false, cfg) 回應 Promise。 | 取得旅行起迄兩站間列車資料，Inclusive為 true 時會包含經過車站時刻表。
 catchData | catchData.{Object functions} | 抓資料及讀取已嵌入 datax 之固定資料的 Function 集合。
 
 
