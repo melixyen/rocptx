@@ -446,7 +446,9 @@ getStation | getStation(StationID, cfg) 回應 Promise。 | 取得車站資料�
 getStationTodayTimeTable | getStationTodayTimeTable(StationID, cfg) 回應 Promise。 | 取得該站今天時刻表。
 getStationFare | getStationFare(StationID, cfg) 回應 Promise。 | 取得該站至所有車站的票價。
 getStationLiveBoard | getStationLiveBoard(rpStationID, cfg) 回應 Promise。 | 取得車站看板資料，若不輸入 rpStationID 則回應全線可取得所有資料。
+getTrainLiveBoard | getTrainLiveBoard(Array TrainNo, cfg) 回應 Promise。 | 傳入 TrainNo 陣列，若有資料則回傳該列車動態。
 getFromToTimeTable | getFromToTimeTable(from rpStationID, to rpStationID, date, Inclusive=false, cfg) 回應 Promise。 | 取得旅行起迄兩站間列車資料，Inclusive為 true 時會包含經過車站時刻表。
+getLiveFromToTimeTable | getLiveFromToTimeTable(from rpStationID, to rpStationID, length=20, Inclusive=false) 回應 Promise。 | 取得旅行起迄兩站間即時列車資料，length 預設最近 20 筆，Inclusive為 true 時會包含經過車站
 catchData | catchData.{Object functions} | 抓資料及讀取已嵌入 datax 之固定資料的 Function 集合。
 
 

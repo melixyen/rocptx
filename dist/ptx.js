@@ -8722,7 +8722,7 @@
     getStationFare: function getStationFare(StationID) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       cfg.filterBy = cfg.filterBy || '';
-      cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+      cfg.filterBy += ptx.filterParam('OriginStationID', '==', StationID);
       return tra$1._ODFare(cfg);
     },
     getStationTodayTimeTable: function getStationTodayTimeTable(StationID) {
@@ -8752,6 +8752,22 @@
         });
       }
     },
+    getTrainLiveBoard: function getTrainLiveBoard(aryTrainNO) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      if (/string|number/.test(_typeof(aryTrainNO))) aryTrainNO = [aryTrainNO];
+
+      if (aryTrainNO && aryTrainNO.length) {
+        cfg.filterBy = cfg.filterBy || '';
+        cfg.filterBy = ptx.filterParam('TrainNo', '==', aryTrainNO, 'or');
+      }
+
+      return tra$1.v3._TrainLiveBoard(cfg).then(function (e) {
+        e.data.TrainLiveBoards.forEach(function (c) {
+          c.rpStationID = id.tra.getRPIDbyPTXV3(c.StationID);
+        });
+        return e;
+      });
+    },
     getFromToTimeTable: function getFromToTimeTable(from, to, date) {
       var Inclusive = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
       from = id.tra.getPTXV3(from) || from;
@@ -8767,10 +8783,67 @@
       return fn(from, to, date).then(function (e) {
         e.data.TrainTimetables.sort(function (a, b) {
           a.dep = a.StopTimes[0].DepartureTime;
+          a.sortTime = CM.transTime2Sec(a.dep);
           b.dep = b.StopTimes[0].DepartureTime;
+          b.sortTime = CM.transTime2Sec(b.dep);
           return a.dep > b.dep ? 1 : -1;
         });
         return e;
+      });
+    },
+    getLiveFromToTimeTable: function getLiveFromToTimeTable(from, to) {
+      var _this = this;
+
+      var len = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 20;
+      var Inclusive = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      var dateObj = new Date();
+      var nowDaySec = Math.round((dateObj.getTime() / 1000 + 480 * 60) % 86400);
+      var date = CM.transTime2Date(dateObj);
+      this.getStationLiveBoard(from).then(function (e) {
+        //1.先抓該站的 Live 資訊用來判斷列車是否誤點
+        return e.data.StationLiveBoards;
+      }).then(function (liveData) {
+        return _this.getFromToTimeTable(from, to, date, Inclusive).then(function (e) {
+          var TrainTimetables = e.data.TrainTimetables;
+          TrainTimetables.forEach(function (time) {
+            var live = liveData.find(function (lc) {
+              return lc.TrainNo == time.TrainInfo.TrainNo;
+            });
+            time.TrainNo = time.TrainInfo.TrainNo;
+
+            if (live) {
+              time.liveData = live;
+              time.DelayTime = live.DelayTime;
+              time.sortTime = live.DelayTime * 60 + time.sortTime;
+            }
+          });
+          return TrainTimetables.filter(function (time) {
+            return time.sortTime >= nowDaySec;
+          }).slice(0, len);
+        });
+      }).then(function (timeTable) {
+        var aryTrainNo = timeTable.map(function (c) {
+          return c.TrainInfo.TrainNo;
+        });
+        return _this.getTrainLiveBoard(aryTrainNo).then(function (tlv) {
+          timeTable.forEach(function (time) {
+            var lv = tlv.data.TrainLiveBoards.find(function (c) {
+              return c.TrainNo == time.TrainInfo.TrainNo;
+            });
+
+            if (lv) {
+              time.trainLiveData = lv;
+
+              if (lv.DelayTime > 0 && !time.DelayTime) {
+                time.DelayTime = lv.DelayTime;
+                time.sortTime = lv.DelayTime * 60 + time.sortTime;
+              }
+            }
+          });
+          return timeTable;
+        });
+      }).then(function (timeTable) {
+        return timeTable;
       });
     } //產生整包抓取 Function
 

@@ -125,7 +125,7 @@ var tra = {
     },
     getStationFare: function(StationID, cfg={}){
         cfg.filterBy = cfg.filterBy || '';
-        cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+        cfg.filterBy += ptx.filterParam('OriginStationID', '==', StationID);
         return tra._ODFare(cfg);
     },
     getStationTodayTimeTable: function(StationID, cfg={}){
@@ -153,6 +153,19 @@ var tra = {
 
         }
     },
+    getTrainLiveBoard: function(aryTrainNO, cfg={}){
+        if(/string|number/.test(typeof(aryTrainNO))) aryTrainNO = [aryTrainNO];
+        if(aryTrainNO && aryTrainNO.length){
+            cfg.filterBy = cfg.filterBy || '';
+            cfg.filterBy = ptx.filterParam('TrainNo', '==', aryTrainNO, 'or');
+        }
+        return tra.v3._TrainLiveBoard(cfg).then(e=>{
+            e.data.TrainLiveBoards.forEach((c)=>{
+                c.rpStationID = idFn.tra.getRPIDbyPTXV3(c.StationID);
+            })
+            return e;
+        })
+    },
     getFromToTimeTable: function(from, to, date, Inclusive=false, cfg={}){
         from = idFn.tra.getPTXV3(from) || from;
         to = idFn.tra.getPTXV3(to) || to;
@@ -165,10 +178,57 @@ var tra = {
         return fn(from, to, date).then(function(e){
             e.data.TrainTimetables.sort((a,b)=>{
                 a.dep = a.StopTimes[0].DepartureTime;
+                a.sortTime = common.transTime2Sec(a.dep);
                 b.dep = b.StopTimes[0].DepartureTime;
+                b.sortTime = common.transTime2Sec(b.dep);
                 return (a.dep > b.dep) ? 1 : -1;
             })
             return e;
+        })
+    },
+    getLiveFromToTimeTable: function(from, to, len=20, Inclusive=false){
+        var dateObj = new Date();
+        var nowDaySec = Math.round(((dateObj.getTime()/1000)+480*60)%86400);
+        var date = common.transTime2Date(dateObj);
+        this.getStationLiveBoard(from).then(e=>{
+            //1.先抓該站的 Live 資訊用來判斷列車是否誤點
+            return e.data.StationLiveBoards;
+        }).then(liveData=>{
+            return this.getFromToTimeTable(from, to, date, Inclusive).then((e)=>{
+                var TrainTimetables = e.data.TrainTimetables;
+                TrainTimetables.forEach(time=>{
+                    var live = liveData.find(lc=>{
+                        return lc.TrainNo==time.TrainInfo.TrainNo;
+                    })
+                    time.TrainNo = time.TrainInfo.TrainNo;
+                    if(live){
+                        time.liveData = live;
+                        time.DelayTime = live.DelayTime;
+                        time.sortTime = live.DelayTime*60 + time.sortTime;
+                    }
+                })
+
+                return TrainTimetables.filter((time)=>{
+                    return time.sortTime >= nowDaySec;
+                }).slice(0, len);
+            })
+        }).then(timeTable=>{
+            var aryTrainNo = timeTable.map(c=>c.TrainInfo.TrainNo);
+            return this.getTrainLiveBoard(aryTrainNo).then(tlv=>{
+                timeTable.forEach(time=>{
+                    var lv = tlv.data.TrainLiveBoards.find(c=>c.TrainNo==time.TrainInfo.TrainNo);
+                    if(lv){
+                        time.trainLiveData = lv;
+                        if(lv.DelayTime>0 && !time.DelayTime){
+                            time.DelayTime = lv.DelayTime;
+                            time.sortTime = lv.DelayTime*60 + time.sortTime;
+                        }
+                    }
+                })
+                return timeTable;
+            })
+        }).then(timeTable=>{
+            return timeTable
         })
     }
 }
