@@ -1,0 +1,185 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="zh-TW" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+<meta name="description" content="ROCPTX 資料表" />
+<title>ROCPTX 資料表</title>
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+<link rel="stylesheet" href="rocptx_ui.css">-->
+<style type="text/css">
+body {
+	background: #EEE;
+}
+a {color:blue;}
+.menuBtn1 {
+	display: inline-block;
+	padding: 2px 5px;
+	font-size: 18px;
+}
+
+table.show1{
+	margin: 3px;
+}
+table.show1 tr:nth-child(even){
+	background-color: #DFD9EF;
+}
+table.show1 tr td{
+	padding: 5px;
+}
+</style>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue-router@2.7.0/dist/vue-router.js"></script>
+
+<script type="text/javascript">
+Vue.config.productionTip=false;
+</script>
+
+<script type="text/javascript" src="../dist/ptx.js"></script>
+<script type="text/javascript" src="../distdev/ptx.js"></script>
+<script type="text/javascript">
+
+
+var BB = {};
+var ptx = rocptx;
+(function(){
+	var pData = JSON.parse(JSON.stringify(rocptx.data));
+	var pDataX = JSON.parse(JSON.stringify(rocptx.datax))
+	var cmptrtc = {
+		template: `
+			<div>
+				<h1>台北捷運於本 Library 使用之資料</h1>
+				<div>
+					<router-link :to="{path: '/trtc/' + name}" class="menuBtn1" v-for="name in ary">
+						<div>{{name}}</div>
+					</router-link>
+					<div v-show="sect=='station_ary'">
+						<table class="show1">
+							<tr><th>站名</th><th>rpStationID</th><th>PTX V2 StationID</th></tr>
+							<tr v-for="st in info.station_ary">
+								<td>{{st.name}}</td><td>{{st.id}}</td><td>{{st.StationID.join(',')}}</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		`, 
+		computed: {
+			sect: function(){
+				if(this.$route.params.name){ return this.$route.params.name; }
+				return '';
+			}
+		},
+		data: function(){return {
+			ary: Object.keys(pData.trtc),
+			info: pData.trtc
+		}},
+		methods: {
+			getPTXV2: ptx.id.trtc.getPTXV2
+		},
+		mounted: function(){
+			BB.tra = this;
+		}
+	};
+
+	var cmptra = {
+		template: `
+			<div>
+				<h1>台灣鐵路局於本 Library 使用之資料</h1>
+				<div>
+					<router-link :to="{path: '/tra/' + name}" class="menuBtn1" v-for="name in ary">
+						<div>{{name}}</div>
+					</router-link>
+					<div v-show="sect=='station_ary'">
+						<table class="show1">
+							<tr><th>站名</th><th>rpStationID</th><th>PTX V2 StationID</th><th>PTX V3 StationID</th></tr>
+							<tr v-for="st in info.station_ary">
+								<td>{{st.name}}</td><td>{{st.id}}</td><td>{{getPTXV2(st.id)}}</td><td>{{st.v3id}}</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		`, 
+		computed: {
+			sect: function(){
+				if(this.$route.params.name){ return this.$route.params.name; }
+				return '';
+			}
+		},
+		data: function(){return {
+			ary: Object.keys(pData.tra),
+			info: pData.tra
+		}},
+		methods: {
+			getPTXV2: ptx.id.tra.getPTXV2
+		},
+		mounted: function(){
+			BB.tra = this;
+		}
+	};
+
+
+	var menuBarTpl =  Vue.compile(`<div id="menuBar" class="bs_no_select">
+			<router-link :to="{path: '/tra'}" class="menuBtn1">
+				<div>台鐵</div>
+			</router-link>
+			<router-link :to="{path: '/trtc'}" class="menuBtn1">
+				<div>台北捷運</div>
+			</router-link>
+	</div>`);
+	Vue.component('vcmp_menu_bar', {
+		render: menuBarTpl.render,
+		staticRenderFns: menuBarTpl.staticRenderFns,
+		methods: {
+		}
+	});
+
+	BB.mainRoute = new VueRouter({
+		routes: [
+			{path: '/tra', component: cmptra},
+			{path: '/tra/:name', component: cmptra},
+			{path: '/trtc', component: cmptrtc},
+			{path: '/trtc/:name', component: cmptrtc},
+		]
+	});
+	BB.initFn = function(){
+		var tpl = Vue.compile('<div id="main">' + 
+		`
+		<vcmp_menu_bar id="menuBar"></vcmp_menu_bar>
+		<div class="content">
+			<router-view></router-view>
+		</div>
+		` +
+		'</div>');
+		BB.main = new Vue({
+			router: BB.mainRoute,
+			render: tpl.render,
+			staticRenderFns: tpl.staticRenderFns,
+			el: '#main',
+			data: {
+				pData: pData,
+				pDataX: pDataX
+			},
+			methods: {
+			},
+			watch: {
+				json_text: function(){
+				}
+			}
+		});
+	}
+	return BB;
+})();
+
+</script>
+<!-- -->
+<!-- -->
+</head>
+<body onload="BB.initFn()">
+	<div id="main"></div>
+	<div id="mask" class="mask"><div class="text"></div></div>
+</body>
+</html>
