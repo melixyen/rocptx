@@ -222,6 +222,8 @@ rocptx.trtc.catchData.getDataXLineObj('BL');
 ```
 Name | Method | Description
 -----|------|-------------
+calcStationDayTimeBySimple | calcStationDayTimeBySimple(timeObj, week) | 運用 TimeSimple Format 計算一個車站每週每日往兩方向的所有班次資訊 (運用於 app/station_time.html)
+calcStationTimeByHeadWays | calcStationTimeByHeadWays(LineObj, StationID, RouteID, Direction) | 運用 LineObj.Frequency 資料計算該站每週每日班次 (運用於 trtc calcBRLineTime)
 getDataXLineObj | getDataXLineObj(LineID) | 取得路線基本資料
 getDataXLineMainSub | getDataXLineMainSub(LineID) | 取得路線主要幹線及支線路由
 getDataXRouteDirectionInfo | getDataXRouteDirectionInfo(LineID, RouteID, Direction) | 取得指定路由方向資料
