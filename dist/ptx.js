@@ -1069,7 +1069,108 @@
       }]
     },
     trtc: {
-      station_ary: [//Bannan Line
+      station_ary: [//Wenhu Line
+      {
+        id: "trtc_br01",
+        StationID: ["BR01"],
+        name: "動物園",
+        estring: "dongwuyuantaipeizoo"
+      }, {
+        id: "trtc_br02",
+        StationID: ["BR02"],
+        name: "木柵",
+        estring: "muzha"
+      }, {
+        id: "trtc_br03",
+        StationID: ["BR03"],
+        name: "萬芳社區",
+        estring: "wanfangshequwanfangcommunity"
+      }, {
+        id: "trtc_br04",
+        StationID: ["BR04"],
+        name: "萬芳醫院",
+        estring: "dongwuyuantaipeizoo"
+      }, {
+        id: "trtc_br05",
+        StationID: ["BR05"],
+        name: "辛亥",
+        estring: "xinhai"
+      }, {
+        id: "trtc_br06",
+        StationID: ["BR06"],
+        name: "麟光",
+        estring: "linguang"
+      }, {
+        id: "trtc_br07",
+        StationID: ["BR07"],
+        name: "六張犁",
+        estring: "liuzhangli"
+      }, {
+        id: "trtc_br08",
+        StationID: ["BR08"],
+        name: "科技大樓",
+        estring: "kejidaloutechnologybuilding"
+      }, {
+        id: "trtc_br12",
+        StationID: ["BR12"],
+        name: "中山國中",
+        estring: "zhongshanguozhongzhongshanjuniorhighschool"
+      }, {
+        id: "trtc_br13",
+        StationID: ["BR13"],
+        name: "松山機場",
+        estring: "songshanjichangsongshanairport"
+      }, {
+        id: "trtc_br14",
+        StationID: ["BR14"],
+        name: "大直",
+        estring: "dazhi"
+      }, {
+        id: "trtc_br15",
+        StationID: ["BR15"],
+        name: "劍南路",
+        estring: "jiannanlujiannanroad"
+      }, {
+        id: "trtc_br16",
+        StationID: ["BR16"],
+        name: "西湖",
+        estring: "xihu"
+      }, {
+        id: "trtc_br17",
+        StationID: ["BR17"],
+        name: "港墘",
+        estring: "gangqian"
+      }, {
+        id: "trtc_br18",
+        StationID: ["BR18"],
+        name: "文德",
+        estring: "wende"
+      }, {
+        id: "trtc_br19",
+        StationID: ["BR19"],
+        name: "內湖",
+        estring: "neihu"
+      }, {
+        id: "trtc_br20",
+        StationID: ["BR20"],
+        name: "大湖公園",
+        estring: "dahugongyuandahupark"
+      }, {
+        id: "trtc_br21",
+        StationID: ["BR21"],
+        name: "葫洲",
+        estring: "huzhou"
+      }, {
+        id: "trtc_br22",
+        StationID: ["BR22"],
+        name: "東湖",
+        estring: "donghu"
+      }, {
+        id: "trtc_br23",
+        StationID: ["BR23"],
+        name: "南港軟體園區",
+        estring: "nangangruantiyuanqunangangsoftwarepark"
+      }, //Bannan Line
       {
         id: "trtc_031",
         StationID: ["BL23", "BR24"],
@@ -1319,7 +1420,7 @@
         estring: "nanshijiao"
       }, {
         id: "trtc_047",
-        StationID: ["O02"],
+        StationID: ["O02", "Y11"],
         name: "景安",
         estring: "jingan"
       }, {
@@ -1369,7 +1470,7 @@
         estring: "xiansetemplexiansegong"
       }, {
         id: "trtc_123",
-        StationID: ["O17"],
+        StationID: ["O17", "Y18"],
         name: "頭前庄",
         estring: "touqianzhuang"
       }, {
@@ -1485,7 +1586,7 @@
         estring: "jingmei"
       }, {
         id: "trtc_036",
-        StationID: ["G04"],
+        StationID: ["G04", "Y07"],
         name: "大坪林",
         estring: "dapinglin"
       }, {
@@ -1503,6 +1604,62 @@
         StationID: ["G01"],
         name: "新店",
         estring: "xindian"
+      }, //Circular Line
+      {
+        id: "trtc_y08",
+        StationID: ["Y08"],
+        name: "十四張",
+        estring: "shisizhang"
+      }, {
+        id: "trtc_y09",
+        StationID: ["Y09"],
+        name: "秀朗橋",
+        estring: "xiulangqiao"
+      }, {
+        id: "trtc_y10",
+        StationID: ["Y10"],
+        name: "景平",
+        estring: "jingping"
+      }, {
+        id: "trtc_y12",
+        StationID: ["Y12"],
+        name: "中和",
+        estring: "zhonghe"
+      }, {
+        id: "trtc_y13",
+        StationID: ["Y13"],
+        name: "橋和",
+        estring: "qiaohe"
+      }, {
+        id: "trtc_y14",
+        StationID: ["Y14"],
+        name: "中原",
+        estring: "zhongyuan"
+      }, {
+        id: "trtc_y15",
+        StationID: ["Y15"],
+        name: "板新",
+        estring: "banxin"
+      }, {
+        id: "trtc_y16",
+        StationID: ["Y16"],
+        name: "板橋（環狀）",
+        estring: "banqiao"
+      }, {
+        id: "trtc_y17",
+        StationID: ["Y17"],
+        name: "新埔民生",
+        estring: "xinpuminsheng"
+      }, {
+        id: "trtc_y19",
+        StationID: ["Y19"],
+        name: "幸福",
+        estring: "xingfu"
+      }, {
+        id: "trtc_y20",
+        StationID: ["Y20"],
+        name: "新北產業園區",
+        estring: "xinbeichanyeyuanqui"
       }],
       line: [{
         id: 'trtc_1',
@@ -1523,7 +1680,35 @@
             from: 'BR24',
             to: 'BR01'
           }]
-        }]
+        }],
+        name: "文湖線(1)",
+        color: "#b57a25",
+        dir: "0",
+        station: ["trtc_br01", "trtc_br02", "trtc_br03", "trtc_br04", "trtc_br05", "trtc_br06", "trtc_br07", "trtc_br08", "trtc_011", "trtc_010", "trtc_009", "trtc_br12", "trtc_br13", "trtc_br14", "trtc_br15", "trtc_br16", "trtc_br17", "trtc_br18", "trtc_br19", "trtc_br20", "trtc_br21", "trtc_br22", "trtc_br23", "trtc_031"]
+      }, {
+        id: 'trtc_6',
+        LineID: 'Y',
+        route: [{
+          dir: 0,
+          Direction: 0,
+          work: [{
+            RouteID: 'Y-1',
+            from: 'Y07',
+            to: 'Y20'
+          }]
+        }, {
+          dir: 1,
+          Direction: 1,
+          work: [{
+            RouteID: 'Y-1',
+            from: 'Y20',
+            to: 'Y07'
+          }]
+        }],
+        name: "環狀線(6)",
+        color: "#ffdb00",
+        dir: "0",
+        station: ["trtc_036", "trtc_y08", "trtc_y09", "trtc_y10", "trtc_047", "trtc_y12", "trtc_y13", "trtc_y14", "trtc_y15", "trtc_y16", "trtc_y17", "trtc_123", "trtc_y19", "trtc_y20"]
       }, {
         id: 'trtc_2',
         LineID: 'R',
