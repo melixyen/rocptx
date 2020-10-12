@@ -144,7 +144,7 @@ var fnMRT = {
             json.forEach(function(routeA){
                 var tmpAry = ptx.tempTimeTable.krtc[LineID][StationID][w];
                 var tmpTimeAry = routeA.Timetables.map(function(timeObj){
-                    timeObj.tt_sortTime = TT.fn.transTime2Sec(timeObj.DepartureTime);
+                    timeObj.tt_sortTime = common.transTime2Sec(timeObj.DepartureTime);
                     timeObj.RouteID = routeA.RouteID;
                     return timeObj;
                 });
