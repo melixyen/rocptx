@@ -81,7 +81,7 @@ thsr.v2 = {
     },
     getStationFare: function(StationID, cfg={}){
         cfg.filterBy = cfg.filterBy || '';
-        cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+        cfg.filterBy += ptx.filterParam('OriginStationID', '==', StationID);
         return thsr.v2._ODFare(cfg);
     },
     getStationTodayTimeTable: function(StationID, cfg={}){

@@ -203,7 +203,7 @@ class baseMethod {
             // ==== Station ====
             getFromToFare: function(fromID, toID, cfg = {}){
                 cfg.filterBy = cfg.filterBy || '';
-                cfg.filterBy += TT.ptx.filterParam(['OriginStationID','DestinationStationID'], '==', [fromID, toID], 'and');
+                cfg.filterBy += ptx.filterParam(['OriginStationID','DestinationStationID'], '==', [fromID, toID], 'and');
                 return me._ODFare(cfg);
             },
             getFromToTravelTime: function(fromID, toID, cfg = {}){
@@ -304,7 +304,7 @@ class baseMethod {
             },
             getStationFare: function(StationID, cfg={}){
                 cfg.filterBy = cfg.filterBy || '';
-                cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+                cfg.filterBy += ptx.filterParam('OriginStationID', '==', StationID);
                 return me._ODFare(cfg);
             },
             getStationLiveBoard: function(StationID, cfg={}){

@@ -1,7 +1,7 @@
 /*
 *   name: rocptx 
 *   description: Dynamic public traffic library of Taiwan and Kinmen, Lienchiang 
-*   version: 0.0.4 
+*   version: 0.0.5 
 *   license: MIT 
 *   
 *   Edit by: Melix Yen
@@ -6448,7 +6448,7 @@
     }), _defineProperty(_methodObj, "getFromToFare", function getFromToFare(fromID, toID) {
       var cfg = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
       cfg.filterBy = cfg.filterBy || '';
-      cfg.filterBy += TT.ptx.filterParam(['OriginStationID', 'DestinationStationID'], '==', [fromID, toID], 'and');
+      cfg.filterBy += ptx.filterParam(['OriginStationID', 'DestinationStationID'], '==', [fromID, toID], 'and');
       return me._ODFare(cfg);
     }), _defineProperty(_methodObj, "getFromToTravelTime", function getFromToTravelTime(fromID, toID) {
       var cfg = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
@@ -6563,7 +6563,7 @@
     }), _defineProperty(_methodObj, "getStationFare", function getStationFare(StationID) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       cfg.filterBy = cfg.filterBy || '';
-      cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+      cfg.filterBy += ptx.filterParam('OriginStationID', '==', StationID);
       return me._ODFare(cfg);
     }), _defineProperty(_methodObj, "getStationLiveBoard", function getStationLiveBoard(StationID) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -8244,7 +8244,7 @@
     getStationFare: function getStationFare(StationID) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       cfg.filterBy = cfg.filterBy || '';
-      cfg.filterBy += TT.ptx.filterParam('OriginStationID', '==', StationID);
+      cfg.filterBy += ptx.filterParam('OriginStationID', '==', StationID);
       return thsr.v2._ODFare(cfg);
     },
     getStationTodayTimeTable: function getStationTodayTimeTable(StationID) {
