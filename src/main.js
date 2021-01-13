@@ -1,3 +1,4 @@
+import '@babel/polyfill';
 import common from './common.js';
 import ptx from './ptx.js';
 import data from './data.js';

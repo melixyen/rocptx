@@ -80,6 +80,12 @@ var fnBUS = {
         if(cfg.selectField) myURL += '&' + cfg.selectField;
         ptx.getURL(myURL, cfg.cbFn);
     },
+    getPromisePositionBusStation: function(city, lat, lng, cfg = {}){
+        return new Promise((resolve)=>{
+            cfg.cbFn = function(e){resolve(e);}
+            fnBUS.getPositionBusStation(city, lat, lng, cfg);
+        })
+    },
     getBusStopRoute: function(RouteUID, city, cfg){
         cfg = this.setDefaultCfg(cfg);
         var myURL = busURL + '/StopOfRoute/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
@@ -110,6 +116,60 @@ var fnBUS = {
         if(cfg.selectField) myURL += '&' + cfg.selectField;
         ptx.getURL(myURL, cfg.cbFn);
     }
+}
+
+function cloneBusStationData(station){
+    var a = {
+        StationID: station.StationID,
+        StationUID: station.StationUID,
+        StationName: station.StationName,
+        StationPosition: station.StationPosition,
+        StationAddress: station.StationAddress,
+        VersionID: station.VersionID
+    }
+
+    return JSON.parse(JSON.stringify(a));
+}
+
+fnBUS.findDirectBus = async function(posA, posB, far = 250, citys = ['TPE','NWT']){
+    // rocptx.bus.findDirectBus({lat:25.049991, lng:121.57715},{lat:25.046123, lng:121.537417}, 800).then((e)=>{console.log(e)})
+    if(!posA.lat || !posA.lng) return false;
+    if(!posB.lat || !posB.lng) return false;
+    var aryStationsA = [], aryStationsB = [];
+
+    for(var i=0; i<citys.length; i++){
+        var tmpA = await fnBUS.getPromisePositionBusStation(citys[i], posA.lat, posA.lng);
+        var tmpB = await fnBUS.getPromisePositionBusStation(citys[i], posB.lat, posB.lng);
+
+        aryStationsA = aryStationsA.concat(tmpA);
+        aryStationsB = aryStationsB.concat(tmpB);
+    }
+
+    // 尋找 aryStationsA 中所有 Stops 的 RouteUID 和 aryStationsB 中所有 Stops 的 RouteUID 有 mapping 的
+    var aryMapping = [], hasBusStationA = {}, hasBusStationB = {};
+    aryStationsA.forEach((stnA)=>{
+        stnA.Stops.forEach((stpA)=>{
+            aryStationsB.forEach((stnB)=>{
+                stnB.Stops.forEach((stpB)=>{
+                    if(stpA.RouteUID == stpB.RouteUID){
+                        var stsA_data = cloneBusStationData(stnA);
+                        var stsB_data = cloneBusStationData(stnB);
+                        var dataA = Object.assign({stationData:stsA_data}, stpA);
+                        var dataB = Object.assign({stationData:stsB_data}, stpB);
+                        hasBusStationA[stsA_data.StationUID] = stsA_data;
+                        hasBusStationB[stsB_data.StationUID] = stsB_data;
+                        aryMapping.push({
+                            RouteUID: stpA.RouteUID,
+                            a: dataA,
+                            b: dataB
+                        })
+                    }
+                });
+            });
+        })
+    })
+
+    return {hasBusStationA:hasBusStationA, hasBusStationB:hasBusStationB, mappingStops:aryMapping};
 }
 
 export default fnBUS;
