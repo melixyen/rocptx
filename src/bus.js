@@ -196,6 +196,8 @@ fnBUS.findDirectBus = async function(posA, posB, far = 250, citys = ['TPE','NWT'
         
     }
 
+    aryMapping = aryMapping.filter((c)=>{ return c.isRightBus;});
+
     return {hasBusStationA:hasBusStationA, hasBusStationB:hasBusStationB, mappingStops:aryMapping};
 }
 
