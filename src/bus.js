@@ -94,6 +94,12 @@ var fnBUS = {
         if(cfg.selectField) myURL += '&' + cfg.selectField;
         ptx.getURL(myURL, cfg.cbFn);
     },
+    getPromiseBusStopRoute: function(RouteUID, city, cfg = {}){
+        return new Promise((resolve)=>{
+            cfg.cbFn = function(e){resolve(e);}
+            fnBUS.getBusStopRoute(RouteUID, city, cfg);
+        })
+    },
     getBusStopRouteByNumber: function(busNumber, city, cfg){
         cfg = this.setDefaultCfg(cfg);
         var myURL = busURL + '/StopOfRoute/' + cfg.manageBy + '/' + this.getCityData(city).City + '/' + encodeURI(busNumber) + '?';
@@ -160,6 +166,7 @@ fnBUS.findDirectBus = async function(posA, posB, far = 250, citys = ['TPE','NWT'
                         hasBusStationB[stsB_data.StationUID] = stsB_data;
                         aryMapping.push({
                             RouteUID: stpA.RouteUID,
+                            city: stpA.RouteUID.substr(0,3),
                             a: dataA,
                             b: dataB
                         })
@@ -168,6 +175,26 @@ fnBUS.findDirectBus = async function(posA, posB, far = 250, citys = ['TPE','NWT'
             });
         })
     })
+
+    // 將 Route Stop 放進物件中
+    for(var i=0; i<aryMapping.length; i++){
+        var t = aryMapping[i];
+        var aryRouteStops = await fnBUS.getPromiseBusStopRoute(t.RouteUID, t.city);
+        aryRouteStops.forEach((routeStops)=>{
+            var flgMatchStop = routeStops.Stops.find((c)=>{
+                return c.StopUID == t.a.StopUID;
+            })
+            if(flgMatchStop){
+                aryMapping[i].RouteStops = routeStops;
+                var aidx = routeStops.Stops.findIndex((g)=>{ return g.StopUID==t.a.StopUID});
+                var bidx = routeStops.Stops.findIndex((g)=>{ return g.StopUID==t.b.StopUID});
+                aryMapping[i].aidx = aidx;
+                aryMapping[i].bidx = bidx;
+                aryMapping[i].isRightBus = !!(aidx < bidx);
+            }
+        })
+        
+    }
 
     return {hasBusStationA:hasBusStationA, hasBusStationB:hasBusStationB, mappingStops:aryMapping};
 }
