@@ -167,8 +167,8 @@ fnBUS.findDirectBus = async function(posA, posB, far = 250, citys = ['TPE','NWT'
                         aryMapping.push({
                             RouteUID: stpA.RouteUID,
                             city: stpA.RouteUID.substr(0,3),
-                            a: dataA,
-                            b: dataB
+                            from: dataA,
+                            to: dataB
                         })
                     }
                 });
@@ -182,14 +182,14 @@ fnBUS.findDirectBus = async function(posA, posB, far = 250, citys = ['TPE','NWT'
         var aryRouteStops = await fnBUS.getPromiseBusStopRoute(t.RouteUID, t.city);
         aryRouteStops.forEach((routeStops)=>{
             var flgMatchStop = routeStops.Stops.find((c)=>{
-                return c.StopUID == t.a.StopUID;
+                return c.StopUID == t.from.StopUID;
             })
             if(flgMatchStop){
-                aryMapping[i].RouteStops = routeStops;
-                var aidx = routeStops.Stops.findIndex((g)=>{ return g.StopUID==t.a.StopUID});
-                var bidx = routeStops.Stops.findIndex((g)=>{ return g.StopUID==t.b.StopUID});
-                aryMapping[i].aidx = aidx;
-                aryMapping[i].bidx = bidx;
+                aryMapping[i].busInfo = routeStops;
+                var aidx = routeStops.Stops.findIndex((g)=>{ return g.StopUID==t.from.StopUID});
+                var bidx = routeStops.Stops.findIndex((g)=>{ return g.StopUID==t.to.StopUID});
+                aryMapping[i].fromStopIndex = aidx;
+                aryMapping[i].toStopIndex = bidx;
                 aryMapping[i].isRightBus = !!(aidx < bidx);
             }
         })
