@@ -17,15 +17,17 @@ function cloneBusStationData(station){
     return JSON.parse(JSON.stringify(a));
 }
 
-rbus.findDirectBus = async function(posA, posB, far = 250, citys = ['TPE','NWT']){
-    // rocptx.router.bus.findDirectBus({lat:25.049991, lng:121.57715},{lat:25.046123, lng:121.537417}, 800).then((e)=>{console.log(e)})
+rbus.findDirectBus = async function(posA, posB, citys, far){
+    citys = citys || ['TPE','NWT'];
+    far = far || 250;
+    // rocptx.router.bus.findDirectBus({lat:25.049991, lng:121.57715},{lat:25.046123, lng:121.537417}).then((e)=>{console.log(e)})
     if(!posA.lat || !posA.lng) return false;
     if(!posB.lat || !posB.lng) return false;
     var aryStationsA = [], aryStationsB = [];
 
     for(var i=0; i<citys.length; i++){
-        var tmpA = await fnBUS.getPromisePositionBusStation(citys[i], posA.lat, posA.lng);
-        var tmpB = await fnBUS.getPromisePositionBusStation(citys[i], posB.lat, posB.lng);
+        var tmpA = await fnBUS.getPromisePositionBusStation(citys[i], posA.lat, posA.lng, {far:far});
+        var tmpB = await fnBUS.getPromisePositionBusStation(citys[i], posB.lat, posB.lng, {far:far});
 
         aryStationsA = aryStationsA.concat(tmpA);
         aryStationsB = aryStationsB.concat(tmpB);
@@ -87,9 +89,25 @@ rbus.findDirectBus = async function(posA, posB, far = 250, citys = ['TPE','NWT']
         
     }
 
-    aryMapping = aryMapping.filter((c)=>{ return c.isRightBus;});
+    let filterSameRouteObj = {};
+    aryMapping = aryMapping.filter((c)=>{ return c.isRightBus;}).filter((c)=>{
+        if(!filterSameRouteObj[c.RouteUID]){
+            filterSameRouteObj[c.RouteUID] = true;
+            return true;
+        }else{
+            return false;
+        }
+    });
 
-    return {hasBusStationA:hasBusStationA, hasBusStationB:hasBusStationB, mappingStops:aryMapping};
+    // Group Station
+    var stationIDGroup = {};
+    aryMapping.forEach((c, idx)=>{
+        var stationID = c.from.stationData.StationID.toString();
+        if(!stationIDGroup[stationID]) stationIDGroup[stationID] = [];
+        stationIDGroup[stationID].push({mappingIndex:idx, RouteUID:c.RouteUID})
+    })
+
+    return {hasBusStationA:hasBusStationA, hasBusStationB:hasBusStationB, mappingStops:aryMapping, fromStationGroup:stationIDGroup};
 }
 
 export default rbus;
