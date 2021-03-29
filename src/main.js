@@ -6,6 +6,7 @@ import datax from './datax.js';
 import bus from './bus.js';
 import metro from './metro.js';
 import trtc from './trtc.js';
+import tmrt from './tmrt.js';
 import krtc from './krtc.js';
 import tymetro from './tymetro.js';
 import klrt from './klrt.js';
@@ -25,6 +26,7 @@ var combine = {
 	bus: bus,
 	metro: metro,
 	trtc: trtc,
+	tmrt: tmrt,
 	krtc: krtc,
 	tymetro: tymetro,
 	klrt: klrt,

@@ -334,6 +334,41 @@ var pData = {
             }
         ]
     },
+    tmrt: {
+        sect_ary: ['taichung'],
+        station_ary: [
+            //G Line
+            {id:"tmrt_103a", StationID:["103a"], name: "北屯總站", estring: "beitunmainstationbeitunzhongzhan", sect: 'taichung'},
+            {id:"tmrt_103", StationID:["103"], name: "舊社", estring: "jiushe", sect: 'taichung'},
+            {id:"tmrt_104", StationID:["104"], name: "松竹", estring: "songzhu", sect: 'taichung'},
+            {id:"tmrt_105", StationID:["105"], name: "四維國小", estring: "sihweielementaryschoolsiweiguoxiao", sect: 'taichung'},
+            {id:"tmrt_106", StationID:["106"], name: "文心崇德", estring: "wenxinchongde", sect: 'taichung'},
+            {id:"tmrt_107", StationID:["107"], name: "文心中清", estring: "wenxinzhongqing", sect: 'taichung'},
+            {id:"tmrt_108", StationID:["108"], name: "文華高中", estring: "wenhuaseniorhighschoolwenhuagaozhong", sect: 'taichung'},
+            {id:"tmrt_109", StationID:["109"], name: "文心櫻花", estring: "wenxinyinghua", sect: 'taichung'},
+            {id:"tmrt_110", StationID:["110"], name: "市政府", estring: "taichungcityhallshizhengfu", sect: 'taichung'},
+            {id:"tmrt_111", StationID:["111"], name: "水安宮", estring: "shuiantempleshuiangong", sect: 'taichung'},
+            {id:"tmrt_112", StationID:["112"], name: "文心森林公園", estring: "wenxinforestpark", sect: 'taichung'},
+            {id:"tmrt_113", StationID:["113"], name: "南屯", estring: "nantun", sect: 'taichung'},
+            {id:"tmrt_114", StationID:["114"], name: "豐樂公園", estring: "fengleparkfenglegongyuan", sect: 'taichung'},
+            {id:"tmrt_115", StationID:["115"], name: "大慶", estring: "daqing", sect: 'taichung'},
+            {id:"tmrt_116", StationID:["116"], name: "九張犁", estring: "jiuzhangli", sect: 'taichung'},
+            {id:"tmrt_117", StationID:["117"], name: "九德", estring: "jiude", sect: 'taichung'},
+            {id:"tmrt_118", StationID:["118"], name: "烏日", estring: "wuri", sect: 'taichung'},
+            {id:"tmrt_119", StationID:["119"], name: "高鐵臺中站", estring: "hSRtaichungstationgaotietaizhongzhan", sect: 'taichung'}
+        ],
+        line: [
+            {
+                id: "tymetro_G",
+                LineID: "G",
+                name: "烏日文心北屯線",
+                trainSect: ["taichung"],
+                color: "#84BD00",
+                dir: "0",
+                station: ["103a","103","104","105","106","107","108","109","110","111","112","113","114","115","116","117","118","119"]
+            }
+        ]
+    },
     thsr: {
         station_ary: [
             {id:'thsr_0990', StationID:['0990'], name: '南港', estring:'nangang', sect: 'taipei'},

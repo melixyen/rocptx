@@ -77,6 +77,7 @@ var ptx = rocptx;
 		'<div class="btn1" v-on:click="changePanel(\'trtc\')">台北捷運</div>' +
 		'<div class="btn1" v-on:click="changePanel(\'krtc\')">高雄捷運</div>' +
 		'<div class="btn1" v-on:click="changePanel(\'tymetro\')">桃園捷運</div>' +
+		'<div class="btn1" v-on:click="changePanel(\'tmrt\')">台中捷運</div>' +
 		'<div class="btn1" v-on:click="changePanel(\'klrt\')">高雄輕軌</div>' +
 		'<div class="btn1" v-on:click="changePanel(\'thsrv2\')">高鐵 V2</div>' +
 		'<div class="btn1" v-on:click="changePanel(\'tra\')">台鐵 V2</div>' +
@@ -376,6 +377,7 @@ var ptx = rocptx;
 	var trtcPanel = makeMrtPanel('trtc');
 	var krtcPanel = makeMrtPanel('krtc');
 	var tymetroPanel = makeMrtPanel('tymetro');
+	var tmrtPanel = makeMrtPanel('tmrt');
 	var klrtPanel = makeMrtPanel('klrt');
 
 	var thsrV2Panel = (function(){
@@ -970,6 +972,7 @@ var ptx = rocptx;
 				'<vcmp_trtc_panel v-bind:show_trtc="(panelName==\'trtc\')" v-if="(panelName==\'trtc\')" v-on:printj="printJSON" />' +
 				'<vcmp_krtc_panel v-bind:show_krtc="(panelName==\'krtc\')" v-if="(panelName==\'krtc\')" v-on:printj="printJSON" />' +
 				'<vcmp_tymetro_panel v-bind:show_tymetro="(panelName==\'tymetro\')" v-if="(panelName==\'tymetro\')" v-on:printj="printJSON" />' +
+				'<vcmp_tmrt_panel v-bind:show_tmrt="(panelName==\'tmrt\')" v-if="(panelName==\'tmrt\')" v-on:printj="printJSON" />' +
 				'<vcmp_klrt_panel v-bind:show_klrt="(panelName==\'klrt\')" v-if="(panelName==\'klrt\')" v-on:printj="printJSON" />' +
 				'<vcmp_thsrv2_panel v-bind:show_thsrv2="(panelName==\'thsrv2\')" v-if="(panelName==\'thsrv2\')" v-on:printj="printJSON" />' +
 				'<vcmp_tra_panel v-bind:show_tra="(panelName==\'tra\')" v-if="(panelName==\'tra\')" v-on:printj="printJSON" />' +

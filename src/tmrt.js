@@ -3,7 +3,7 @@ import ptx from './ptx.js';
 import pData from './data.js';
 import metro from './metro.js';
 
-const companyTag = metro.getCompanyTag('krtc');
+const companyTag = metro.getCompanyTag('tmrt');
 var mrtPTXFn = new metro.baseMethod(companyTag);
 //Catch Data 資料預處理
 mrtPTXFn.catchData.config.Line_callback = function(json){
@@ -11,13 +11,10 @@ mrtPTXFn.catchData.config.Line_callback = function(json){
         let TravelTime = Line.TravelTime, tmpA, tmpB;
         Line.Route.forEach((Route)=>{
             tmpA = TravelTime.find((rr)=>{ return !!(rr.RouteID==Route.RouteID)});
-            //高雄捷運 TravelTimes 有重複值要先濾除
+            //TravelTimes 有重複值要先濾除
             let alreadyWriteStation = [], aryTravelTimes = [];
             tmpA.TravelTimes.forEach(function(c, idx, arr){
                 if(alreadyWriteStation.indexOf(c.FromTo[0])==-1){
-                    if(c.FromTo[0]=='R11' && alreadyWriteStation.indexOf('R10')==-1){//PTX Bug : 高雄紅線 Travel Time 漏掉 R10 to R11 
-                        aryTravelTimes.push({RunTime:180, StopTime:40})
-                    }
                     aryTravelTimes.push(c);
                     alreadyWriteStation.push(c.FromTo[0]);
                 }
@@ -57,7 +54,7 @@ var fnMRT = {
     },
     getLineData: function(id){
         var rt = false;
-        pData.krtc.line.forEach(function(c){
+        pData.tmrt.line.forEach(function(c){
             if(c.id==id || c.LineID==id){
                 rt = c;
             }
@@ -69,7 +66,7 @@ var fnMRT = {
     },
     getOriginalLineByLineID: function(LineID){
         var rt = false;
-        pData.krtc.line.forEach(function(c){
+        pData.tmrt.line.forEach(function(c){
             if(c.LineID==LineID){
                 rt = c;
             }
@@ -77,7 +74,7 @@ var fnMRT = {
         return rt;
     },
     getStationIDAry: function(id){
-        var ary = pData.krtc.station_ary;
+        var ary = pData.tmrt.station_ary;
         var stData = false;
         for(var i=0; i<ary.length; i++){
             if(ary[i].id==id){
@@ -88,7 +85,7 @@ var fnMRT = {
         return stData;
     },
     getStationID: function(id, lineOriginalID){
-        var LineID = (/^krtc/.test(lineOriginalID)) ? this.getLineID(lineOriginalID) : lineOriginalID;
+        var LineID = (/^tmrt/.test(lineOriginalID)) ? this.getLineID(lineOriginalID) : lineOriginalID;
         var stData = this.getStationIDAry(id);
         if(!LineID){
             return false;
@@ -128,13 +125,13 @@ var fnMRT = {
         if(typeof(w)=='number') Week = common.ptxMRTWeekStr[w];
         var mtStr = "$filter=LineID eq '" + LineID + "' and StationID eq '" + StationID + "'";
         if(Week) mtStr += ' and ServiceDay/' + Week + ' eq true';
-        var url = common.metroURL + '/StationTimeTable/KRTC?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
+        var url = common.metroURL + '/StationTimeTable/TMRT?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
         common.pui.printStatus('線上尋找捷運 ' + StationID + ' 站時刻表');
         //產生暫存時刻表空間
-        if(!ptx.tempTimeTable.krtc) ptx.tempTimeTable.krtc = {};
-        if(!ptx.tempTimeTable.krtc[LineID]) ptx.tempTimeTable.krtc[LineID] = [];
-        if(!ptx.tempTimeTable.krtc[LineID][StationID]) ptx.tempTimeTable.krtc[LineID][StationID] = [];
-        ptx.tempTimeTable.krtc[LineID][StationID][w] = [[],[]];//Direction 0 and 1
+        if(!ptx.tempTimeTable.tmrt) ptx.tempTimeTable.tmrt = {};
+        if(!ptx.tempTimeTable.tmrt[LineID]) ptx.tempTimeTable.tmrt[LineID] = [];
+        if(!ptx.tempTimeTable.tmrt[LineID][StationID]) ptx.tempTimeTable.tmrt[LineID][StationID] = [];
+        ptx.tempTimeTable.tmrt[LineID][StationID][w] = [[],[]];//Direction 0 and 1
         //抓時刻表
         ptx.getURL(url, function(json, e){
             if(e.status==common.CONST_PTX_API_FAIL){
@@ -142,7 +139,7 @@ var fnMRT = {
                 return false;
             }
             json.forEach(function(routeA){
-                var tmpAry = ptx.tempTimeTable.krtc[LineID][StationID][w];
+                var tmpAry = ptx.tempTimeTable.tmrt[LineID][StationID][w];
                 var tmpTimeAry = routeA.Timetables.map(function(timeObj){
                     timeObj.tt_sortTime = common.transTime2Sec(timeObj.DepartureTime);
                     timeObj.RouteID = routeA.RouteID;
@@ -157,7 +154,7 @@ var fnMRT = {
                 }
             });
             
-            var workAry = ptx.tempTimeTable.krtc[LineID][StationID][w];
+            var workAry = ptx.tempTimeTable.tmrt[LineID][StationID][w];
             var timeMakeFn = function(c){
                 return c.DepartureTime;
             };
@@ -172,19 +169,19 @@ var fnMRT = {
     },
     getFormatStationTime: function(stID, line, dir, w){
         w = parseInt(w);
-        var StationID = ptx.krtc.getStationID(stID, line);
-        var LineID = ptx.krtc.getLineID(line);
+        var StationID = ptx.tmrt.getStationID(stID, line);
+        var LineID = ptx.tmrt.getLineID(line);
         var rt = false;
-        if(!ptx.tempTimeTable.krtc) return false;
-        if(!ptx.tempTimeTable.krtc[LineID]) return false;
-        if(!ptx.tempTimeTable.krtc[LineID][StationID]) return false;
-        if(!ptx.tempTimeTable.krtc[LineID][StationID][w]) return false;
-        if(!ptx.tempTimeTable.krtc[LineID][StationID][w][dir]) return false;
-        if(ptx.tempTimeTable.krtc[LineID][StationID][w][dir].length==0) return false;
-        return ptx.tempTimeTable.krtc[LineID][StationID][w][dir];
+        if(!ptx.tempTimeTable.tmrt) return false;
+        if(!ptx.tempTimeTable.tmrt[LineID]) return false;
+        if(!ptx.tempTimeTable.tmrt[LineID][StationID]) return false;
+        if(!ptx.tempTimeTable.tmrt[LineID][StationID][w]) return false;
+        if(!ptx.tempTimeTable.tmrt[LineID][StationID][w][dir]) return false;
+        if(ptx.tempTimeTable.tmrt[LineID][StationID][w][dir].length==0) return false;
+        return ptx.tempTimeTable.tmrt[LineID][StationID][w][dir];
     },
     getOriginalStationID: function(StationID){
-        var ary = pData.krtc.station_ary;
+        var ary = pData.tmrt.station_ary;
         var stData = false;
         for(var i=0; i<ary.length; i++){
             if(ary[i].StationID.indexOf(StationID)!=-1){

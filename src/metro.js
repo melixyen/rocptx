@@ -24,6 +24,7 @@ const urls = {
 const companyTag = {
     trtc: 'TRTC',
     tymetro: 'TYMC',
+    tmrt: 'TMRT',
     klrt: 'KLRT',
     krtc: 'KRTC'
 }
@@ -323,7 +324,7 @@ class baseMethod {
                 Line_StationOfRoute_BackTag: ['RouteID','Direction','LineID','Stations'],
                 Line_LineTransfer_BackTag: ['FromLineID','FromStationID','ToLineID','ToStationID','IsOnSiteTransfer','TransferTime'],
                 Line_S2STravelTime_BackTag: ['LineID','RouteID','TravelTimes'],
-                Line_Frequency_BackTag: ['LineID','RouteID','ServiceDays','OperationTime','Headways'],
+                Line_Frequency_BackTag: ['LineID','RouteID','ServiceDay','OperationTime','Headways'],
                 Line_callback: (json)=>{//通用預處理
                     return json;
                 },

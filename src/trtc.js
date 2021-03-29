@@ -218,7 +218,7 @@ var fnMRT = {
         var Week = false;
         if(typeof(w)=='number') Week = common.ptxMRTWeekStr[w];
         var mtStr = "$filter=LineID eq '" + LineID + "' and StationID eq '" + StationID + "'";
-        if(Week) mtStr += ' and ServiceDays/' + Week + ' eq true';
+        if(Week) mtStr += ' and ServiceDay/' + Week + ' eq true';
         var url = common.metroURL + '/StationTimeTable/TRTC?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
         common.pui.printStatus('線上尋找捷運 ' + StationID + ' 站時刻表');
         //產生暫存時刻表空間
