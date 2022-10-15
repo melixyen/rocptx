@@ -5,15 +5,15 @@ import pData from './data.js';
 const thsrV2URL = common.thsrV2URL;
 
 const v2urls = {
-    Station: thsrV2URL + '/Station/', //取得車站基本資料
-    ODFare: thsrV2URL + '/ODFare/', //取得票價資料
-    GeneralTimetable: thsrV2URL + '/GeneralTimetable/', //取得所有車次的定期時刻表資料
-    DailyTrainInfo_Today: thsrV2URL + '/DailyTrainInfo/Today/', //取得當天所有車次的車次資料
-    DailyTimetable_Today: thsrV2URL + '/DailyTimetable/Today/', //取得當天所有車次的時刻表資料
+    Station: thsrV2URL + '/Station', //取得車站基本資料
+    ODFare: thsrV2URL + '/ODFare', //取得票價資料
+    GeneralTimetable: thsrV2URL + '/GeneralTimetable', //取得所有車次的定期時刻表資料
+    DailyTrainInfo_Today: thsrV2URL + '/DailyTrainInfo/Today', //取得當天所有車次的車次資料
+    DailyTimetable_Today: thsrV2URL + '/DailyTimetable/Today', //取得當天所有車次的時刻表資料
     AlertInfo: thsrV2URL + '/AlertInfo', //取得即時通阻事件資料
     News: thsrV2URL + '/News', //取得高鐵最新消息資料
-    Shape: thsrV2URL + '/Shape/', //取得指定營運業者之軌道路網實體路線圖資資料
-    StationExit: thsrV2URL + '/StationExit/', //取得車站基本資料
+    Shape: thsrV2URL + '/Shape', //取得指定營運業者之軌道路網實體路線圖資資料
+    StationExit: thsrV2URL + '/StationExit', //取得車站基本資料
     //以下為帶有變數的 API
     ODFareFromTo: thsrV2URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
     GeneralTimetable_TrainNo: thsrV2URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料

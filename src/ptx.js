@@ -4,11 +4,77 @@ import common from './common.js';
 
 let fnTRTC = () => ptx.trtc;
 
+const TOKEN_DEFAULT_VALUE = 'FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF';
+let cfgToken = {
+    _id: TOKEN_DEFAULT_VALUE,
+    _secret: TOKEN_DEFAULT_VALUE,
+    _token: TOKEN_DEFAULT_VALUE,
+    get client_id() { return this._id; },
+    set client_id(v) { this._id = v; },
+    get client_secret() { return this._secret; },
+    set client_secret(v) { this._secret = v; },
+    get token() { return this._token; },
+    set token(v) { this._token = v; },
+    tokenGot: false,
+    funProcess () {
+        if (this.client_id != TOKEN_DEFAULT_VALUE && this.client_secret != TOKEN_DEFAULT_VALUE) {
+            this.getToken().then((e) => {
+                return e;
+            });
+        }
+    },
+    async getToken(_id, _secret) {
+        if (_id) this.client_id = _id;
+        if (_secret) this.client_secret = _secret;
+        return ptx.getPromiseURL(common.CONST_TDX_GET_TOKEN, {
+            head: {},
+            param: {
+                grant_type: 'client_credentials',
+                client_id: this.client_id,
+                client_secret: this.client_secret
+            },
+            method: 'POST'
+        }).then((e) => {
+            if (e.data.access_token) {
+                this.tokenGot = true;
+                this.token = e.data.access_token;
+            }
+            return e.data;
+        })
+    }
+}
+
+function defineObj() {
+    Object.defineProperty(ptx, 'client_id', {
+        get() { return cfgToken.client_id; },
+        set(v) {cfgToken.client_id = v;},
+        enumerable: true
+    })
+    Object.defineProperty(ptx, 'client_secret', {
+        get() { return cfgToken.client_secret; },
+        set(v) {cfgToken.client_secret = v;},
+        enumerable: true
+    })
+    Object.defineProperty(ptx, 'AppID', {
+        get() { return cfgToken.client_id; },
+        set(v) {cfgToken.client_id = v; cfgToken.funProcess();},
+        enumerable: true
+    })
+    Object.defineProperty(ptx, 'AppKey', {
+        get() { return cfgToken.client_secret; },
+        set(v) {cfgToken.client_secret = v; cfgToken.funProcess();},
+        enumerable: true
+    })
+}
+
 var ptx = {
     statusCode: common.statusCode,
     timeout: 30000,
     tempTimeTable: {},
     throwError: function(str){ throw str;},
+    initToken: function(_id, _secret) {
+        return cfgToken.getToken(_id, _secret);
+    },
     filterParam: function(field, op, value, andOr){
         //field 及 value可為陣列，其中一者為陣列時將用 andOr 連接，但當兩者皆為陣列時必需長度一致以便配對連接
         //ptx.filterParam(['fdfsd/fdfd','fdfd/gfg','fgf'],'<',[325,'ggg',996],'AND')
@@ -50,13 +116,20 @@ var ptx = {
     topFn: function(top, formatStr){
         top = top || 3000;
         formatStr = formatStr || 'JSON';
-        return '$top=' + top + '&format=' + formatStr;
+        return '$top=' + top + '&$format=' + formatStr;
     },
     selectFieldFn: function(str){
         if(typeof(str)=='object' && str.length){
             str = str.join(',');
         }
         return encodeURI('$select=' + str);
+    },
+    GetAuthorizationHeaderTDX: function(){
+
+        var GMTString = new Date().toGMTString();
+        var Authorization = 'Bearer ' + cfgToken.token;
+
+        return { 'Authorization': Authorization, 'X-Date': GMTString};
     },
     GetAuthorizationHeader: function(){
         var AppID = ptx.AppID || 'FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF';
@@ -121,13 +194,26 @@ var ptx = {
         fm.addEventListener("timeout", reqListener);
         fm.open('GET', url);
         fm.timeout = ptx.timeout;
-        var headerObj = this.GetAuthorizationHeader();
+        var headerObj = this.GetAuthorizationHeaderTDX();
         for(var k in headerObj){
             fm.setRequestHeader(k, headerObj[k]);
         }
         fm.send();
     },
     getPromiseURL: function(url, cfg={}){
+		var paramAry = [];
+		var paramPostAry = [];
+        var param = cfg.param;
+        cfg.method = cfg.method || 'GET';
+        if (param && cfg.method == 'GET') {
+			for (var k in param) {
+				if (param[k]) paramAry.push(k + '=' + encodeURIComponent(param[k]));
+			}
+		} else if (param && cfg.method == 'POST') {
+			for (var k in param) {
+				if (param[k]) paramPostAry.push(k + '=' + encodeURIComponent(param[k]));
+			}
+		}
 
         return new Promise(function(resolve, reject){
             function reqListener(xhr){
@@ -160,11 +246,17 @@ var ptx = {
             var method = cfg.method || 'GET';
             fm.open(method, url);
             fm.timeout = cfg.timeout || ptx.timeout;
-            var headerObj = cfg.head || ptx.GetAuthorizationHeader();
+            var headerObj = cfg.head || ptx.GetAuthorizationHeaderTDX();
             for(var k in headerObj){
                 fm.setRequestHeader(k, headerObj[k]);
             }
-            fm.send();
+
+            if (cfg.method == 'GET') {
+                fm.send();
+            } else if (cfg.method == 'POST') {
+                fm.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                fm.send(paramPostAry.join('&'));
+            }
         })
     },
     getStationLiveInfo: function(stid, cbFn){
@@ -187,6 +279,7 @@ var ptx = {
         if(intA > intB) return 1;
     }
 }
+defineObj();
 
 export default ptx;
 

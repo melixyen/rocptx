@@ -7,18 +7,18 @@ const traURL = common.traURL;
 const traV3URL = common.traV3URL;
 const urls = {
     Network: traURL + '/Network', //取得臺鐵路網資料
-    Line: traURL + '/Line/', //取得路線基本資料
-    Station: traURL + '/Station/', //取得車站基本資料
-    StationOfLine: traURL + '/StationOfLine/', //取得路線車站基本資料
+    Line: traURL + '/Line', //取得路線基本資料
+    Station: traURL + '/Station', //取得車站基本資料
+    StationOfLine: traURL + '/StationOfLine', //取得路線車站基本資料
     TrainType: traURL + '/TrainType',//取得所有列車車種資料
-    ODFare: traURL + '/ODFare/', //取得票價資料
-    Shape: traURL + '/Shape/', //取得指定營運業者之軌道路網實體路線圖資資料
-    GeneralTrainInfo: traURL + '/GeneralTrainInfo/', //取得所有車次的定期車次資料
-    GeneralTimetable: traURL + '/GeneralTimetable/', //取得所有車次的定期時刻表資料
-    DailyTrainInfo_Today: traURL + '/DailyTrainInfo/Today/', //取得當天所有車次的車次資料
-    DailyTimetable_Today: traURL + '/DailyTimetable/Today/', //取得當天所有車次的時刻表資料
-    LiveBoard: traURL + '/LiveBoard/', //取得車站別列車即時到離站電子看板
-    LiveTrainDelay: traURL + '/LiveTrainDelay/', //取得列車即時準點/延誤時間資料
+    ODFare: traURL + '/ODFare', //取得票價資料
+    Shape: traURL + '/Shape', //取得指定營運業者之軌道路網實體路線圖資資料
+    GeneralTrainInfo: traURL + '/GeneralTrainInfo', //取得所有車次的定期車次資料
+    GeneralTimetable: traURL + '/GeneralTimetable', //取得所有車次的定期時刻表資料
+    DailyTrainInfo_Today: traURL + '/DailyTrainInfo/Today', //取得當天所有車次的車次資料
+    DailyTimetable_Today: traURL + '/DailyTimetable/Today', //取得當天所有車次的時刻表資料
+    LiveBoard: traURL + '/LiveBoard', //取得車站別列車即時到離站電子看板
+    LiveTrainDelay: traURL + '/LiveTrainDelay', //取得列車即時準點/延誤時間資料
     //以下為帶有變數的 API
     ODFareFromTo: traURL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
     GeneralTrainInfo_TrainNo: traURL + '/GeneralTrainInfo/TrainNo/{TrainNo}', //取得指定[車次]的定期車次資料
@@ -36,26 +36,26 @@ const urls = {
 
 const v3urls = {
     Network: traV3URL + '/Network', //取得臺鐵路網資料
-    Station: traV3URL + '/Station/', //取得車站基本資料
-    StationExit: traV3URL + '/StationExit/', //取得車站出入口資料
-    StationFacility: traV3URL + '/StationFacility/', //取得車站設施資料
-    Line: traV3URL + '/Line/', //取得路線基本資料
-    StationOfLine: traV3URL + '/StationOfLine/', //取得路線車站基本資料
+    Station: traV3URL + '/Station', //取得車站基本資料
+    StationExit: traV3URL + '/StationExit', //取得車站出入口資料
+    StationFacility: traV3URL + '/StationFacility', //取得車站設施資料
+    Line: traV3URL + '/Line', //取得路線基本資料
+    StationOfLine: traV3URL + '/StationOfLine', //取得路線車站基本資料
     TrainType: traV3URL + '/TrainType',//取得所有列車車種資料
     //ODFare: traURL + '/ODFare/', //取得票價資料 , v3 已移除
     //GeneralTrainInfo: traURL + '/GeneralTrainInfo/', //取得所有車次的定期車次資料 , v3 已移除
-    GeneralTrainTimetable: traV3URL + '/GeneralTrainTimetable/', //取得所有車次的定期時刻表資料
+    GeneralTrainTimetable: traV3URL + '/GeneralTrainTimetable', //取得所有車次的定期時刻表資料
     GeneralStationTimetable: traV3URL + '/GeneralStationTimetable', //取得各站的定期站別時刻表資料
     SpecificTrainTimetable : traV3URL + '/SpecificTrainTimetable', //取得所有特殊車次時刻表資料
-    DailyTrainTimetable_Today: traV3URL + '/DailyTrainTimetable/Today/', //取得當天車次時刻表資料
-    DailyStationTimetable_Today: traV3URL + '/DailyStationTimetable/Today/', //取得當天各站站別時刻表資料
-    StationLiveBoard: traV3URL + '/StationLiveBoard/', //取得列車即時到離站資料
-    TrainLiveBoard: traV3URL + '/TrainLiveBoard/', //取得列車即時位置動態資料
-    LineTransfer: traV3URL + '/LineTransfer/', //取得內部路線轉乘資料
-    StationTransfer: traV3URL + '/StationTransfer/', //取得車站跨運具轉乘資訊
-    News: traV3URL + '/News/', //取得最新消息
-    Alert: traV3URL + '/Alert/', //取得營運通阻資料
-    Shape: traV3URL + '/Shape/', //取得線型基本資料
+    DailyTrainTimetable_Today: traV3URL + '/DailyTrainTimetable/Today', //取得當天車次時刻表資料
+    DailyStationTimetable_Today: traV3URL + '/DailyStationTimetable/Today', //取得當天各站站別時刻表資料
+    StationLiveBoard: traV3URL + '/StationLiveBoard', //取得列車即時到離站資料
+    TrainLiveBoard: traV3URL + '/TrainLiveBoard', //取得列車即時位置動態資料
+    LineTransfer: traV3URL + '/LineTransfer', //取得內部路線轉乘資料
+    StationTransfer: traV3URL + '/StationTransfer', //取得車站跨運具轉乘資訊
+    News: traV3URL + '/News', //取得最新消息
+    Alert: traV3URL + '/Alert', //取得營運通阻資料
+    Shape: traV3URL + '/Shape', //取得線型基本資料
     //以下為帶有變數的 API
     ODFareFromTo: traV3URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
     GeneralTimetable_TrainNo: traV3URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料

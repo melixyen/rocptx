@@ -2,7 +2,9 @@
 Dynamic public traffic library of Taiwan and Kinmen, Lienchiang 
 * 作者: Melix Yen
 * Mail: melixyen@gmail.com
-* 用途: 操作 [PTX API](https://ptx.transportdata.tw/PTX/) 之捷運、公車等內容取得及整理用
+* 用途: 操作 [TDX API](https://tdx.transportdata.tw/) 之捷運、公車等內容取得及整理用
+
+註：操作 [PTX API](https://ptx.transportdata.tw/PTX/) 之捷運、公車等內容取得及整理用途請移動到 branch ptx, master 將給 TDX 用
 
 # 命名區
 
@@ -20,9 +22,12 @@ Dynamic public traffic library of Taiwan and Kinmen, Lienchiang
 
 設定 key
 ```javascript
-//在 include ptx.js 之後請指定你的 PTX ID 與 Key 值，設定方式如下，程式內建 SHA 計算 header
+//在 include ptx.js 之後請指定你的 TDX client_id 到 AppID , client_secret 到 AppKey 會自動為你取得 token 存取
 rocptx.AppID = 'PleAseSeTyoUrAppIDintHIsPlace';
 rocptx.AppKey = 'PleAseSeTyoUrAppKeyintHIsPlace';
+
+// 或是用 initToken 傳參數 client_id, client_secret 執行取 Token，回傳 Promise 成功後即可開始
+rocptx.initToken('client_id', "client_secret").then((e) => { console.log(e); });
 ```
 
 操作
