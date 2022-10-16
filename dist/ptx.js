@@ -1,7 +1,7 @@
 /*
 *   name: rocptx 
 *   description: Dynamic public traffic library of Taiwan and Kinmen, Lienchiang 
-*   version: 0.0.6 
+*   version: 0.0.7 
 *   license: MIT 
 *   
 *   Edit by: Melix Yen
@@ -330,7 +330,7 @@
 
 	var defineProperty = _objectDp.f;
 	var _wksDefine = function (name) {
-	  var $Symbol = _core.Symbol || (_core.Symbol = _global.Symbol || {});
+	  var $Symbol = _core.Symbol || (_core.Symbol = _library ? {} : _global.Symbol || {});
 	  if (name.charAt(0) != '_' && !(name in $Symbol)) defineProperty($Symbol, name, { value: _wksExt.f(name) });
 	};
 
@@ -6383,15 +6383,24 @@
 	CM.CONST_PTX_API_SUCCESS = CM.statusCode.SUCCESS;
 	CM.CONST_PTX_API_FAIL = CM.statusCode.FAIL;
 	CM.CONST_PTX_API_MSG_COMM_FAILED = 'Communication failed, no response. (通訊失敗，PTX 無法取回資料。)';
-	CM.v2url = 'https://ptx.transportdata.tw/MOTC/v2';
-	CM.v3url = 'https://ptx.transportdata.tw/MOTC/v3';
-	CM.ptxURL = CM.v2url;
-	CM.ptxV3URL = CM.v3url;
-	CM.metroURL = CM.ptxURL + '/Rail/Metro';
-	CM.busURL = CM.ptxURL + '/Bus';
-	CM.traURL = CM.ptxURL + '/Rail/TRA';
-	CM.traV3URL = CM.ptxV3URL + '/Rail/TRA';
-	CM.thsrV2URL = CM.ptxURL + '/Rail/THSR';
+	CM.CONST_TDX_GET_TOKEN = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token';
+	CM.CONST_TDX_API_URL = 'https://tdx.transportdata.tw/api';
+	CM.CONST_TDX_LEVEL_BASIC = '/basic';
+	CM.CONST_TDX_LEVEL_ADVANCED = '/advanced';
+	CM.CONST_TDX_LEVEL_PREMIUM = '/premium';
+	CM.CONST_TDX_LEVEL_HISTORICAL = '/historical';
+	CM.CONST_TDX_LEVEL_MAAS = '/maas'; // CM.v2url = 'https://ptx.transportdata.tw/MOTC/v2';
+	// CM.v3url = 'https://ptx.transportdata.tw/MOTC/v3';
+	// CM.ptxURL = CM.v2url;
+	// CM.ptxV3URL = CM.v3url;
+	// === Basic ===
+
+	var basicAPI = CM.CONST_TDX_API_URL + CM.CONST_TDX_LEVEL_BASIC;
+	CM.metroURL = basicAPI + '/v2/Rail/Metro';
+	CM.busURL = basicAPI + '/v2/Bus';
+	CM.traURL = basicAPI + '/v2/Rail/TRA';
+	CM.traV3URL = basicAPI + '/v3/Rail/TRA';
+	CM.thsrV2URL = basicAPI + '/v2/Rail/THSR';
 	CM.ptxMRTWeekStr = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 	CM.defaultCrossDayTimeSec = CM.transTime2Sec(CM.defaultCrossDayTime);
 	CM.pui = {
@@ -6950,12 +6959,139 @@
 	  return ptx.trtc;
 	};
 
+	var TOKEN_DEFAULT_VALUE = 'FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF';
+	var cfgToken = {
+	  _id: TOKEN_DEFAULT_VALUE,
+	  _secret: TOKEN_DEFAULT_VALUE,
+	  _token: TOKEN_DEFAULT_VALUE,
+
+	  get client_id() {
+	    return this._id;
+	  },
+
+	  set client_id(v) {
+	    this._id = v;
+	  },
+
+	  get client_secret() {
+	    return this._secret;
+	  },
+
+	  set client_secret(v) {
+	    this._secret = v;
+	  },
+
+	  get token() {
+	    return this._token;
+	  },
+
+	  set token(v) {
+	    this._token = v;
+	  },
+
+	  tokenGot: false,
+	  funProcess: function funProcess() {
+	    if (this.client_id != TOKEN_DEFAULT_VALUE && this.client_secret != TOKEN_DEFAULT_VALUE) {
+	      this.getToken().then(function (e) {
+	        return e;
+	      });
+	    }
+	  },
+	  getToken: function () {
+	    var _getToken = _asyncToGenerator(
+	    /*#__PURE__*/
+	    regeneratorRuntime.mark(function _callee(_id, _secret) {
+	      var _this = this;
+
+	      return regeneratorRuntime.wrap(function _callee$(_context) {
+	        while (1) {
+	          switch (_context.prev = _context.next) {
+	            case 0:
+	              if (_id) this.client_id = _id;
+	              if (_secret) this.client_secret = _secret;
+	              return _context.abrupt("return", ptx.getPromiseURL(CM.CONST_TDX_GET_TOKEN, {
+	                head: {},
+	                param: {
+	                  grant_type: 'client_credentials',
+	                  client_id: this.client_id,
+	                  client_secret: this.client_secret
+	                },
+	                method: 'POST'
+	              }).then(function (e) {
+	                if (e.data.access_token) {
+	                  _this.tokenGot = true;
+	                  _this.token = e.data.access_token;
+	                }
+
+	                return e.data;
+	              }));
+
+	            case 3:
+	            case "end":
+	              return _context.stop();
+	          }
+	        }
+	      }, _callee, this);
+	    }));
+
+	    function getToken(_x, _x2) {
+	      return _getToken.apply(this, arguments);
+	    }
+
+	    return getToken;
+	  }()
+	};
+
+	function defineObj() {
+	  Object.defineProperty(ptx, 'client_id', {
+	    get: function get() {
+	      return cfgToken.client_id;
+	    },
+	    set: function set(v) {
+	      cfgToken.client_id = v;
+	    },
+	    enumerable: true
+	  });
+	  Object.defineProperty(ptx, 'client_secret', {
+	    get: function get() {
+	      return cfgToken.client_secret;
+	    },
+	    set: function set(v) {
+	      cfgToken.client_secret = v;
+	    },
+	    enumerable: true
+	  });
+	  Object.defineProperty(ptx, 'AppID', {
+	    get: function get() {
+	      return cfgToken.client_id;
+	    },
+	    set: function set(v) {
+	      cfgToken.client_id = v;
+	      cfgToken.funProcess();
+	    },
+	    enumerable: true
+	  });
+	  Object.defineProperty(ptx, 'AppKey', {
+	    get: function get() {
+	      return cfgToken.client_secret;
+	    },
+	    set: function set(v) {
+	      cfgToken.client_secret = v;
+	      cfgToken.funProcess();
+	    },
+	    enumerable: true
+	  });
+	}
+
 	var ptx = {
 	  statusCode: CM.statusCode,
 	  timeout: 30000,
 	  tempTimeTable: {},
 	  throwError: function throwError(str) {
 	    throw str;
+	  },
+	  initToken: function initToken(_id, _secret) {
+	    return cfgToken.getToken(_id, _secret);
 	  },
 	  filterParam: function filterParam(field, op, value, andOr) {
 	    //field 及 value可為陣列，其中一者為陣列時將用 andOr 連接，但當兩者皆為陣列時必需長度一致以便配對連接
@@ -7019,7 +7155,7 @@
 	  topFn: function topFn(top, formatStr) {
 	    top = top || 3000;
 	    formatStr = formatStr || 'JSON';
-	    return '$top=' + top + '&format=' + formatStr;
+	    return '$top=' + top + '&$format=' + formatStr;
 	  },
 	  selectFieldFn: function selectFieldFn(str) {
 	    if (_typeof(str) == 'object' && str.length) {
@@ -7027,6 +7163,14 @@
 	    }
 
 	    return encodeURI('$select=' + str);
+	  },
+	  GetAuthorizationHeaderTDX: function GetAuthorizationHeaderTDX() {
+	    var GMTString = new Date().toGMTString();
+	    var Authorization = 'Bearer ' + cfgToken.token;
+	    return {
+	      'Authorization': Authorization,
+	      'X-Date': GMTString
+	    };
 	  },
 	  GetAuthorizationHeader: function GetAuthorizationHeader() {
 	    var AppID = ptx.AppID || 'FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF';
@@ -7102,7 +7246,7 @@
 	    fm.addEventListener("timeout", reqListener);
 	    fm.open('GET', url);
 	    fm.timeout = ptx.timeout;
-	    var headerObj = this.GetAuthorizationHeader();
+	    var headerObj = this.GetAuthorizationHeaderTDX();
 
 	    for (var k in headerObj) {
 	      fm.setRequestHeader(k, headerObj[k]);
@@ -7112,6 +7256,21 @@
 	  },
 	  getPromiseURL: function getPromiseURL(url) {
 	    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	    var paramAry = [];
+	    var paramPostAry = [];
+	    var param = cfg.param;
+	    cfg.method = cfg.method || 'GET';
+
+	    if (param && cfg.method == 'GET') {
+	      for (var k in param) {
+	        if (param[k]) paramAry.push(k + '=' + encodeURIComponent(param[k]));
+	      }
+	    } else if (param && cfg.method == 'POST') {
+	      for (var k in param) {
+	        if (param[k]) paramPostAry.push(k + '=' + encodeURIComponent(param[k]));
+	      }
+	    }
+
 	    return new Promise(function (resolve, reject) {
 	      function reqListener(xhr) {
 	        var event = {
@@ -7146,13 +7305,18 @@
 	      var method = cfg.method || 'GET';
 	      fm.open(method, url);
 	      fm.timeout = cfg.timeout || ptx.timeout;
-	      var headerObj = cfg.head || ptx.GetAuthorizationHeader();
+	      var headerObj = cfg.head || ptx.GetAuthorizationHeaderTDX();
 
 	      for (var k in headerObj) {
 	        fm.setRequestHeader(k, headerObj[k]);
 	      }
 
-	      fm.send();
+	      if (cfg.method == 'GET') {
+	        fm.send();
+	      } else if (cfg.method == 'POST') {
+	        fm.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	        fm.send(paramPostAry.join('&'));
+	      }
 	    });
 	  },
 	  getStationLiveInfo: function getStationLiveInfo(stid, cbFn) {
@@ -7183,6 +7347,7 @@
 	    if (intA > intB) return 1;
 	  }
 	};
+	defineObj();
 
 	var pData = {
 	  sect_ary: ['pingdong', 'kaohsiung', 'tainan', 'chiayi', 'yunlin', 'changhua', 'taichung', 'miaoli', 'hsinchu', 'taoyuan', 'taipei', 'keelung', 'northeast', 'yilan', 'beihui', 'hualian', 'taidong'],
@@ -14734,23 +14899,23 @@
 
 	var thsrV2URL = CM.thsrV2URL;
 	var v2urls = {
-	  Station: thsrV2URL + '/Station/',
+	  Station: thsrV2URL + '/Station',
 	  //取得車站基本資料
-	  ODFare: thsrV2URL + '/ODFare/',
+	  ODFare: thsrV2URL + '/ODFare',
 	  //取得票價資料
-	  GeneralTimetable: thsrV2URL + '/GeneralTimetable/',
+	  GeneralTimetable: thsrV2URL + '/GeneralTimetable',
 	  //取得所有車次的定期時刻表資料
-	  DailyTrainInfo_Today: thsrV2URL + '/DailyTrainInfo/Today/',
+	  DailyTrainInfo_Today: thsrV2URL + '/DailyTrainInfo/Today',
 	  //取得當天所有車次的車次資料
-	  DailyTimetable_Today: thsrV2URL + '/DailyTimetable/Today/',
+	  DailyTimetable_Today: thsrV2URL + '/DailyTimetable/Today',
 	  //取得當天所有車次的時刻表資料
 	  AlertInfo: thsrV2URL + '/AlertInfo',
 	  //取得即時通阻事件資料
 	  News: thsrV2URL + '/News',
 	  //取得高鐵最新消息資料
-	  Shape: thsrV2URL + '/Shape/',
+	  Shape: thsrV2URL + '/Shape',
 	  //取得指定營運業者之軌道路網實體路線圖資資料
-	  StationExit: thsrV2URL + '/StationExit/',
+	  StationExit: thsrV2URL + '/StationExit',
 	  //取得車站基本資料
 	  //以下為帶有變數的 API
 	  ODFareFromTo: thsrV2URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}',
@@ -15316,29 +15481,29 @@
 	var urls$1 = {
 	  Network: traURL$1 + '/Network',
 	  //取得臺鐵路網資料
-	  Line: traURL$1 + '/Line/',
+	  Line: traURL$1 + '/Line',
 	  //取得路線基本資料
-	  Station: traURL$1 + '/Station/',
+	  Station: traURL$1 + '/Station',
 	  //取得車站基本資料
-	  StationOfLine: traURL$1 + '/StationOfLine/',
+	  StationOfLine: traURL$1 + '/StationOfLine',
 	  //取得路線車站基本資料
 	  TrainType: traURL$1 + '/TrainType',
 	  //取得所有列車車種資料
-	  ODFare: traURL$1 + '/ODFare/',
+	  ODFare: traURL$1 + '/ODFare',
 	  //取得票價資料
-	  Shape: traURL$1 + '/Shape/',
+	  Shape: traURL$1 + '/Shape',
 	  //取得指定營運業者之軌道路網實體路線圖資資料
-	  GeneralTrainInfo: traURL$1 + '/GeneralTrainInfo/',
+	  GeneralTrainInfo: traURL$1 + '/GeneralTrainInfo',
 	  //取得所有車次的定期車次資料
-	  GeneralTimetable: traURL$1 + '/GeneralTimetable/',
+	  GeneralTimetable: traURL$1 + '/GeneralTimetable',
 	  //取得所有車次的定期時刻表資料
-	  DailyTrainInfo_Today: traURL$1 + '/DailyTrainInfo/Today/',
+	  DailyTrainInfo_Today: traURL$1 + '/DailyTrainInfo/Today',
 	  //取得當天所有車次的車次資料
-	  DailyTimetable_Today: traURL$1 + '/DailyTimetable/Today/',
+	  DailyTimetable_Today: traURL$1 + '/DailyTimetable/Today',
 	  //取得當天所有車次的時刻表資料
-	  LiveBoard: traURL$1 + '/LiveBoard/',
+	  LiveBoard: traURL$1 + '/LiveBoard',
 	  //取得車站別列車即時到離站電子看板
-	  LiveTrainDelay: traURL$1 + '/LiveTrainDelay/',
+	  LiveTrainDelay: traURL$1 + '/LiveTrainDelay',
 	  //取得列車即時準點/延誤時間資料
 	  //以下為帶有變數的 API
 	  ODFareFromTo: traURL$1 + '/ODFare/{OriginStationID}/to/{DestinationStationID}',
@@ -15369,43 +15534,43 @@
 	var v3urls = {
 	  Network: traV3URL + '/Network',
 	  //取得臺鐵路網資料
-	  Station: traV3URL + '/Station/',
+	  Station: traV3URL + '/Station',
 	  //取得車站基本資料
-	  StationExit: traV3URL + '/StationExit/',
+	  StationExit: traV3URL + '/StationExit',
 	  //取得車站出入口資料
-	  StationFacility: traV3URL + '/StationFacility/',
+	  StationFacility: traV3URL + '/StationFacility',
 	  //取得車站設施資料
-	  Line: traV3URL + '/Line/',
+	  Line: traV3URL + '/Line',
 	  //取得路線基本資料
-	  StationOfLine: traV3URL + '/StationOfLine/',
+	  StationOfLine: traV3URL + '/StationOfLine',
 	  //取得路線車站基本資料
 	  TrainType: traV3URL + '/TrainType',
 	  //取得所有列車車種資料
 	  //ODFare: traURL + '/ODFare/', //取得票價資料 , v3 已移除
 	  //GeneralTrainInfo: traURL + '/GeneralTrainInfo/', //取得所有車次的定期車次資料 , v3 已移除
-	  GeneralTrainTimetable: traV3URL + '/GeneralTrainTimetable/',
+	  GeneralTrainTimetable: traV3URL + '/GeneralTrainTimetable',
 	  //取得所有車次的定期時刻表資料
 	  GeneralStationTimetable: traV3URL + '/GeneralStationTimetable',
 	  //取得各站的定期站別時刻表資料
 	  SpecificTrainTimetable: traV3URL + '/SpecificTrainTimetable',
 	  //取得所有特殊車次時刻表資料
-	  DailyTrainTimetable_Today: traV3URL + '/DailyTrainTimetable/Today/',
+	  DailyTrainTimetable_Today: traV3URL + '/DailyTrainTimetable/Today',
 	  //取得當天車次時刻表資料
-	  DailyStationTimetable_Today: traV3URL + '/DailyStationTimetable/Today/',
+	  DailyStationTimetable_Today: traV3URL + '/DailyStationTimetable/Today',
 	  //取得當天各站站別時刻表資料
-	  StationLiveBoard: traV3URL + '/StationLiveBoard/',
+	  StationLiveBoard: traV3URL + '/StationLiveBoard',
 	  //取得列車即時到離站資料
-	  TrainLiveBoard: traV3URL + '/TrainLiveBoard/',
+	  TrainLiveBoard: traV3URL + '/TrainLiveBoard',
 	  //取得列車即時位置動態資料
-	  LineTransfer: traV3URL + '/LineTransfer/',
+	  LineTransfer: traV3URL + '/LineTransfer',
 	  //取得內部路線轉乘資料
-	  StationTransfer: traV3URL + '/StationTransfer/',
+	  StationTransfer: traV3URL + '/StationTransfer',
 	  //取得車站跨運具轉乘資訊
-	  News: traV3URL + '/News/',
+	  News: traV3URL + '/News',
 	  //取得最新消息
-	  Alert: traV3URL + '/Alert/',
+	  Alert: traV3URL + '/Alert',
 	  //取得營運通阻資料
-	  Shape: traV3URL + '/Shape/',
+	  Shape: traV3URL + '/Shape',
 	  //取得線型基本資料
 	  //以下為帶有變數的 API
 	  ODFareFromTo: traV3URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}',
