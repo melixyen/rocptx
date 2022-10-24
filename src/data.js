@@ -401,6 +401,8 @@ var pData = {
             {"id": "110D", "code": 3, "name": "自強號", "ename": "Tze-Chiang Limited Express", "color": "#fd7a10"},
             {"id": "110E", "code": 3, "name": "自強號", "ename": "Tze-Chiang Limited Express", "color": "#fd7a10"},
             {"id": "110F", "code": 3, "name": "自強號", "ename": "Tze-Chiang Limited Express", "color": "#fd7a10"},
+            {"id": "110G", "code": 11, "name": "自強號", "ename": "Tze-Chiang Limited Express", "color": "#fd7a10"},
+            {"id": "110H", "code": 11, "name": "自強號", "ename": "Tze-Chiang Limited Express", "color": "#fd7a10"},
             {"id": "1110", "code": 4, "name": "莒光號", "ename": "Chu-Kuang Express", "color": "#ff1070"},
             {"id": "1111", "code": 4, "name": "莒光號", "ename": "Chu-Kuang Express", "color": "#ff1070"},
             {"id": "1114", "code": 4, "name": "莒光號", "ename": "Chu-Kuang Express", "color": "#ff1070"},
