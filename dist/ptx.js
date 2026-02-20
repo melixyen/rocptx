@@ -1,7 +1,7 @@
 /*
 *   name: rocptx 
 *   description: Dynamic public traffic library of Taiwan and Kinmen, Lienchiang 
-*   version: 0.0.7 
+*   version: 0.0.8 
 *   license: MIT 
 *   
 *   Edit by: Melix Yen
@@ -8691,6 +8691,18 @@
 	      "ename": "Tze-Chiang Limited Express",
 	      "color": "#fd7a10"
 	    }, {
+	      "id": "110G",
+	      "code": 11,
+	      "name": "自強號",
+	      "ename": "Tze-Chiang Limited Express",
+	      "color": "#fd7a10"
+	    }, {
+	      "id": "110H",
+	      "code": 11,
+	      "name": "自強號",
+	      "ename": "Tze-Chiang Limited Express",
+	      "color": "#fd7a10"
+	    }, {
 	      "id": "1110",
 	      "code": 4,
 	      "name": "莒光號",
@@ -15595,7 +15607,14 @@
 	  //取得各站每日站別時刻表資料 yyyy-MM-dd
 	  StationLiveBoard_Station: traV3URL + '/StationLiveBoard/Station/{StationID}',
 	  //取得指定[車站]列車即時到離站電子看板(動態前後30分鐘的車次)
-	  TrainLiveBoard_TrainNo: traV3URL + '/TrainLiveBoard/TrainNo/{TrainNo}' //取得指定[車次]的列車即時位置動態資料
+	  TrainLiveBoard_TrainNo: traV3URL + '/TrainLiveBoard/TrainNo/{TrainNo}',
+	  //取得指定[車次]的列車即時位置動態資料
+	  //以下為新增的 API (原缺失)
+	  DailyTrainTimetable_TrainDates: traV3URL + '/DailyTrainTimetable/TrainDates',
+	  //取得臺鐵每日時刻表所有供應的日期資料
+	  Operator: traV3URL + '/Operator',
+	  //取得台鐵營運業者基本資料
+	  LineNetwork: traV3URL + '/LineNetwork' //取得路線網路拓撲基本資料
 
 	};
 	var vars$1 = {
@@ -16089,6 +16108,53 @@
 	    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
 	    return tra$1.v3._DailyStationTimetable_Today_Station(StationID, cfg);
+	  },
+	  getDailyTrainTimetableDates: function getDailyTrainTimetableDates() {
+	    var cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+	    /**
+	     * 取得臺鐵每日時刻表所有供應的日期資料
+	     * @description 查詢台鐵提供每日時刻表的所有日期範圍，用於了解資料涵蓋期間
+	     * @param {Object} cfg - 查詢設定物件
+	     * @returns {Promise} 回傳包含所有可用日期的資料
+	     * @example
+	     * rocptx.tra.v3.getDailyTrainTimetableDates().then(data => {
+	     *   console.log('可用日期範圍:', data.data.StartDate, '-', data.data.EndDate);
+	     *   console.log('總共有', data.data.Count, '天的時刻表');
+	     *   console.log('日期列表:', data.data.TrainDates);
+	     * });
+	     */
+	    return tra$1.v3._DailyTrainTimetable_TrainDates(cfg);
+	  },
+	  getOperator: function getOperator() {
+	    var cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+	    /**
+	     * 取得台鐵營運業者基本資料
+	     * @description 查詢台鐵營運商的相關資訊
+	     * @param {Object} cfg - 查詢設定物件
+	     * @returns {Promise} 回傳台鐵營運業者資訊
+	     * @example
+	     * rocptx.tra.v3.getOperator().then(data => {
+	     *   console.log('營運業者:', data.data);
+	     * });
+	     */
+	    return tra$1.v3._Operator(cfg);
+	  },
+	  getLineNetwork: function getLineNetwork() {
+	    var cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+	    /**
+	     * 取得路線網路拓撲基本資料
+	     * @description 查詢台鐵路線網路結構與拓撲資訊
+	     * @param {Object} cfg - 查詢設定物件
+	     * @returns {Promise} 回傳路線網路拓撲資料
+	     * @example
+	     * rocptx.tra.v3.getLineNetwork().then(data => {
+	     *   console.log('路線網路:', data.data);
+	     * });
+	     */
+	    return tra$1.v3._LineNetwork(cfg);
 	  }
 	}; //產生整包抓取 Function
 
@@ -16253,6 +16319,89 @@
 	    });
 
 	    return atLine;
+	  },
+	  TrainDates: function TrainDates(progressFn) {
+	    /**
+	     * 取得臺鐵每日時刻表供應的所有日期
+	     * @param {Function} progressFn - 進度回調函數
+	     * @returns {Promise} 回傳日期陣列與相關資訊
+	     * @example
+	     * rocptx.tra.v3.catchData.TrainDates().then(data => {
+	     *   console.log('開始日期:', data.StartDate);
+	     *   console.log('結束日期:', data.EndDate);
+	     *   console.log('可用日期數:', data.Count);
+	     *   console.log('日期陣列:', data.TrainDates);
+	     * });
+	     */
+	    if (typeof progressFn != 'function') progressFn = function progressFn(msg) {};
+	    progressFn('取得可用日期中');
+	    return tra$1.v3._DailyTrainTimetable_TrainDates().then(function (res) {
+	      // 提取 TrainDates 陣列及相關元數據
+	      return {
+	        TrainDates: res.data.TrainDates || [],
+	        StartDate: res.data.StartDate,
+	        EndDate: res.data.EndDate,
+	        Count: res.data.Count,
+	        UpdateTime: res.data.UpdateTime,
+	        UpdateInterval: res.data.UpdateInterval,
+	        AuthorityCode: res.data.AuthorityCode
+	      };
+	    }).catch(function (res) {
+	      return res;
+	    });
+	  },
+	  Operator: function Operator(progressFn) {
+	    /**
+	     * 取得台鐵營運業者資訊
+	     * @param {Function} progressFn - 進度回調函數
+	     * @returns {Promise} 回傳營運業者資訊及元數據
+	     * @example
+	     * tra.v3.getOperator().then(data => {
+	     *   console.log(data.Operators);  // [ { OperatorCode, OperatorName, ... } ]
+	     *   console.log(data.UpdateTime); // "2026-02-20T07:29:54+08:00"
+	     * });
+	     */
+	    if (typeof progressFn != 'function') progressFn = function progressFn(msg) {};
+	    progressFn('取得營運業者中');
+	    return tra$1.v3._Operator().then(function (res) {
+	      return {
+	        Operators: res.data.Operators || [],
+	        UpdateTime: res.data.UpdateTime,
+	        UpdateInterval: res.data.UpdateInterval,
+	        SrcUpdateTime: res.data.SrcUpdateTime,
+	        SrcUpdateInterval: res.data.SrcUpdateInterval,
+	        AuthorityCode: res.data.AuthorityCode
+	      };
+	    }).catch(function (res) {
+	      return res;
+	    });
+	  },
+	  LineNetwork: function LineNetwork(progressFn) {
+	    /**
+	     * 取得路線網路拓撲資料
+	     * @param {Function} progressFn - 進度回調函數
+	     * @returns {Promise} 回傳路線網路資訊及元數據
+	     * @example
+	     * tra.v3.getLineNetwork().then(data => {
+	     *   console.log(data.LineNetworks);     // [ { LineID, LineName, LineSegments[] } ]
+	     *   console.log(data.UpdateTime);       // "2026-02-20T07:29:54+08:00"
+	     *   console.log(data.SrcUpdateTime);    // "2026-02-20T04:00:00+08:00"
+	     * });
+	     */
+	    if (typeof progressFn != 'function') progressFn = function progressFn(msg) {};
+	    progressFn('取得路線網路拓撲中');
+	    return tra$1.v3._LineNetwork().then(function (res) {
+	      return {
+	        LineNetworks: res.data.LineNetworks || [],
+	        UpdateTime: res.data.UpdateTime,
+	        UpdateInterval: res.data.UpdateInterval,
+	        SrcUpdateTime: res.data.SrcUpdateTime,
+	        SrcUpdateInterval: res.data.SrcUpdateInterval,
+	        AuthorityCode: res.data.AuthorityCode
+	      };
+	    }).catch(function (res) {
+	      return res;
+	    });
 	  },
 	  SimpleTimetable: function SimpleTimetable(progressFn) {
 	    return catchV3Data.GeneralTrainTimetable(progressFn).then(function (json) {
