@@ -12,6 +12,7 @@ import tymetro from './tymetro.js';
 import klrt from './klrt.js';
 import thsr from './thsr.js';
 import tra from './tra.js';
+import afr from './afr.js';
 import router from './router.js';
 import jsSHA from './jsSHA';
 import id from './id';
@@ -32,6 +33,7 @@ var combine = {
 	klrt: klrt,
 	thsr: thsr,
 	tra: tra,
+	afr: afr,
 	router: router,
 	jsSHA: jsSHA,
 	id: id,

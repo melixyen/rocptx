@@ -538,6 +538,24 @@ tra.v3 = {
          * });
          */
         return tra.v3._LineNetwork(cfg);
+    },
+    getNews: function(cfg={}){
+        /**
+         * 取得台鐵最新消息
+         * @description 查詢台鐵最新公告與消息資料
+         * @param {Object} cfg - 查詢設定物件
+         * @returns {Promise} 回傳最新消息資料
+         */
+        return tra.v3._News(cfg);
+    },
+    getStationFacility: function(cfg={}){
+        /**
+         * 取得台鐵車站設施資料
+         * @description 查詢台鐵各站站內設施與設備資訊
+         * @param {Object} cfg - 查詢設定物件
+         * @returns {Promise} 回傳車站設施資料
+         */
+        return tra.v3._StationFacility(cfg);
     }
 };
 

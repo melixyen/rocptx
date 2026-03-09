@@ -32,8 +32,8 @@ var config = {
 // ****** Custom control export config rule start ******
 var options = process.argv;//Get cli parameter 取得執行命令帶的參數
 var format = 'umd';
-var flagMinify = false;//Set true or cli add --flag-use-minify to minify output code. 設為 true 或執行命令加參數 --flag-use-minify 以便將輸出檔案壓縮
-var flagBanner = false;//Set true or cli add --flag-use-banner to add banner comment. 設為 true 或執行命令加參數 --flag-use-banner 以便將輸出檔頭加上宣告註解
+var flagMinify = (process.env.ROCPTX_USE_MINIFY == 'true' || process.env.ROCPTX_USE_MINIFY == '1');//Set true or cli add --flag-use-minify to minify output code. 設為 true 或執行命令加參數 --flag-use-minify 以便將輸出檔案壓縮
+var flagBanner = (process.env.ROCPTX_USE_BANNER == 'true' || process.env.ROCPTX_USE_BANNER == '1');//Set true or cli add --flag-use-banner to add banner comment. 設為 true 或執行命令加參數 --flag-use-banner 以便將輸出檔頭加上宣告註解
 options.forEach(function(c, idx, arr){
 	if(c=='-f' || c=='--output.format'){
 		format = arr[idx+1];
@@ -89,6 +89,7 @@ E-Mail: melixyen@gmail.com
 if(flagMinify && format!='es'){
 	config.output.banner = undefined;
 	config.plugins.push(minify({
+		evaluate: false,
 		banner: (flagBanner) ? commentString : undefined
 	}));
 }

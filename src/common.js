@@ -118,8 +118,10 @@ CM.CONST_TDX_LEVEL_MAAS = '/maas';
 const basicAPI = CM.CONST_TDX_API_URL + CM.CONST_TDX_LEVEL_BASIC;
 CM.metroURL = basicAPI + '/v2/Rail/Metro';
 CM.busURL = basicAPI + '/v2/Bus'
+CM.busV3URL = basicAPI + '/v3/Bus';
 CM.traURL = basicAPI + '/v2/Rail/TRA';
 CM.traV3URL = basicAPI + '/v3/Rail/TRA';
+CM.afrV3URL = basicAPI + '/v3/Rail/AFR';
 CM.thsrV2URL = basicAPI + '/v2/Rail/THSR';
 
 CM.ptxMRTWeekStr = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];

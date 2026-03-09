@@ -1,193 +1,73 @@
-# 📚 rocptx 文檔目錄索引
+# rocptx 文件索引
 
 ## 目錄結構
 
-```
+```text
 doc/
-├── API_MAPPING.md       # 📖 rocptx 與 TDX API 對應說明
-└── README.md            # 📑 本文檔
+├── API_MAPPING.md              # 目前 SDK 公開方法總表與 TDX 對照
+├── README.md                   # 本索引
+└── tdx_docs/
+    ├── upgrade_plan.md         # SDK 與 TDX docs 差異、缺口與升級順序
+    ├── tdx.md                  # TDX 文件說明整理
+    └── *.json                  # TDX Swagger / OpenAPI 原始規格
 ```
 
----
+## 建議閱讀順序
 
-## 📖 文檔說明
+### 想知道「現在 SDK 有什麼」
 
-### **API_MAPPING.md** - rocptx 與 TDX API 對應表
+先看 `doc/API_MAPPING.md`：
 
-**用途**：了解專案架構與 API 的關聯
+- `src/main.js` 的公開匯出
+- 各模組目前可用的方法
+- `metro` / `thsr` / `tra` / `router` / `id` 的實際結構
 
-**內容**：
-- rocptx 專案概述
-- 核心配置與認證流程
-- 各模組與 API 的詳細對應
-- 實際 API 呼叫流程示例
-- OData 查詢參數說明
+### 想知道「TDX docs 和 SDK 差在哪裡」
 
-**適合閱讀對象**：
-- 初次使用 rocptx 的開發者
-- 需要了解 API 整體結構的人
-- 進行系統設計和架構規劃的人
+看 `doc/tdx_docs/upgrade_plan.md`：
 
----
+- 已對應項目
+- 部分對應項目
+- 尚未建立的類別 / 模組
+- 文件與程式的增刪差異
+- 後續優先順序
 
-## 🚀 快速開始
+### 想追原始 TDX 規格
 
-### 對於初次使用者
-```
-1. 打開 API_MAPPING.md 了解 rocptx 架構
-2. 查看 src/tra.js 的 JSDoc 註解學習新 API
-3. 運行代碼示例進行測試
-```
+看 `doc/tdx_docs/*.json` 與 `doc/tdx_docs/tdx.md`。
 
-### 對於老用戶
-```
-1. 查看 src/tra.js (lines 73-75, 508-541, 697-742) 了解新增的 3 個 API
-2. 檢查 getOperator()、getLineNetwork()、getDailyTrainTimetableDates() 的用法
-3. 完成整合！
-```
+## 各文件角色
 
----
+| 文件 | 角色 | 應以什麼為準 |
+|---|---|---|
+| `README.md` | 對外使用說明 / 快速上手 | 可讀性與主要入口 |
+| `doc/API_MAPPING.md` | 內部維護用方法總表 | `src/*.js` 原始碼 |
+| `doc/tdx_docs/upgrade_plan.md` | 缺口盤點與升級規劃 | `src/*.js` + `tdx_docs/*.json` |
+| `doc/tdx_docs/*.json` | TDX 原始規格 | TDX 文件本身 |
 
-## 📝 新增 API 快速參考
+## 維護原則
 
-### 三個新增的 TRA V3 API
+1. **SDK 原始碼優先**：方法名、命名空間與匯出結構以 `src/*.js` 為準
+2. **TDX 規格次之**：覆蓋率與缺口以 `doc/tdx_docs/*.json` 為準
+3. **README 不做全文方法表**：完整方法索引統一放在 `doc/API_MAPPING.md`
+4. **有結構變更就同步三處**：`README.md`、`doc/API_MAPPING.md`、`doc/README.md`
+5. **若新增 TDX 對應能力**：同步更新 `doc/tdx_docs/upgrade_plan.md`
 
-| API | 功能 | 方法 |
-|-----|------|------|
-| DailyTrainTimetable/TrainDates | 列車日期範圍查詢 | `tra.v3.getDailyTrainTimetableDates()` |
-| Operator | 營運業者資訊 | `tra.v3.getOperator()` |
-| LineNetwork | 路線網路拓撲 | `tra.v3.getLineNetwork()` |
+## 本輪已整理的重點
 
-### API 回應格式
+- 補回 `tmrt`、`thsr`、`router`、`id` 等實際公開模組說明
+- 將 `API_MAPPING.md` 改為目前 SDK 的方法索引，而非舊版概述文
+- 將 `router` 改為實際的 `bus / v1 / v2` 結構描述
+- 明確標示 `thsr.v2` 為已實作，不再視為預留
+- 將 `tra.v3` 新增的 `TrainDates`、`Operator`、`LineNetwork` 納入文件索引
 
-**TrainDates**
-```javascript
-{
-  TrainDates: [],           // 日期陣列
-  StartDate: "2026-01-01",
-  EndDate: "2026-12-31",
-  Count: 366,
-  UpdateTime: "2026-02-20T07:29:54+08:00",
-  UpdateInterval: 14400,
-  AuthorityCode: "TRA"
-}
-```
+## 維護建議
 
-**Operator**
-```javascript
-{
-  Operators: [              // 營運業者陣列
-    {
-      OperatorCode: "TRA",
-      OperatorName: { Zh_tw: "國營臺灣鐵路...", En: "Taiwan Railway..." },
-      // ... 其他欄位
-    }
-  ],
-  UpdateTime: "2026-02-20T07:29:54+08:00",
-  UpdateInterval: 14400,
-  SrcUpdateTime: "2026-02-20T04:00:00+08:00",
-  SrcUpdateInterval: 86400,
-  AuthorityCode: "TRA"
-}
-```
+未來若有新 API / 模組加入，建議依序檢查：
 
-**LineNetwork**
-```javascript
-{
-  LineNetworks: [           // 路線網路陣列
-    {
-      LineID: "WL",
-      LineName: { Zh_tw: "西部幹線", En: "Western Main Line" },
-      LineSegments: [       // 路線區段陣列
-        {
-          LineSegmentID: "0900-0910",
-          LineSegmentName: { ... },
-          FromStationID: "0900",
-          ToStationID: "0910",
-          SegmentType: "M",
-          Distance: 1.5
-        }
-        // ... 更多區段
-      ]
-    }
-    // ... 更多路線
-  ],
-  UpdateTime: "2026-02-20T07:29:54+08:00",
-  UpdateInterval: 14400,
-  SrcUpdateTime: "2026-02-20T04:00:00+08:00",
-  SrcUpdateInterval: 86400,
-  AuthorityCode: "TRA"
-}
-```
+1. `src/main.js` 是否已公開匯出
+2. `doc/API_MAPPING.md` 是否已列出方法與 namespace
+3. `README.md` 是否有對外說明需要同步
+4. `doc/tdx_docs/upgrade_plan.md` 是否需要更新缺口與優先級
 
----
-
-## 💻 代碼位置參考
-
-### 在 src/tra.js 中的位置
-
-**API 端點定義**（第 73-75 行）
-```javascript
-v3urls: {
-    // ...
-    DailyTrainTimetable_TrainDates: '/v3/Rail/TRA/DailyTrainTimetable/TrainDates',
-    Operator: '/v3/Rail/TRA/Operator',
-    LineNetwork: '/v3/Rail/TRA/LineNetwork'
-}
-```
-
-**便利方法**（第 508-541 行）
-```javascript
-tra.v3 = {
-    getDailyTrainTimetableDates: function(progressFn) { ... },
-    getOperator: function(progressFn) { ... },
-    getLineNetwork: function(progressFn) { ... }
-}
-```
-
-**數據處理方法**（第 697-742 行）
-```javascript
-catchV3Data = {
-    TrainDates: function(progressFn) { ... },
-    Operator: function(progressFn) { ... },
-    LineNetwork: function(progressFn) { ... }
-}
-```
-
----
-
-## 📋 實裝檢查清單
-
-- ✅ DailyTrainTimetable/TrainDates API 實裝
-- ✅ Operator API 實裝
-- ✅ LineNetwork API 實裝
-- ✅ 三個便利方法已添加到 `tra.v3` 對象
-- ✅ 三個數據處理方法已添加到 `catchV3Data` 對象
-- ✅ 所有回應格式已驗證
-- ✅ 編譯完成（dist/ptx.js）
-
----
-
-## 📞 文檔維護信息
-
-- **最後更新**：2026 年 2 月 20 日
-- **當前版本**：v1.0
-- **rocptx 版本**：v0.0.8+
-- **TDX API 版本**：v2/v3
-
----
-
-## ✅ 實裝驗證
-
-所有新增 API 均已：
-- ✅ 添加到 v3urls 對象
-- ✅ 創建便利方法在 tra.v3 中
-- ✅ 創建數據處理方法在 catchV3Data 中
-- ✅ 根據真實 TDX API 回應格式進行驗證
-- ✅ 包含在編譯後的 UMD 模組中
-
----
-
-**祝您使用愉快！** 🎉
-
-如有任何問題，請檢查源代碼中的 JSDoc 註解或參考 src/tra.js 的實裝。
+最後更新：2026-03-09

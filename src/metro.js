@@ -9,6 +9,7 @@ const urls = {
     Station: metroURL + '/Station/', //取得捷運車站基本資料
     StationOfLine: metroURL + '/StationOfLine/', //取得捷運路線車站基本資料
     LineTransfer: metroURL + '/LineTransfer/', //取得捷運路線站間轉乘基本資料
+    Alert: metroURL + '/Alert/', //取得營運通阻資料
     StationFacility: metroURL + '/StationFacility/', //取得捷運車站設施資料
     StationExit: metroURL + '/StationExit/', //取得捷運車站出入口基本資料
     Route: metroURL + '/Route/', //取得捷運營運路線基本資料
@@ -18,7 +19,9 @@ const urls = {
     S2STravelTime: metroURL + '/S2STravelTime/', //取得捷運列車站間運行時間資料
     ODFare: metroURL + '/ODFare/', //取得捷運起迄站間票價資料
     LiveBoard: metroURL + '/LiveBoard/', //取得捷運起迄站間票價資料
+    LivePosition: metroURL + '/LivePosition/', //取得列車即時位置資料
     StationTimeTable: metroURL + '/StationTimeTable/', //取得捷運站別時刻表資料
+    StationTransfer: metroURL + '/StationTransfer/', //取得捷運車站跨運具轉乘資料
     Shape: metroURL + '/Shape/' //取得指定營運業者之軌道路網實體路線圖資資料
 }
 const companyTag = {
@@ -158,6 +161,9 @@ class baseMethod {
             getRoute: function(LineID, cfg={}){
                 cfg = useLineID2filterBy(LineID, cfg);
                 return me._Route(cfg);
+            },
+            getAlert: function(cfg={}){
+                return me._Alert(cfg);
             },
             getLineFrequency: function(LineID, cfg={}){
                 cfg = useLineID2filterBy(LineID, cfg);
@@ -303,6 +309,14 @@ class baseMethod {
                 cfg = useStationID2filterBy(StationID, cfg);
                 return me._StationExit(cfg);
             },
+            getStationTransfer: function(StationID='', cfg={}){
+                if(typeof(StationID)=='object'){
+                    cfg = StationID;
+                    StationID = '';
+                }
+                if(StationID) cfg = useStationID2filterBy(StationID, cfg);
+                return me._StationTransfer(cfg);
+            },
             getStationFare: function(StationID, cfg={}){
                 cfg.filterBy = cfg.filterBy || '';
                 cfg.filterBy += ptx.filterParam('OriginStationID', '==', StationID);
@@ -311,6 +325,9 @@ class baseMethod {
             getStationLiveBoard: function(StationID, cfg={}){
                 cfg = useStationID2filterBy(StationID, cfg);
                 return me._LiveBoard(cfg);
+            },
+            getLivePosition: function(cfg={}){
+                return me._LivePosition(cfg);
             }
         }
         for(var k in methodObj){

@@ -6,6 +6,7 @@ const thsrV2URL = common.thsrV2URL;
 
 const v2urls = {
     Station: thsrV2URL + '/Station', //取得車站基本資料
+    StationOfLine: thsrV2URL + '/StationOfLine', //取得路線車站基本資料
     ODFare: thsrV2URL + '/ODFare', //取得票價資料
     GeneralTimetable: thsrV2URL + '/GeneralTimetable', //取得所有車次的定期時刻表資料
     DailyTrainInfo_Today: thsrV2URL + '/DailyTrainInfo/Today', //取得當天所有車次的車次資料
@@ -14,6 +15,9 @@ const v2urls = {
     News: thsrV2URL + '/News', //取得高鐵最新消息資料
     Shape: thsrV2URL + '/Shape', //取得指定營運業者之軌道路網實體路線圖資資料
     StationExit: thsrV2URL + '/StationExit', //取得車站基本資料
+    AvailableSeatStatusList_All: thsrV2URL + '/AvailableSeatStatusList', //取得動態對號座剩餘座位資訊看板資料
+    AvailableSeatStatus_Today: thsrV2URL + '/AvailableSeatStatus/Train/Leg/Today', //取得當天對號座即時剩餘位資料({原始}列車區段Leg角度)
+    DailyFreeSeatingCar_Today: thsrV2URL + '/DailyFreeSeatingCar/Today', //取得當天所有車次的自由座車廂資料
     //以下為帶有變數的 API
     ODFareFromTo: thsrV2URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
     GeneralTimetable_TrainNo: thsrV2URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料
@@ -24,7 +28,12 @@ const v2urls = {
     DailyTimetable_TrainNo_TrainDate: thsrV2URL + '/DailyTimetable/TrainNo/{TrainNo}/TrainDate/{TrainDate}', //取得指定[日期],[車次]的時刻表資料
     DailyTimetable_Station_TrainDate: thsrV2URL + '/DailyTimetable/Station/{StationID}/{TrainDate}', //取得指定[日期],[車站]的站別時刻表資料
     DailyTimetable_OD_TrainDate: thsrV2URL + '/DailyTimetable/OD/{OriginStationID}/to/{DestinationStationID}/{TrainDate}',//取得指定[日期],[起迄站間]之站間時刻表資料
-    AvailableSeatStatusList: thsrV2URL + '/AvailableSeatStatusList/{StationID}' //取得動態指定[車站]的對號座剩餘座位資訊看板資料
+    AvailableSeatStatusList: thsrV2URL + '/AvailableSeatStatusList/{StationID}', //取得動態指定[車站]的對號座剩餘座位資訊看板資料
+    AvailableSeatStatus_TrainDate: thsrV2URL + '/AvailableSeatStatus/Train/Leg/TrainDate/{TrainDate}', //取得指定[日期]對號座即時剩餘位資料({原始}列車區段Leg角度)
+    AvailableSeatStatus_OD_TrainDate: thsrV2URL + '/AvailableSeatStatus/Train/OD/TrainDate/{TrainDate}', //取得指定[日期]站間對號座即時剩餘位資料(OD角度)
+    AvailableSeatStatus_OD_OriginStationID_to_DestinationStationID_TrainDate: thsrV2URL + '/AvailableSeatStatus/Train/OD/{OriginStationID}/to/{DestinationStationID}/TrainDate/{TrainDate}', //取得指定[日期],[起訖站]站間對號座即時剩餘位資料(OD角度)
+    AvailableSeatStatus_OD_OriginStationID_to_DestinationStationID_TrainDate_TrainNo: thsrV2URL + '/AvailableSeatStatus/Train/OD/{OriginStationID}/to/{DestinationStationID}/TrainDate/{TrainDate}/TrainNo/{TrainNo}', //取得指定[日期],[起訖站],[車次]站間對號座即時剩餘位資料(OD角度)
+    DailyFreeSeatingCar_TrainDate: thsrV2URL + '/DailyFreeSeatingCar/TrainDate/{TrainDate}' //取得指定[日期]所有車次的自由座車廂資料
 }
 
 
@@ -71,13 +80,27 @@ var thsr = {
 thsr.v2 = {
     urls: v2urls,
     getStationOfLine: function(LineID = '', cfg={}){
-        cfg.orderBy = 'StationID';
-        cfg.orderDir = 'ASC';
-        return thsr.v2._Station(cfg);
+        if(typeof(LineID)=='object'){
+            cfg = LineID;
+            LineID = '';
+        }
+        if(LineID){
+            cfg.filterBy = cfg.filterBy || '';
+            cfg.filterBy += ptx.filterParam('LineID', '==', LineID);
+        }
+        return thsr.v2._StationOfLine(cfg);
     },
     getStation: function(StationID, cfg={}){
         cfg = useStationID2filterBy(StationID, cfg);
         return thsr.v2._Station(cfg);
+    },
+    getStationExit: function(StationID = '', cfg={}){
+        if(typeof(StationID)=='object'){
+            cfg = StationID;
+            StationID = '';
+        }
+        if(StationID) cfg = useStationID2filterBy(StationID, cfg);
+        return thsr.v2._StationExit(cfg);
     },
     getStationFare: function(StationID, cfg={}){
         cfg.filterBy = cfg.filterBy || '';
@@ -88,6 +111,33 @@ thsr.v2 = {
         let date = new Date();
         let dateStr = date.getFullYear() + '-' + common.appendNumber0(date.getMonth()+1) + '-' + common.appendNumber0(date.getDate());
         return thsr.v2._DailyTimetable_Station_TrainDate(StationID, dateStr, cfg);
+    },
+    getAvailableSeatStatusList: function(cfg={}){
+        return thsr.v2._AvailableSeatStatusList_All(cfg);
+    },
+    getAvailableSeatStatusListByStation: function(StationID, cfg={}){
+        return thsr.v2._AvailableSeatStatusList(StationID, cfg);
+    },
+    getAvailableSeatStatusToday: function(cfg={}){
+        return thsr.v2._AvailableSeatStatus_Today(cfg);
+    },
+    getAvailableSeatStatusByDate: function(TrainDate, cfg={}){
+        return thsr.v2._AvailableSeatStatus_TrainDate(TrainDate, cfg);
+    },
+    getAvailableSeatStatusODByDate: function(TrainDate, cfg={}){
+        return thsr.v2._AvailableSeatStatus_OD_TrainDate(TrainDate, cfg);
+    },
+    getAvailableSeatStatusODFromToByDate: function(OriginStationID, DestinationStationID, TrainDate, cfg={}){
+        return thsr.v2._AvailableSeatStatus_OD_OriginStationID_to_DestinationStationID_TrainDate(OriginStationID, DestinationStationID, TrainDate, cfg);
+    },
+    getAvailableSeatStatusODFromToByDateTrainNo: function(OriginStationID, DestinationStationID, TrainDate, TrainNo, cfg={}){
+        return thsr.v2._AvailableSeatStatus_OD_OriginStationID_to_DestinationStationID_TrainDate_TrainNo(OriginStationID, DestinationStationID, TrainDate, TrainNo, cfg);
+    },
+    getDailyFreeSeatingCarToday: function(cfg={}){
+        return thsr.v2._DailyFreeSeatingCar_Today(cfg);
+    },
+    getDailyFreeSeatingCarByDate: function(TrainDate, cfg={}){
+        return thsr.v2._DailyFreeSeatingCar_TrainDate(TrainDate, cfg);
     }
 }
 
