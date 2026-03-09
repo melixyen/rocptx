@@ -1,0 +1,1067 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "公共運輸-自行車",
+    "description": "本平臺提供涵蓋全國尺度之交通旅運資料服務API，歡迎各產政學單位介接使用。\n<br><span class=swagger-description-indicatation>利用本平臺開放資料進行各項應用服務開發時，請考量不同特性使用者(如：性別/身心障礙/老幼等)的需求，並歡迎回饋寶貴意見。</span>\n<br>計費方式：\n<br>計次：1,500次/1點\n<br>計量：150MB/1點\n---\n##### API使用說明與注意事項：\n1. 如您尚未註冊平臺會員帳號，或未以帳號登入，您將僅能以「訪客模式」使用平臺服務，包含：限以瀏覽器存取，限使用`【基礎服務】`，且限制每個呼叫來源端IP每日存取至多20次。。\n2. 如您已註冊平臺會員帳號，請務必確保在存取服務(包含瀏覽器、程式呼叫API)時帶入您的API金鑰，方能以「會員模式」使用完整平臺服務，包含平臺各類資料服務，如`【基礎服務】`、`【進階服務】`、`【加值服務】`、`【歷史服務】`、`【圖資服務】`、`【第三方服務】`等。\n3. 建議您立即[註冊平臺會員帳號](/register)，依您用量需求訂閱服務方案，並於[【會員中心->資料服務->API金鑰】](/user/dataservice/key)取得API金鑰(即Client Id和Client Secret資訊)。\n4. 會員訂閱服務方案之級別不同，將決定其API金鑰之存取頻率有不同限制，各個方案的存取頻率限制說明請參考[訂閱收費](/pricing)。\n5. 以瀏覽器帶入API金鑰之操作方式：請點選Swagger UI上的Authorize按鈕，依指示填入Client Id和Client Secret資訊並進行驗證，驗證完成後可開始於Swagger UI使用API。\n6. 以程式呼叫API帶入API金鑰之操作方式：請參考[範例程式](https://github.com/tdxmotc/SampleCode)。\n7. 不論您是以瀏覽器或是以程式呼叫API，所有服務存取行為均將被記錄並定期檢視，以確保系統資源使用的合理分配與避免遭受濫用。\n\nAPI OAS文本 :[請點我](https://tdx.transportdata.tw/webapi/File/Swagger/V3/2cc9b888-a592-496f-99de-9ab35b7fb70d)",
+    "version": "v2"
+  },
+  "servers": [
+    {
+      "url": "https://tdx.transportdata.tw/api/basic"
+    }
+  ],
+  "paths": {
+    "/v2/Bike/Station/City/{City}": {
+      "get": {
+        "tags": [
+          "Bike"
+        ],
+        "summary": "取得指定[縣市]的公共自行車租借站位資料",
+        "description": "取得指定[縣市]的公共自行車租借站位資料",
+        "operationId": "BikeApi_Station_2180",
+        "parameters": [
+          {
+            "name": "City",
+            "in": "path",
+            "description": "欲查詢縣市",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Taichung",
+                "Hsinchu",
+                "MiaoliCounty",
+                "ChanghuaCounty",
+                "NewTaipei",
+                "YunlinCounty",
+                "ChiayiCounty",
+                "PingtungCounty",
+                "TaitungCounty",
+                "Taoyuan",
+                "Taipei",
+                "Kaohsiung",
+                "Tainan",
+                "Chiayi",
+                "HsinchuCounty"
+              ],
+              "type": "string"
+            },
+            "x-enum": {
+              "PingtungCounty": "屏東縣",
+              "YunlinCounty": "雲林縣",
+              "Taipei": "臺北市",
+              "Kaohsiung": "高雄市",
+              "MiaoliCounty": "苗栗縣",
+              "Hsinchu": "新竹市",
+              "HsinchuCounty": "新竹縣",
+              "ChiayiCounty": "嘉義縣",
+              "Chiayi": "嘉義市",
+              "NewTaipei": "新北市",
+              "Tainan": "臺南市",
+              "ChanghuaCounty": "彰化縣",
+              "TaitungCounty": "臺東縣",
+              "Taoyuan": "桃園市",
+              "Taichung": "臺中市"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Specification.V2.BikeStation"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Specification.V2.BikeStation"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在Response加上Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於Request加上If-Modified-Since header，若沒有更新，服務端會回應304 StatusCode且空值Content",
+            "content": {
+              "application/json": { },
+              "application/xml": { }
+            }
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Bike/Availability/City/{City}": {
+      "get": {
+        "tags": [
+          "Bike"
+        ],
+        "summary": "取得動態指定[縣市]的公共自行車即時車位資料",
+        "description": "取得動態指定[縣市]的公共自行車即時車位資料",
+        "operationId": "BikeApi_Availability_2181",
+        "parameters": [
+          {
+            "name": "City",
+            "in": "path",
+            "description": "欲查詢縣市",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Taichung",
+                "Hsinchu",
+                "MiaoliCounty",
+                "ChanghuaCounty",
+                "NewTaipei",
+                "YunlinCounty",
+                "ChiayiCounty",
+                "PingtungCounty",
+                "TaitungCounty",
+                "Taoyuan",
+                "Taipei",
+                "Kaohsiung",
+                "Tainan",
+                "Chiayi",
+                "HsinchuCounty"
+              ],
+              "type": "string"
+            },
+            "x-enum": {
+              "ChiayiCounty": "嘉義縣",
+              "NewTaipei": "新北市",
+              "MiaoliCounty": "苗栗縣",
+              "Kaohsiung": "高雄市",
+              "Hsinchu": "新竹市",
+              "Tainan": "臺南市",
+              "Taichung": "臺中市",
+              "Chiayi": "嘉義市",
+              "HsinchuCounty": "新竹縣",
+              "YunlinCounty": "雲林縣",
+              "Taipei": "臺北市",
+              "TaitungCounty": "臺東縣",
+              "PingtungCounty": "屏東縣",
+              "Taoyuan": "桃園市",
+              "ChanghuaCounty": "彰化縣"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Specification.V2.BikeAvailability"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Specification.V2.BikeAvailability"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在Response加上Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於Request加上If-Modified-Since header，若沒有更新，服務端會回應304 StatusCode且空值Content",
+            "content": {
+              "application/json": { },
+              "application/xml": { }
+            }
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Cycling/Shape/City/{City}": {
+      "get": {
+        "tags": [
+          "Bike"
+        ],
+        "summary": "取得指定縣市之自行車道路網圖資",
+        "description": "取得指定縣市之自行車道路網圖資",
+        "operationId": "CyclingApi_Shape_2182",
+        "parameters": [
+          {
+            "name": "City",
+            "in": "path",
+            "description": "欲查詢縣市",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Taichung",
+                "Keelung",
+                "HsinchuCounty",
+                "MiaoliCounty",
+                "ChanghuaCounty",
+                "NewTaipei",
+                "NantouCounty",
+                "YunlinCounty",
+                "ChiayiCounty",
+                "Chiayi",
+                "PingtungCounty",
+                "YilanCounty",
+                "HualienCounty",
+                "TaitungCounty",
+                "KinmenCounty",
+                "PenghuCounty",
+                "Taoyuan",
+                "Taipei",
+                "Kaohsiung",
+                "Tainan"
+              ],
+              "type": "string"
+            },
+            "x-enum": {
+              "Kaohsiung": "高雄市",
+              "Chiayi": "嘉義市",
+              "Taipei": "臺北市",
+              "PingtungCounty": "屏東縣",
+              "Taichung": "臺中市",
+              "HualienCounty": "花蓮縣",
+              "YunlinCounty": "雲林縣",
+              "ChanghuaCounty": "彰化縣",
+              "TaitungCounty": "臺東縣",
+              "HsinchuCounty": "新竹縣",
+              "PenghuCounty": "澎湖縣",
+              "NewTaipei": "新北市",
+              "ChiayiCounty": "嘉義縣",
+              "NantouCounty": "南投縣",
+              "Tainan": "臺南市",
+              "LienchiangCounty": "連江縣",
+              "Hsinchu": "新竹市",
+              "Taoyuan": "桃園市",
+              "MiaoliCounty": "苗栗縣",
+              "KinmenCounty": "金門縣",
+              "Keelung": "基隆市",
+              "YilanCounty": "宜蘭縣"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Specification.V2.BikeShape"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Specification.V2.BikeShape"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在Response加上Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於Request加上If-Modified-Since header，若沒有更新，服務端會回應304 StatusCode且空值Content",
+            "content": {
+              "application/json": { },
+              "application/xml": { }
+            }
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PTX.Service.DTO.Bike.Specification.V2.BikeStation": {
+        "title": "BikeStation",
+        "required": [
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "StationUID": {
+            "title": "String",
+            "type": "string",
+            "description": "站點唯一識別代碼，規則為 {業管機關代碼} + {StationID}，其中 {業管機關代碼} 可於Authority API中的AuthorityCode欄位查詢",
+            "xml": {
+              "name": "StationUID"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "type": "string",
+            "description": "站點代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "AuthorityID": {
+            "title": "String",
+            "type": "string",
+            "description": "業管單位代碼",
+            "xml": {
+              "name": "AuthorityID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "站點名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "StationPosition": {
+            "title": "PointType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.PointType"
+              }
+            ],
+            "description": "站點位置",
+            "xml": {
+              "name": "PointType"
+            }
+          },
+          "StationAddress": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "站點地址",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "StopDescription": {
+            "title": "String",
+            "type": "string",
+            "description": "站點描述",
+            "xml": {
+              "name": "StopDescription"
+            }
+          },
+          "BikesCapacity": {
+            "type": "integer",
+            "description": "可容納之自行車總數",
+            "format": "int32"
+          },
+          "ServiceType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "服務類型 : [1:'YouBike1.0',2:'YouBike2.0',3:'Moovo']"
+          },
+          "SrcUpdateTime": {
+            "type": "string",
+            "description": "來源端平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "description": "自行車站點資訊",
+        "xml": {
+          "name": "BikeStation"
+        }
+      },
+      "PTX.Service.DTO.Bike.Specification.V2.BikeStation0": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Specification.V2.BikeStation"
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.NameType": {
+        "title": "NameType",
+        "type": "object",
+        "properties": {
+          "Zh_tw": {
+            "title": "String",
+            "type": "string",
+            "description": "中文繁體名稱",
+            "xml": {
+              "name": "Zh_tw"
+            }
+          },
+          "En": {
+            "title": "String",
+            "type": "string",
+            "description": "英文名稱",
+            "xml": {
+              "name": "En"
+            }
+          }
+        },
+        "description": "名稱資料型別",
+        "xml": {
+          "name": "NameType"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.PointType": {
+        "title": "PointType",
+        "type": "object",
+        "properties": {
+          "PositionLon": {
+            "type": "number",
+            "description": "位置經度(WGS84)",
+            "format": "double"
+          },
+          "PositionLat": {
+            "type": "number",
+            "description": "位置緯度(WGS84)",
+            "format": "double"
+          },
+          "GeoHash": {
+            "title": "String",
+            "type": "string",
+            "description": "地理空間編碼",
+            "xml": {
+              "name": "GeoHash"
+            }
+          }
+        },
+        "description": "座標資料型別",
+        "xml": {
+          "name": "PointType"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth": {
+        "title": "DisplayHealth",
+        "required": [
+          "ServiceID",
+          "ServiceName"
+        ],
+        "type": "object",
+        "properties": {
+          "ServiceID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "API服務代碼",
+            "xml": {
+              "name": "ServiceID"
+            }
+          },
+          "ServiceName": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "API服務中文名稱",
+            "xml": {
+              "name": "ServiceName"
+            }
+          },
+          "Inbound": {
+            "title": "Inbound",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.Inbound"
+              }
+            ],
+            "description": "本平台資料來源轉入狀態",
+            "xml": {
+              "name": "Inbound"
+            }
+          },
+          "Outbound": {
+            "title": "Outbound",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.Outbound"
+              }
+            ],
+            "description": "本平台API狀態",
+            "xml": {
+              "name": "Outbound"
+            }
+          }
+        },
+        "description": "API服務健康狀態",
+        "xml": {
+          "name": "DisplayHealth"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.Inbound": {
+        "title": "Inbound",
+        "required": [
+          "CheckTime",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "CheckTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "檢核時間",
+            "format": "date-time"
+          },
+          "Status": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "檢核結果狀態 : [0:'失敗',1:'成功',2:'資料清洗中']"
+          },
+          "Reason": {
+            "title": "String",
+            "type": "string",
+            "description": "檢核失敗原因",
+            "xml": {
+              "name": "Reason"
+            }
+          }
+        },
+        "description": "本平台資料來源轉入狀態",
+        "xml": {
+          "name": "Inbound"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.Outbound": {
+        "title": "Outbound",
+        "required": [
+          "CheckTime",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "CheckTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "檢核時間",
+            "format": "date-time"
+          },
+          "Status": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "檢核結果狀態 : [0:'失敗',1:'成功',2:'資料清洗中']"
+          },
+          "Reason": {
+            "title": "String",
+            "type": "string",
+            "description": "檢核失敗原因",
+            "xml": {
+              "name": "Reason"
+            }
+          }
+        },
+        "description": "本平台API狀態",
+        "xml": {
+          "name": "Outbound"
+        }
+      },
+      "PTX.Service.DTO.Bike.Specification.V2.BikeAvailability": {
+        "title": "BikeAvailability",
+        "required": [
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "StationUID": {
+            "title": "String",
+            "type": "string",
+            "description": "站點唯一識別代碼，規則為 {業管機關代碼} + {StationID}，其中 {業管機關代碼} 可於Authority API中的AuthorityCode欄位查詢",
+            "xml": {
+              "name": "StationUID"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "type": "string",
+            "description": "站點代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "ServiceStatus": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "服務狀態 : [0:'停止營運',1:'正常營運',2:'暫停營運']"
+          },
+          "ServiceType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "服務類型 : [1:'YouBike1.0',2:'YouBike2.0',3:'Moovo']"
+          },
+          "AvailableRentBikes": {
+            "type": "integer",
+            "description": "可租借車數",
+            "format": "int32"
+          },
+          "AvailableReturnBikes": {
+            "type": "integer",
+            "description": "可歸還車數",
+            "format": "int32"
+          },
+          "SrcUpdateTime": {
+            "type": "string",
+            "description": "來源端平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "AvailableRentBikesDetail": {
+            "title": "AvailableRentBikesDetail",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Implementation.V2.AvailableRentBikesDetail"
+              }
+            ],
+            "description": "可租借一般自行車、電動輔助車數量",
+            "xml": {
+              "name": "AvailableRentBikesDetail"
+            }
+          }
+        },
+        "description": "自行車站點剩餘數量資訊",
+        "xml": {
+          "name": "BikeAvailability"
+        }
+      },
+      "PTX.Service.DTO.Bike.Specification.V2.BikeAvailability1": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Specification.V2.BikeAvailability"
+      },
+      "PTX.Service.DTO.Bike.Implementation.V2.AvailableRentBikesDetail": {
+        "title": "AvailableRentBikesDetail",
+        "type": "object",
+        "properties": {
+          "GeneralBikes": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "一般自行車可租借車數",
+            "format": "int32"
+          },
+          "ElectricBikes": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "電動輔助車可租借車數",
+            "format": "int32"
+          }
+        },
+        "xml": {
+          "name": "AvailableRentBikesDetail"
+        }
+      },
+      "PTX.Service.DTO.Bike.Specification.V2.BikeShape": {
+        "title": "BikeShape",
+        "required": [
+          "City",
+          "CityCode",
+          "EncodedPolyline",
+          "Geometry",
+          "RouteName",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "RouteName": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線名稱",
+            "xml": {
+              "name": "RouteName"
+            }
+          },
+          "AuthorityName": {
+            "title": "String",
+            "type": "string",
+            "description": "業管機關名稱（可能包含多個業管機關）",
+            "xml": {
+              "name": "AuthorityName"
+            }
+          },
+          "CityCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線所在縣市代碼",
+            "xml": {
+              "name": "CityCode"
+            }
+          },
+          "City": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線所在縣市名稱",
+            "xml": {
+              "name": "City"
+            }
+          },
+          "Town": {
+            "title": "String",
+            "type": "string",
+            "description": "路線所在鄉鎮名稱（可能包含多個鄉鎮）",
+            "xml": {
+              "name": "Town"
+            }
+          },
+          "RoadSectionStart": {
+            "title": "String",
+            "type": "string",
+            "description": "路線起點描述",
+            "xml": {
+              "name": "RoadSectionStart"
+            }
+          },
+          "RoadSectionEnd": {
+            "title": "String",
+            "type": "string",
+            "description": "路線迄點描述",
+            "xml": {
+              "name": "RoadSectionEnd"
+            }
+          },
+          "Direction": {
+            "title": "String",
+            "type": "string",
+            "description": "自行車道車行方向",
+            "xml": {
+              "name": "Direction"
+            }
+          },
+          "CyclingType": {
+            "title": "String",
+            "type": "string",
+            "description": "自行車道類型",
+            "xml": {
+              "name": "CyclingType"
+            }
+          },
+          "CyclingLength": {
+            "type": "number",
+            "description": "自行車道長度",
+            "format": "double"
+          },
+          "FinishedTime": {
+            "title": "String",
+            "type": "string",
+            "description": "自行車道完工日期時間",
+            "xml": {
+              "name": "FinishedTime"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "Geometry": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "well-known text，為路線軌跡資料",
+            "xml": {
+              "name": "Geometry"
+            }
+          },
+          "EncodedPolyline": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線軌跡編碼(encoded polyline)",
+            "xml": {
+              "name": "EncodedPolyline"
+            }
+          }
+        },
+        "xml": {
+          "name": "BikeShape"
+        }
+      },
+      "PTX.Service.DTO.Bike.Specification.V2.BikeShape2": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Bike.Specification.V2.BikeShape"
+      }
+    },
+    "securitySchemes": {
+      "TDX": {
+        "type": "oauth2",
+        "description": "TDX會員可至【會員專區-資料服務-服務金鑰】功能頁面，從預設金鑰(或建立新的金鑰)取得Client Id和Client Secret資訊，分別輸入至下方client_id和client_secret欄位、按下Authorize按鈕，即可開始於Swagger介面呼叫TDX API。",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token",
+            "scopes": { }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "TDX": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Bike",
+      "description": "自行車"
+    }
+  ]
+}

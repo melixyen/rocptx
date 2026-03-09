@@ -1,0 +1,5393 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "路段編碼",
+    "description": "本平臺提供涵蓋全國尺度之道路編碼資料服務API，歡迎各產政學單位介接使用。\n<br><span class=swagger-description-indicatation>利用本平臺開放資料進行各項應用服務開發時，請考量不同特性使用者(如：性別/身心障礙/老幼等)的需求，並歡迎回饋寶貴意見。</span>\n<br>計費方式：\n<br>計次：1,500次/1點\n<br>計量：150MB/1點\n---\n##### API使用說明與注意事項：\n1. 如您尚未註冊平臺會員帳號，或未以帳號登入，您將僅能以「訪客模式」使用平臺服務，包含：限以瀏覽器存取，限使用`【基礎服務】`，且限制每個呼叫來源端IP每日存取至多20次。。\n2. 如您已註冊平臺會員帳號，請務必確保在存取服務(包含瀏覽器、程式呼叫API)時帶入您的API金鑰，方能以「會員模式」使用完整平臺服務，包含平臺各類資料服務，如`【基礎服務】`、`【進階服務】`、`【加值服務】`、`【歷史服務】`、`【圖資服務】`、`【第三方服務】`等。\n3. 建議您立即[註冊平臺會員帳號](/register)，依您用量需求訂閱服務方案，並於[【會員中心->資料服務->API金鑰】](/user/dataservice/key)取得API金鑰(即Client Id和Client Secret資訊)。\n4. 會員訂閱服務方案之級別不同，將決定其API金鑰之存取頻率有不同限制，各個方案的存取頻率限制說明請參考[訂閱收費](/pricing)。\n5. 以瀏覽器帶入API金鑰之操作方式：請點選Swagger UI上的Authorize按鈕，依指示填入Client Id和Client Secret資訊並進行驗證，驗證完成後可開始於Swagger UI使用API。\n6. 以程式呼叫API帶入API金鑰之操作方式：請參考[範例程式](https://github.com/tdxmotc/SampleCode)。\n7. 不論您是以瀏覽器或是以程式呼叫API，所有服務存取行為均將被記錄並定期檢視，以確保系統資源使用的合理分配與避免遭受濫用。\n\nAPI OAS文本 :[請點我](https://tdx.transportdata.tw/webapi/File/Swagger/V3/e2718568-e098-4714-ac7d-7fa7d551e613)",
+    "version": "v2"
+  },
+  "servers": [
+    {
+      "url": "https://tdx.transportdata.tw/api/basic"
+    }
+  ],
+  "paths": {
+    "/v2/Road/Link/ChangeLog/{OriginalVersion}/to/{Version}/LinkID": {
+      "post": {
+        "tags": [
+          "ChangeLog"
+        ],
+        "summary": "取得多個[路段編碼]兩版本之異動軌跡",
+        "description": "取得多個[路段編碼]兩版本之異動軌跡",
+        "operationId": "ChangeLog_PostChangeLog",
+        "parameters": [
+          {
+            "name": "OriginalVersion",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "18Q3M09V1",
+                "19.05.1",
+                "19.12.1",
+                "19.12.2",
+                "20.07.1",
+                "20.10.1",
+                "20.10.2",
+                "21.08.1",
+                "22.02.1",
+                "22.09.1",
+                "23.05.1",
+                "23.09.1",
+                "24.02.1",
+                "24.09.1",
+                "24.11.1",
+                "25.06.1",
+                "25.12.1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "對應版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "查詢版本之基礎路段代碼 ex:[\"0000101024020H\",\"0000101024030H\"]",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfChangeLogs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/ChangeLog/{OriginalVersion}/to/{Version}/LinkID/{LinkID}": {
+      "get": {
+        "tags": [
+          "ChangeLog"
+        ],
+        "summary": "取得[路段編碼]兩版本之異動軌跡",
+        "description": "取得[路段編碼]兩版本之異動軌跡",
+        "operationId": "ChangeLog_GetChangeLog",
+        "parameters": [
+          {
+            "name": "OriginalVersion",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "18Q3M09V1",
+                "19.05.1",
+                "19.12.1",
+                "19.12.2",
+                "20.07.1",
+                "20.10.1",
+                "20.10.2",
+                "21.08.1",
+                "22.02.1",
+                "22.09.1",
+                "23.05.1",
+                "23.09.1",
+                "24.02.1",
+                "24.09.1",
+                "24.11.1",
+                "25.06.1",
+                "25.12.1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "查詢版本之基礎路段代碼 ex:0000101024030H",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "對應版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfChangeLogs"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfChangeLogs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/ChangeLog/{OriginalVersion}/to/LatestVersion/LinkID/{LinkID}": {
+      "get": {
+        "tags": [
+          "ChangeLog"
+        ],
+        "summary": "取得指定[版本]路段編碼與最新版本之異動軌跡",
+        "description": "取得指定[版本]路段編碼與最新版本之異動軌跡",
+        "operationId": "ChangeLog_GetChangeLatestLog",
+        "parameters": [
+          {
+            "name": "OriginalVersion",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "18Q3M09V1",
+                "19.05.1",
+                "19.12.1",
+                "19.12.2",
+                "20.07.1",
+                "20.10.1",
+                "20.10.2",
+                "21.08.1",
+                "22.02.1",
+                "22.09.1",
+                "23.05.1",
+                "23.09.1",
+                "24.02.1",
+                "24.09.1",
+                "24.11.1",
+                "25.06.1",
+                "25.12.1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:0000101024030H",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfChangeLogs"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfChangeLogs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/DiffLog/{Version}/RoadID/{RoadID}": {
+      "get": {
+        "tags": [
+          "DiffLog"
+        ],
+        "summary": "取得指定[版本]、[道路代碼]之異動路段編碼基本資料",
+        "description": "取得指定[版本]、[道路代碼]之異動路段編碼基本資料",
+        "operationId": "DiffLog_GetRoadIDHistoricalVersion",
+        "parameters": [
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "RoadID",
+            "in": "path",
+            "description": "道路代碼 ex:000010",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLinks"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLinks"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Difflog/{Version}/ChangeNote/{ChangeNote}": {
+      "get": {
+        "tags": [
+          "DiffLog"
+        ],
+        "summary": "取得指定[版本]、[異動註記]之異動路段編碼基本資料",
+        "description": "取得指定[版本]、[異動註記]之異動路段編碼基本資料",
+        "operationId": "DiffLog_GetChangeNote",
+        "parameters": [
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "ChangeNote",
+            "in": "path",
+            "description": "異動註記代碼：ex：N<br>N: 新增\r\n                          <br>M: 異動\r\n                          <br>D: 刪除",
+            "required": true,
+            "schema": {
+              "enum": [
+                "N",
+                "M",
+                "D"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DifflogNDM"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/DifflogNDM"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Difflog/{Version}/RoadClass/{RoadClass}/ChangeNote/{ChangeNote}": {
+      "get": {
+        "tags": [
+          "DiffLog"
+        ],
+        "summary": "取得指定[版本]、[道路分類]、[異動註記]之異動路段編碼基本資料",
+        "description": "取得指定[版本]、[道路分類]、[異動註記]之異動路段編碼基本資料",
+        "operationId": "DiffLog_GetRoadClassChangeNote",
+        "parameters": [
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "RoadClass",
+            "in": "path",
+            "description": "道路分類</br>0 = 國道</br>1 = 省道快速公路</br>2 = 市區快速道路</br>3 = 省道一般公路</br>4 = 市道、縣道</br>5 = 鄉道、區道</br>6 = 市區一般道路",
+            "required": true,
+            "schema": {
+              "enum": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "ChangeNote",
+            "in": "path",
+            "description": "異動註記代碼：ex：N<br>N: 新增\r\n                          <br>M: 異動\r\n                          <br>D: 刪除",
+            "required": true,
+            "schema": {
+              "enum": [
+                "N",
+                "M",
+                "D"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DifflogNDM"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/DifflogNDM"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Difflog/{Version}/CityRoad/{City}/ChangeNote/{ChangeNote}": {
+      "get": {
+        "tags": [
+          "DiffLog"
+        ],
+        "summary": "取得指定[版本]、[縣市]市區道路、[異動註記]之異動路段編碼基本資料",
+        "description": "取得指定[版本]、[縣市]市區道路、[異動註記]之異動路段編碼基本資料",
+        "operationId": "DiffLog_GetCityRoadChangeNote",
+        "parameters": [
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "City",
+            "in": "path",
+            "description": "縣市(英文)</br>Taipei = 臺北市</br>Taichung = 臺中市</br>Keelung = 基隆市</br>Tainan = 臺南市</br>Kaohsiung = 高雄市</br>NewTaipei = 新北市</br>YilanCounty = 宜蘭縣</br>Taoyuan = 桃園市</br>Chiayi = 嘉義市</br>HsinchuCounty = 新竹縣</br>MiaoliCounty = 苗栗縣</br>NantouCounty = 南投縣</br>ChanghuaCounty = 彰化縣</br>Hsinchu = 新竹市</br>YunlinCounty = 雲林縣</br>ChiayiCounty = 嘉義縣</br>PingtungCounty = 屏東縣</br>HualienCounty = 花蓮縣</br>TaitungCounty = 臺東縣</br>KinmenCounty = 金門縣</br>PenghuCounty = 澎湖縣</br>LienchiangCounty = 連江縣",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Taipei",
+                "Taichung",
+                "Keelung",
+                "Tainan",
+                "Kaohsiung",
+                "NewTaipei",
+                "YilanCounty",
+                "Taoyuan",
+                "Chiayi",
+                "HsinchuCounty",
+                "MiaoliCounty",
+                "NantouCounty",
+                "ChanghuaCounty",
+                "Hsinchu",
+                "YunlinCounty",
+                "ChiayiCounty",
+                "PingtungCounty",
+                "HualienCounty",
+                "TaitungCounty",
+                "KinmenCounty",
+                "PenghuCounty",
+                "LienchiangCounty"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "ChangeNote",
+            "in": "path",
+            "description": "異動註記代碼：ex：N<br>N: 新增\r\n                          <br>M: 異動\r\n                          <br>D: 刪除",
+            "required": true,
+            "schema": {
+              "enum": [
+                "N",
+                "M",
+                "D"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DifflogNDM"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/DifflogNDM"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/DiffLog/{OriginalVersion}/with/LatestVersion/LinkID/{LinkID}": {
+      "get": {
+        "tags": [
+          "DiffLog"
+        ],
+        "summary": "取得指定[版本]路段編碼與最新版本之差異",
+        "description": "取得指定[版本]路段編碼與最新版本之差異",
+        "operationId": "DiffLog_GetChangeLatestDiffs",
+        "parameters": [
+          {
+            "name": "OriginalVersion",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "18Q3M09V1",
+                "19.05.1",
+                "19.12.1",
+                "19.12.2",
+                "20.07.1",
+                "20.10.1",
+                "20.10.2",
+                "21.08.1",
+                "22.02.1",
+                "22.09.1",
+                "23.05.1",
+                "23.09.1",
+                "24.02.1",
+                "24.09.1",
+                "24.11.1",
+                "25.06.1",
+                "25.12.1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:0000101024030H",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffLog"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffLog"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/DiffLog/{OriginalVersion}/with/{Version}/LinkID": {
+      "post": {
+        "tags": [
+          "DiffLog"
+        ],
+        "summary": "取得多個[路段編碼]兩版本之差異",
+        "description": "取得多個[路段編碼]兩版本之差異",
+        "operationId": "DiffLog_PostChangeDiffs",
+        "parameters": [
+          {
+            "name": "OriginalVersion",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "18Q3M09V1",
+                "19.05.1",
+                "19.12.1",
+                "19.12.2",
+                "20.07.1",
+                "20.10.1",
+                "20.10.2",
+                "21.08.1",
+                "22.02.1",
+                "22.09.1",
+                "23.05.1",
+                "23.09.1",
+                "24.02.1",
+                "24.09.1",
+                "24.11.1",
+                "25.06.1",
+                "25.12.1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "對應版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "基礎路段代碼 ex:[\"0000101024020H\",\"0000101024030H\"]",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffLog"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffLog"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/DiffLog/{OriginalVersion}/with/{Version}/LinkID/{LinkID}": {
+      "get": {
+        "tags": [
+          "DiffLog"
+        ],
+        "summary": "取得[路段編碼]兩版本之差異",
+        "description": "取得[路段編碼]兩版本之差異",
+        "operationId": "DiffLog_GetChangeDiffs",
+        "parameters": [
+          {
+            "name": "OriginalVersion",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "18Q3M09V1",
+                "19.05.1",
+                "19.12.1",
+                "19.12.2",
+                "20.07.1",
+                "20.10.1",
+                "20.10.2",
+                "21.08.1",
+                "22.02.1",
+                "22.09.1",
+                "23.05.1",
+                "23.09.1",
+                "24.02.1",
+                "24.09.1",
+                "24.11.1",
+                "25.06.1",
+                "25.12.1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:0000101024030H",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "對應版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffLog"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffLog"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/RoadName/DiffLog/{UpdateDate}/RoadName": {
+      "get": {
+        "tags": [
+          "DiffLog"
+        ],
+        "summary": "取得指定[更新日期]之異動道路(名稱)基本資料",
+        "operationId": "DiffLog_GetRoadDiffs",
+        "parameters": [
+          {
+            "name": "UpdateDate",
+            "in": "path",
+            "description": "更新日期",
+            "required": true,
+            "schema": {
+              "enum": [
+                "202211",
+                "202212",
+                "202301",
+                "202302",
+                "202303",
+                "202304",
+                "202305",
+                "202306",
+                "202307",
+                "202308",
+                "202309",
+                "202310",
+                "202311",
+                "202312",
+                "202401",
+                "202402",
+                "202403",
+                "202404",
+                "202405",
+                "202406",
+                "202407",
+                "202408",
+                "202409",
+                "202410",
+                "202411",
+                "202412",
+                "202501",
+                "202502",
+                "202503",
+                "202504",
+                "202505",
+                "202506",
+                "202507",
+                "202508",
+                "202509",
+                "202510",
+                "202511",
+                "202512",
+                "202601",
+                "202602"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfDiffRoad"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfDiffRoad"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Historical/{Version}/LinkID": {
+      "post": {
+        "tags": [
+          "Historical"
+        ],
+        "summary": "取得指定[版本]、多個[路段編碼]之路段編碼基本資料",
+        "description": "取得指定[版本]、多個[路段編碼]之路段編碼基本資料",
+        "operationId": "Historical_PostMostHistoricalVersion",
+        "parameters": [
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "基礎路段代碼 ex:[\"6255800000010F\",\"4010802003368F\"]",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricalLinks"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Historical/{Version}/LinkID/{LinkID}": {
+      "get": {
+        "tags": [
+          "Historical"
+        ],
+        "summary": "取得指定[版本]、[路段編碼]之路段編碼基本資料",
+        "description": "取得指定[版本]、[路段編碼]之路段編碼基本資料",
+        "operationId": "Historical_GetHistoricalVersion",
+        "parameters": [
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:6211670400000E",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricalLinks"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricalLinks"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Historical/Shape/Geometry/GeoJson/{Version}/LinkID/{LinkID}": {
+      "get": {
+        "tags": [
+          "Historical"
+        ],
+        "summary": "取得指定[版本]、[路段編碼]線形資料(GeoJson格式)",
+        "description": "取得指定[版本]、[路段編碼]線形資料(GeoJson格式)",
+        "operationId": "Historical_GetChangeGeoJson",
+        "parameters": [
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:0000300140000T",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoJson_string"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoJson_string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Historical/Shape/Geometry/WKT/{Version}/LinkID/{LinkID}": {
+      "get": {
+        "tags": [
+          "Historical"
+        ],
+        "summary": "取得指定[版本]、[路段編碼]線形資料(WKT格式)",
+        "description": "取得指定[版本]、[路段編碼]線形資料(WKT格式)",
+        "operationId": "Historical_GetChangeWKT",
+        "parameters": [
+          {
+            "name": "Version",
+            "in": "path",
+            "description": "查詢版本編號",
+            "required": true,
+            "schema": {
+              "enum": [
+                "25.12.1",
+                "25.06.1",
+                "24.11.1",
+                "24.09.1",
+                "24.02.1",
+                "23.09.1",
+                "23.05.1",
+                "22.09.1",
+                "22.02.1",
+                "21.08.1",
+                "20.10.2",
+                "20.10.1",
+                "20.07.1",
+                "19.12.2",
+                "19.12.1",
+                "19.05.1",
+                "18Q3M09V1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:0000300140000T",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionOfWKT"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionOfWKT"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/LinkID": {
+      "post": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得多個[路段編碼]之路段編碼基本資料",
+        "description": "取得多個[路段編碼]之路段編碼基本資料",
+        "operationId": "Link_PostLinkID",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "基礎路段代碼 ex:[\"0000300140000T\",\"0000301168000T\"]",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/LinkID/{LinkID}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得指定[路段編碼]之路段編碼基本資料",
+        "description": "取得指定[路段編碼]之路段編碼基本資料",
+        "operationId": "Link_GetLinkID",
+        "parameters": [
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:0000300140000T",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/RoadID/{RoadID}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得指定[道路代碼]之路段編碼基本資料",
+        "description": "取得指定[道路代碼]之路段編碼基本資料",
+        "operationId": "Link_GetRoadID",
+        "parameters": [
+          {
+            "name": "RoadID",
+            "in": "path",
+            "description": "道路代碼 ex:000010",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/RoadID/{RoadID}/{Direction}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得指定[道路代碼]、[道路方向]之路段編碼基本資料",
+        "description": "取得指定[道路代碼]、[道路方向]之路段編碼基本資料",
+        "operationId": "Link_GetRoadIDAndDirection",
+        "parameters": [
+          {
+            "name": "RoadID",
+            "in": "path",
+            "description": "道路代碼 ex:000010",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Direction",
+            "in": "path",
+            "description": "道路方向:<br>公路等級[0 = 順向、1 = 逆向]\r\n                              <br>市區道路[0 = 北、1 = 東北、2 = 東、3 = 東南、4 = 南、5 = 西南、6 = 西、7 = 西北、8 = 外環道(順時鐘)、9 = 外環道(逆時鐘)、A = 圓環]",
+            "required": true,
+            "schema": {
+              "enum": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "A"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/RoadClass/{RoadClass}/{RoadName}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得指定[道路分類]、[道路名稱]之路段編碼基本資料",
+        "description": "取得指定[道路分類]、[道路名稱]之路段編碼基本資料",
+        "operationId": "Link_GetRoadClassAndRoadName",
+        "parameters": [
+          {
+            "name": "RoadClass",
+            "in": "path",
+            "description": "道路分類代碼 ex:0</br>0 = 國道</br>1 = 省道快速公路</br>2 = 市區快速道路</br>3 = 省道一般公路</br>4 = 市道、縣道</br>5 = 鄉道、區道</br>6 = 市區一般道路",
+            "required": true,
+            "schema": {
+              "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "RoadName",
+            "in": "path",
+            "description": "道路名稱 ex:國道1號、台61線",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/RoadClass/{RoadClass}/{RoadName}/{Direction}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得指定[道路分類]、[道路名稱]、[道路方向]之路段編碼基本資料",
+        "description": "取得指定[道路分類]、[道路名稱]、[道路方向]之路段編碼基本資料",
+        "operationId": "Link_GetRoadClassAndRoadNameAndDirection",
+        "parameters": [
+          {
+            "name": "RoadClass",
+            "in": "path",
+            "description": "道路分類代碼 ex:0</br>0 = 國道</br>1 = 省道快速公路</br>2 = 市區快速道路</br>3 = 省道一般公路</br>4 = 市道、縣道</br>5 = 鄉道、區道</br>6 = 市區一般道路",
+            "required": true,
+            "schema": {
+              "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "RoadName",
+            "in": "path",
+            "description": "道路名稱 ex:國道1號、台61線",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Direction",
+            "in": "path",
+            "description": "道路方向:<br>公路等級[0 = 順向、1 = 逆向]\r\n                              <br>市區道路[0 = 北、1 = 東北、2 = 東、3 = 東南、4 = 南、5 = 西南、6 = 西、7 = 西北、8 = 外環道(順時鐘)、9 = 外環道(逆時鐘)、A = 圓環]",
+            "required": true,
+            "schema": {
+              "enum": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "A"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/CityRoad/{City}/{RoadName}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得指定[縣市]、市區道路[道路名稱]路段編碼基本資料",
+        "description": "取得指定[縣市]、市區道路[道路名稱]路段編碼基本資料",
+        "operationId": "Link_GetCityRoad",
+        "parameters": [
+          {
+            "name": "City",
+            "in": "path",
+            "description": "縣市(英文)</br>Taipei = 臺北市</br>Taichung = 臺中市</br>Keelung = 基隆市</br>Tainan = 臺南市</br>Kaohsiung = 高雄市</br>NewTaipei = 新北市</br>YilanCounty = 宜蘭縣</br>Taoyuan = 桃園市</br>Chiayi = 嘉義市</br>HsinchuCounty = 新竹縣</br>MiaoliCounty = 苗栗縣</br>NantouCounty = 南投縣</br>ChanghuaCounty = 彰化縣</br>Hsinchu = 新竹市</br>YunlinCounty = 雲林縣</br>ChiayiCounty = 嘉義縣</br>PingtungCounty = 屏東縣</br>HualienCounty = 花蓮縣</br>TaitungCounty = 臺東縣</br>KinmenCounty = 金門縣</br>PenghuCounty = 澎湖縣</br>LienchiangCounty = 連江縣",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Taipei",
+                "Taichung",
+                "Keelung",
+                "Tainan",
+                "Kaohsiung",
+                "NewTaipei",
+                "YilanCounty",
+                "Taoyuan",
+                "Chiayi",
+                "HsinchuCounty",
+                "MiaoliCounty",
+                "NantouCounty",
+                "ChanghuaCounty",
+                "Hsinchu",
+                "YunlinCounty",
+                "ChiayiCounty",
+                "PingtungCounty",
+                "HualienCounty",
+                "TaitungCounty",
+                "KinmenCounty",
+                "PenghuCounty",
+                "LienchiangCounty"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "RoadName",
+            "in": "path",
+            "description": "道路名稱 ex:中山路",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/RoadClass/{RoadClass}/Mileage/{RoadName}/{Direction}/{FromMileage}/to/{ToMileage}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得指定[道路分類]、[道路名稱]、[道路方向]、[起點里程]至[迄點里程]之路段編碼基本資料（不含一般市區道路）",
+        "description": "取得指定[道路分類]、[道路名稱]、[道路方向]、[起點里程]至[迄點里程]之路段編碼基本資料（不含一般市區道路）",
+        "operationId": "Link_GetRoadMileage",
+        "parameters": [
+          {
+            "name": "RoadClass",
+            "in": "path",
+            "description": "道路分類代碼 ex:0</br>0 = 國道</br>1 = 省道快速公路</br>2 = 市區快速道路</br>3 = 省道一般公路</br>4 = 市道、縣道</br>5 = 鄉道、區道</br>6 = 市區一般道路",
+            "required": true,
+            "schema": {
+              "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "RoadName",
+            "in": "path",
+            "description": "道路名稱 ex:國道1號、台61線",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Direction",
+            "in": "path",
+            "description": "道路方向:<br>0 = 順向、1 = 逆向",
+            "required": true,
+            "schema": {
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "FromMileage",
+            "in": "path",
+            "description": "起點里程(公里) ex:0.4",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "ToMileage",
+            "in": "path",
+            "description": "迄點里程(公里) ex:5.3",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/RoadClass/{RoadClass}/Interchange/{RoadName}/{FromInterchangeName}/to/{ToInterchangeName}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得指定[道路分類]、[道路名稱]、[交流道起點]與[交流道迄點]間之路段編碼基本資料（限國道及省快）",
+        "description": "取得指定[道路分類]、[道路名稱]、[交流道起點]與[交流道迄點]間之路段編碼基本資料（限國道及省快）",
+        "operationId": "Link_GetInterchange",
+        "parameters": [
+          {
+            "name": "RoadClass",
+            "in": "path",
+            "description": "道路分類代碼 ex:1</br>0 = 國道</br>1 = 省道快速公路</br>2 = 市區快速道路</br>3 = 省道一般公路</br>4 = 市道、縣道</br>5 = 鄉道、區道</br>6 = 市區一般道路",
+            "required": true,
+            "schema": {
+              "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "RoadName",
+            "in": "path",
+            "description": "道路名稱 ex:國道1號、台61線",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "FromInterchangeName",
+            "in": "path",
+            "description": "交流道起點 ex:基隆交流道",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ToInterchangeName",
+            "in": "path",
+            "description": "交流道迄點 ex:汐止交流道",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Freeway/Interchange/{RoadName}/{InterchangeName}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得國道之指定[道路名稱]、[交流道名稱]之路段編碼基本資料",
+        "description": "取得國道之指定[道路名稱]、[交流道名稱]之路段編碼基本資料",
+        "operationId": "Link_GetFreewayInterchange",
+        "parameters": [
+          {
+            "name": "RoadName",
+            "in": "path",
+            "description": "道路名稱 ex:國道1號",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "InterchangeName",
+            "in": "path",
+            "description": "交流道名稱 ex. 基隆交流道",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Expressway/Interchange/{RoadName}/{InterchangeName}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得省道快速公路之指定[道路名稱]、[交流道名稱]之路段編碼基本資料",
+        "description": "取得省道快速公路之指定[道路名稱]、[交流道名稱]之路段編碼基本資料",
+        "operationId": "Link_GetExpresswayInterchange",
+        "parameters": [
+          {
+            "name": "RoadName",
+            "in": "path",
+            "description": "道路名稱 ex:台62線",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "InterchangeName",
+            "in": "path",
+            "description": "交流道名稱 ex.暖暖交流道",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/UrbanExpreeway/Ramp/{RoadName}/{RampName}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得市區快速道路之指定[道路名稱]、[匝道名稱]之路段編碼基本資料",
+        "description": "取得市區快速道路之指定[道路名稱]、[匝道名稱]之路段編碼基本資料",
+        "operationId": "Link_GetUrbanExpreewayInterchange",
+        "parameters": [
+          {
+            "name": "RoadName",
+            "in": "path",
+            "description": "道路名稱 ex:新北環河快速道路",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "RampName",
+            "in": "path",
+            "description": "匝道名稱 ex:新北環快與萬板大橋",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Theme/Alternative/{Alternative}": {
+      "get": {
+        "tags": [
+          "Link"
+        ],
+        "summary": "取得國道之指定[替代道路]之路段編碼基本資料",
+        "description": "取得國道之指定[替代道路]之路段編碼基本資料",
+        "operationId": "Link_GetAlternative",
+        "parameters": [
+          {
+            "name": "Alternative",
+            "in": "path",
+            "description": "替代道路名稱:<br>國1 大雅至員林替代道路,\r\n                          <br>國1 湖口至新竹南下替代道路,\r\n                          <br>國1國3 新竹至臺南地區替代道路,\r\n                          <br>國3 三峽至大溪替代道路,\r\n                          <br>國3 中港系統至彰化市區南向替代道路,\r\n                          <br>國3 土城至三峽替代道路,\r\n                          <br>國3 斗六至霧峰替代道路,\r\n                          <br>國3 田寮至旗山地區替代道路,\r\n                          <br>國3 草屯至快官替代道路,\r\n                          <br>國5 頭城至坪林替代道路,\r\n                          <br>國6 舊正至國3 中投替代道路,\r\n                          <br>北宜廊道",
+            "required": true,
+            "schema": {
+              "enum": [
+                "國1 大雅至員林替代道路",
+                "國1 湖口至新竹南下替代道路",
+                "國1,3 新竹至彰化(南投)替代道路",
+                "國3 三峽至大溪替代道路",
+                "國3 中港系統至彰化市區南向替代道路",
+                "國3 土城至三峽替代道路",
+                "國3 斗六至霧峰替代道路",
+                "國3 田寮至旗山地區替代道路",
+                "國3 草屯至快官替代道路",
+                "國5 頭城至坪林替代道路",
+                "國6 舊正至臺中地區替代道路",
+                "北宜廊道"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/CNode/{CNodeID}": {
+      "get": {
+        "tags": [
+          "Node"
+        ],
+        "summary": "取得指定[路口虛擬中心點]資料",
+        "operationId": "Node_GetCNodeID",
+        "parameters": [
+          {
+            "name": "CNodeID",
+            "in": "path",
+            "description": "路口虛擬中心點 ex:6J6NKX67",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/CNode/LinkID/{LinkID}": {
+      "get": {
+        "tags": [
+          "Node"
+        ],
+        "summary": "取得指定[路段編碼] 對應之路口虛擬中心點資料",
+        "operationId": "Node_GetLinkCNodeID",
+        "parameters": [
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:6402810600030I",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/CNode/Intersection/{City}/{Intersection}": {
+      "get": {
+        "tags": [
+          "Node"
+        ],
+        "summary": "取得指定[縣市]、[路口]對應之路口虛擬中心點資料",
+        "operationId": "Node_GetInterCityCNodeID",
+        "parameters": [
+          {
+            "name": "City",
+            "in": "path",
+            "description": "縣市(英文)</br>Taipei = 臺北市</br>Taichung = 臺中市</br>Keelung = 基隆市</br>Tainan = 臺南市</br>Kaohsiung = 高雄市</br>NewTaipei = 新北市</br>YilanCounty = 宜蘭縣</br>Taoyuan = 桃園市</br>Chiayi = 嘉義市</br>HsinchuCounty = 新竹縣</br>MiaoliCounty = 苗栗縣</br>NantouCounty = 南投縣</br>ChanghuaCounty = 彰化縣</br>Hsinchu = 新竹市</br>YunlinCounty = 雲林縣</br>ChiayiCounty = 嘉義縣</br>PingtungCounty = 屏東縣</br>HualienCounty = 花蓮縣</br>TaitungCounty = 臺東縣</br>KinmenCounty = 金門縣</br>PenghuCounty = 澎湖縣</br>LienchiangCounty = 連江縣",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Taipei",
+                "Taichung",
+                "Keelung",
+                "Tainan",
+                "Kaohsiung",
+                "NewTaipei",
+                "YilanCounty",
+                "Taoyuan",
+                "Chiayi",
+                "HsinchuCounty",
+                "MiaoliCounty",
+                "NantouCounty",
+                "ChanghuaCounty",
+                "Hsinchu",
+                "YunlinCounty",
+                "ChiayiCounty",
+                "PingtungCounty",
+                "HualienCounty",
+                "TaitungCounty",
+                "KinmenCounty",
+                "PenghuCounty",
+                "LienchiangCounty"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Intersection",
+            "in": "path",
+            "description": "路口 ex:民權東路六段,舊宗路一段",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/CNode/Intersection/{Intersection}": {
+      "get": {
+        "tags": [
+          "Node"
+        ],
+        "summary": "取得指定[路口]對應之路口虛擬中心點資料",
+        "operationId": "Node_GetInterCNodeID",
+        "parameters": [
+          {
+            "name": "Intersection",
+            "in": "path",
+            "description": "路口 ex:民權東路六段,舊宗路一段",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/CNode/GeoLocating/Coordinate/Shortest/{locationX}/{locationY}/{Range}": {
+      "get": {
+        "tags": [
+          "Node"
+        ],
+        "summary": "依坐標定位取得指定[位置坐標]、範圍[方圓公尺]距離最近之路口虛擬中心點資料",
+        "operationId": "Node_GetShortestCNodeID",
+        "parameters": [
+          {
+            "name": "locationX",
+            "in": "path",
+            "description": "經度坐標 ex:121.515497",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "locationY",
+            "in": "path",
+            "description": "緯度坐標 ex:25.076637",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "path",
+            "description": "方圓公尺(上限：500)",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/CNode/GeoLocating/Coordinate/{locationX}/{locationY}/{Range}": {
+      "get": {
+        "tags": [
+          "Node"
+        ],
+        "summary": "依坐標定位取得指定某[位置坐標]、範圍[方圓公尺] 之路口虛擬中心點資料",
+        "operationId": "Node_GetCoorCNodeID",
+        "parameters": [
+          {
+            "name": "locationX",
+            "in": "path",
+            "description": "經度坐標 ex:121.515497",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "locationY",
+            "in": "path",
+            "description": "緯度坐標 ex:25.076637",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "path",
+            "description": "方圓公尺(上限：500)",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfCNode"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Shape/Geometry/GeoJson": {
+      "post": {
+        "tags": [
+          "Shape"
+        ],
+        "summary": "取得多個[LinkID]Geojson格式坐標資料",
+        "description": "取得多個[LinkID]Geojson格式坐標資料",
+        "operationId": "Shape_PostGeoJson",
+        "requestBody": {
+          "description": "基礎路段代碼 ex:[\"0000300140000T\",\"0000301168000T\"]",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoJson"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Shape/Geometry/GeoJson/{LinkID}": {
+      "get": {
+        "tags": [
+          "Shape"
+        ],
+        "summary": "取得指定[路段編碼] 線形資料(Geojson格式)",
+        "description": "取得指定[路段編碼] 線形資料(Geojson格式)",
+        "operationId": "Shape_GetGeoJson",
+        "parameters": [
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:0000300140000T",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoJson"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Shape/Geometry/WKT": {
+      "post": {
+        "tags": [
+          "Shape"
+        ],
+        "summary": "取得多個[LinkID]WKT格式坐標資料",
+        "description": "取得多個[LinkID]WKT格式坐標資料",
+        "operationId": "Shape_PostWKT",
+        "requestBody": {
+          "description": "基礎路段代碼 ex:[\"0000300140000T\",\"0000301168000T\"]",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WKT"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Shape/Geometry/WKT/{LinkID}": {
+      "get": {
+        "tags": [
+          "Shape"
+        ],
+        "summary": "取得指定[路段編碼] 線形資料(WKT格式)",
+        "description": "取得指定[路段編碼] 線形資料(WKT格式)",
+        "operationId": "Shape_GetWKT",
+        "parameters": [
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:0000300140000T",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WKT"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Shape/Geometry/Display/GeoJson": {
+      "post": {
+        "tags": [
+          "Shape"
+        ],
+        "summary": "取得多個[路段編碼]雙線展示線形資料(Geojson格式)",
+        "description": "取得多個[路段編碼]雙線展示線形資料(Geojson格式)",
+        "operationId": "Shape_PostDisplayGeoJson",
+        "requestBody": {
+          "description": "基礎路段代碼 ex:[\"0000100001440A\",\"0000100001500A\"]",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoJson"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Shape/Geometry/Display/GeoJson/{LinkID}": {
+      "get": {
+        "tags": [
+          "Shape"
+        ],
+        "summary": "取得指定[路段編碼] 雙線展示線形資料(Geojson格式)",
+        "description": "取得指定[路段編碼]雙線展示線形資料(Geojson格式)",
+        "operationId": "Shape_GetDisplayGeoJson",
+        "parameters": [
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:6005010400000A",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoJson"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Shape/Geometry/Display/WKT": {
+      "post": {
+        "tags": [
+          "Shape"
+        ],
+        "summary": "取得多個[路段編碼]雙線展示線形資料(WKT格式)",
+        "description": "取得多個[路段編碼]雙線展示線形資料(WKT格式)",
+        "operationId": "Shape_PostDisplayWKT",
+        "requestBody": {
+          "description": "基礎路段代碼 ex:[\"0000100001440A\",\"0000100001500A\"]",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WKT"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Shape/Geometry/Display/WKT/{LinkID}": {
+      "get": {
+        "tags": [
+          "Shape"
+        ],
+        "summary": "取得指定[路段編碼]雙線展示線形資料(WKT格式)",
+        "description": "取得指定[路段編碼] 雙線展示線形資料(WKT格式)",
+        "operationId": "Shape_GetDisplayWKT",
+        "parameters": [
+          {
+            "name": "LinkID",
+            "in": "path",
+            "description": "基礎路段代碼 ex:6005010400000A",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WKT"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Version/Latest": {
+      "get": {
+        "tags": [
+          "Version"
+        ],
+        "summary": "取得[最新]路段編碼版本資料",
+        "description": "取得[最新]路段編碼版本資料",
+        "operationId": "Version_GetVersion",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionLastest"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionLastest"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Road/Link/Version/All": {
+      "get": {
+        "tags": [
+          "Version"
+        ],
+        "summary": "取得[歷次]路段編碼資料版本資料",
+        "description": "取得[歷次]路段編碼版本資料",
+        "operationId": "Version_GetHisoricalsVersion",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionHistorical"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionHistorical"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ArrayOfChangeLogs": {
+        "type": "object",
+        "properties": {
+          "ChangeLogs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChangeLog"
+            },
+            "nullable": true
+          },
+          "Links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChangeLink"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChangeLog": {
+        "type": "object",
+        "properties": {
+          "ChangeType": {
+            "type": "string",
+            "description": "異動類型",
+            "nullable": true
+          },
+          "ChangeReason": {
+            "type": "string",
+            "description": "異動原因",
+            "nullable": true
+          },
+          "ChangeAttribute": {
+            "type": "string",
+            "description": "異動欄位名稱",
+            "nullable": true
+          },
+          "OriginalVersion": {
+            "type": "string",
+            "description": "資料版本編號(起)",
+            "nullable": true
+          },
+          "OrginalLinkID": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "基礎路段代碼(起)",
+            "nullable": true
+          },
+          "Version": {
+            "type": "string",
+            "description": "資料版本編號(迄)",
+            "nullable": true
+          },
+          "LinkID": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "基礎路段代碼(迄)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChangeLink": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "RoadID": {
+            "type": "string",
+            "description": "道路代碼",
+            "nullable": true
+          },
+          "RoadName": {
+            "type": "string",
+            "description": "道路名稱(中文)",
+            "nullable": true
+          },
+          "RoadClass": {
+            "type": "integer",
+            "description": "道路分類代碼",
+            "format": "int32",
+            "nullable": true
+          },
+          "RoadDirectionID": {
+            "type": "string",
+            "description": "道路方向",
+            "nullable": true
+          },
+          "Bearing": {
+            "type": "string",
+            "description": "路段方位代碼",
+            "nullable": true
+          },
+          "Version": {
+            "type": "string",
+            "description": "資料版本編號",
+            "nullable": true
+          },
+          "UpdateDate": {
+            "type": "string",
+            "description": "資料更新日期時間(格式:yyyy-MM-dd)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChangeLinks": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "RoadID": {
+            "type": "string",
+            "description": "道路代碼",
+            "nullable": true
+          },
+          "RoadName": {
+            "type": "string",
+            "description": "道路名稱(中文)",
+            "nullable": true
+          },
+          "RoadClass": {
+            "type": "integer",
+            "description": "道路分類代碼",
+            "format": "int32",
+            "nullable": true
+          },
+          "RoadClassName": {
+            "type": "string",
+            "description": "道路分類名稱(中文)",
+            "nullable": true
+          },
+          "RoadDirectionID": {
+            "type": "string",
+            "description": "道路方向",
+            "nullable": true
+          },
+          "Bearing": {
+            "type": "string",
+            "description": "路段方位代碼",
+            "nullable": true
+          },
+          "StartNode": {
+            "type": "string",
+            "description": "基礎路段起始節點代碼",
+            "nullable": true
+          },
+          "EndNode": {
+            "type": "string",
+            "description": "基礎路段結束節點代碼",
+            "nullable": true
+          },
+          "StartMile": {
+            "type": "string",
+            "description": "基礎路段起始里程",
+            "nullable": true
+          },
+          "EndMile": {
+            "type": "string",
+            "description": "基礎路段結束里程",
+            "nullable": true
+          },
+          "MileLength": {
+            "type": "string",
+            "description": "基礎路段里程長度",
+            "nullable": true
+          },
+          "Length": {
+            "type": "number",
+            "description": "基礎路段GIS線形長度",
+            "format": "double",
+            "nullable": true
+          },
+          "CityID": {
+            "type": "string",
+            "description": "縣市代碼",
+            "nullable": true
+          },
+          "CityName": {
+            "type": "string",
+            "description": "縣市名稱(中文)",
+            "nullable": true
+          },
+          "City": {
+            "type": "string",
+            "description": "縣市(英文)",
+            "nullable": true
+          },
+          "Version": {
+            "type": "string",
+            "description": "資料版本編號",
+            "nullable": true
+          },
+          "UpdateDate": {
+            "type": "string",
+            "description": "資料更新日期時間(格式:yyyy-MM-dd)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DifflogNDM": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "RoadID": {
+            "type": "string",
+            "description": "道路代碼",
+            "nullable": true
+          },
+          "RoadName": {
+            "type": "string",
+            "description": "道路名稱(中文)",
+            "nullable": true
+          },
+          "RoadClass": {
+            "type": "integer",
+            "description": "道路分類代碼",
+            "format": "int32",
+            "nullable": true
+          },
+          "RoadClassName": {
+            "type": "string",
+            "description": "道路分類名稱(中文)",
+            "nullable": true
+          },
+          "RoadDirectionID": {
+            "type": "string",
+            "description": "道路方向",
+            "nullable": true
+          },
+          "Bearing": {
+            "type": "string",
+            "description": "路段方位代碼",
+            "nullable": true
+          },
+          "StartNode": {
+            "type": "string",
+            "description": "基礎路段起始節點代碼",
+            "nullable": true
+          },
+          "EndNode": {
+            "type": "string",
+            "description": "基礎路段結束節點代碼",
+            "nullable": true
+          },
+          "StartMile": {
+            "type": "string",
+            "description": "基礎路段起始里程",
+            "nullable": true
+          },
+          "EndMile": {
+            "type": "string",
+            "description": "基礎路段結束里程",
+            "nullable": true
+          },
+          "MileLength": {
+            "type": "string",
+            "description": "基礎路段里程長度",
+            "nullable": true
+          },
+          "Length": {
+            "type": "number",
+            "description": "基礎路段GIS線形長度",
+            "format": "double",
+            "nullable": true
+          },
+          "CityID": {
+            "type": "string",
+            "description": "縣市代碼",
+            "nullable": true
+          },
+          "CityName": {
+            "type": "string",
+            "description": "縣市名稱(中文)",
+            "nullable": true
+          },
+          "City": {
+            "type": "string",
+            "description": "縣市(英文)",
+            "nullable": true
+          },
+          "Version": {
+            "type": "string",
+            "description": "資料版本編號",
+            "nullable": true
+          },
+          "UpdateDate": {
+            "type": "string",
+            "description": "資料更新日期時間(格式:yyyy-MM-dd)",
+            "nullable": true
+          },
+          "ChangeType": {
+            "type": "string",
+            "description": "異動類型",
+            "nullable": true
+          },
+          "ChangeNote": {
+            "type": "string",
+            "description": "異動狀態(N:新增, D:刪除, M:修改)",
+            "nullable": true
+          },
+          "ChangeReason": {
+            "type": "string",
+            "description": "異動原因",
+            "nullable": true
+          },
+          "ChangeAttribute": {
+            "type": "string",
+            "description": "異動欄位名稱",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DiffLog": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "RoadID": {
+            "type": "string",
+            "description": "道路代碼",
+            "nullable": true
+          },
+          "RoadName": {
+            "type": "string",
+            "description": "道路名稱(中文)",
+            "nullable": true
+          },
+          "RoadClass": {
+            "type": "integer",
+            "description": "道路分類代碼",
+            "format": "int32",
+            "nullable": true
+          },
+          "RoadDirectionID": {
+            "type": "string",
+            "description": "道路方向",
+            "nullable": true
+          },
+          "Bearing": {
+            "type": "string",
+            "description": "路段方位代碼",
+            "nullable": true
+          },
+          "Version": {
+            "type": "string",
+            "description": "資料版本編號",
+            "nullable": true
+          },
+          "UpdateDate": {
+            "type": "string",
+            "description": "資料更新日期時間(格式:yyyy-MM-dd)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArrayOfDiffRoad": {
+        "type": "object",
+        "properties": {
+          "RoadID": {
+            "type": "string",
+            "description": "道路代碼",
+            "nullable": true
+          },
+          "RoadName": {
+            "type": "string",
+            "description": "道路名稱(中文)",
+            "nullable": true
+          },
+          "RoadNameID": {
+            "type": "string",
+            "description": "道路名稱代碼(簡稱:路名碼)",
+            "nullable": true
+          },
+          "RoadClass": {
+            "type": "integer",
+            "description": "道路分類代碼",
+            "format": "int32",
+            "nullable": true
+          },
+          "RoadClassName": {
+            "type": "string",
+            "description": "道路分類名稱",
+            "nullable": true
+          },
+          "CityID": {
+            "type": "string",
+            "description": "縣市代碼",
+            "nullable": true
+          },
+          "CityName": {
+            "type": "string",
+            "description": "縣市名稱(中文)",
+            "nullable": true
+          },
+          "City": {
+            "type": "string",
+            "description": "縣市(英文)",
+            "nullable": true
+          },
+          "ChangeNote": {
+            "type": "string",
+            "description": "異動狀態(N:新增, D:刪除, M:修改)",
+            "nullable": true
+          },
+          "UpdateDate": {
+            "type": "string",
+            "description": "資料更新年月",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "HistoricalLinks": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "RoadID": {
+            "type": "string",
+            "description": "道路代碼",
+            "nullable": true
+          },
+          "RoadName": {
+            "type": "string",
+            "description": "道路名稱(中文)",
+            "nullable": true
+          },
+          "RoadClass": {
+            "type": "integer",
+            "description": "道路分類代碼",
+            "format": "int32",
+            "nullable": true
+          },
+          "RoadClassName": {
+            "type": "string",
+            "description": "道路分類名稱(中文)",
+            "nullable": true
+          },
+          "RoadDirectionID": {
+            "type": "string",
+            "description": "道路方向",
+            "nullable": true
+          },
+          "Bearing": {
+            "type": "string",
+            "description": "路段方位代碼",
+            "nullable": true
+          },
+          "StartNode": {
+            "type": "string",
+            "description": "基礎路段起始節點代碼",
+            "nullable": true
+          },
+          "EndNode": {
+            "type": "string",
+            "description": "基礎路段結束節點代碼",
+            "nullable": true
+          },
+          "StartMile": {
+            "type": "string",
+            "description": "基礎路段起始里程",
+            "nullable": true
+          },
+          "EndMile": {
+            "type": "string",
+            "description": "基礎路段結束里程",
+            "nullable": true
+          },
+          "MileLength": {
+            "type": "string",
+            "description": "基礎路段里程長度",
+            "nullable": true
+          },
+          "Length": {
+            "type": "number",
+            "description": "基礎路段GIS線形長度",
+            "format": "double",
+            "nullable": true
+          },
+          "CityID": {
+            "type": "string",
+            "description": "縣市代碼",
+            "nullable": true
+          },
+          "CityName": {
+            "type": "string",
+            "description": "縣市名稱(中文)",
+            "nullable": true
+          },
+          "City": {
+            "type": "string",
+            "description": "縣市(英文)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GeoJson_string": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Feature"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Feature": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "properties": {
+            "nullable": true
+          },
+          "geometry": {
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VersionOfWKT": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "Geometry": {
+            "type": "string",
+            "description": "WKT坐標資料",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArrayOfLink": {
+        "type": "object",
+        "properties": {
+          "Link": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Link"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Link": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "RoadID": {
+            "type": "string",
+            "description": "道路代碼",
+            "nullable": true
+          },
+          "RoadName": {
+            "type": "string",
+            "description": "道路名稱(中文)",
+            "nullable": true
+          },
+          "RoadClass": {
+            "type": "integer",
+            "description": "道路分類代碼",
+            "format": "int32"
+          },
+          "RoadClassName": {
+            "type": "string",
+            "description": "道路分類名稱(中文)",
+            "nullable": true
+          },
+          "RoadDirection": {
+            "type": "string",
+            "description": "道路方向(參照即時路況資料標準2.0)",
+            "nullable": true
+          },
+          "RoadDirectionID": {
+            "type": "string",
+            "description": "道路方向(如：0, 1, 2..., 9, A)",
+            "nullable": true
+          },
+          "Bearing": {
+            "type": "string",
+            "description": "路段方位代碼",
+            "nullable": true
+          },
+          "StartNode": {
+            "type": "string",
+            "description": "基礎路段起始節點代碼",
+            "nullable": true
+          },
+          "EndNode": {
+            "type": "string",
+            "description": "基礎路段結束節點代碼",
+            "nullable": true
+          },
+          "StartMile": {
+            "type": "string",
+            "description": "基礎路段起始里程",
+            "nullable": true
+          },
+          "EndMile": {
+            "type": "string",
+            "description": "基礎路段結束里程",
+            "nullable": true
+          },
+          "MileLength": {
+            "type": "string",
+            "description": "基礎路段里程長度",
+            "nullable": true
+          },
+          "Length": {
+            "type": "number",
+            "description": "基礎路段GIS線形長度",
+            "format": "double"
+          },
+          "StartPoint": {
+            "type": "string",
+            "description": "基礎路段起始節點坐標",
+            "nullable": true
+          },
+          "EndPoint": {
+            "type": "string",
+            "description": "基礎路段終點節點坐標",
+            "nullable": true
+          },
+          "MidPoint": {
+            "type": "string",
+            "description": "基礎路段中點節點坐標",
+            "nullable": true
+          },
+          "OpenLR": {
+            "type": "string",
+            "description": "OpenLR代碼",
+            "nullable": true
+          },
+          "CityID": {
+            "type": "string",
+            "description": "縣市代碼",
+            "nullable": true
+          },
+          "CityName": {
+            "type": "string",
+            "description": "縣市名稱(中文)",
+            "nullable": true
+          },
+          "City": {
+            "type": "string",
+            "description": "縣市(英文)",
+            "nullable": true
+          },
+          "Version": {
+            "type": "string",
+            "description": "資料版本編號",
+            "nullable": true
+          },
+          "UpdateDate": {
+            "type": "string",
+            "description": "資料更新日期時間(格式:yyyy-MM-dd)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArrayOfCNode": {
+        "type": "object",
+        "properties": {
+          "CNodeID": {
+            "type": "string",
+            "description": "虛擬中心點(32位元)",
+            "nullable": true
+          },
+          "GeoHash": {
+            "type": "string",
+            "description": "虛擬中心點(GeoHash)",
+            "nullable": true
+          },
+          "OpenLR": {
+            "type": "string",
+            "description": "OpenLR代碼",
+            "nullable": true
+          },
+          "PlusCode": {
+            "type": "string",
+            "description": "虛擬中心點(PlusCode)",
+            "nullable": true
+          },
+          "PositionLat": {
+            "type": "string",
+            "description": "位置緯度(WGS84)",
+            "nullable": true
+          },
+          "PositionLon": {
+            "type": "string",
+            "description": "位置經度(WGS84)",
+            "nullable": true
+          },
+          "NodeID": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "基礎路段分段點識別碼",
+            "nullable": true
+          },
+          "Links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CNodeLinks"
+            },
+            "description": "基礎路段資訊",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CNodeLinks": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "RoadID": {
+            "type": "string",
+            "description": "道路代碼",
+            "nullable": true
+          },
+          "RoadName": {
+            "type": "string",
+            "description": "道路名稱(中文)",
+            "nullable": true
+          },
+          "RoadClass": {
+            "type": "integer",
+            "description": "道路分類代碼",
+            "format": "int32",
+            "nullable": true
+          },
+          "RoadDirection": {
+            "type": "string",
+            "description": "道路方向(參照即時路況資料標準 2.0)",
+            "nullable": true
+          },
+          "RoadDirectionID": {
+            "type": "string",
+            "description": "道路方向(如：0, 1, 2…,9,A)",
+            "nullable": true
+          },
+          "Bearing": {
+            "type": "string",
+            "description": "路段方位代碼",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GeoJson": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "GeoJson類別",
+            "nullable": true
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Features"
+            },
+            "description": "GeoJson屬性",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Features": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "屬性類別",
+            "nullable": true
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Properties"
+            },
+            "description": "資料屬性",
+            "nullable": true
+          },
+          "geometry": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Geometry"
+            },
+            "description": "空間資料",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Properties": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "Version": {
+            "type": "string",
+            "description": "資料版本編號",
+            "nullable": true
+          },
+          "UpdateDate": {
+            "type": "string",
+            "description": "資料更新日期時間(格式:yyyy-MM-dd)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Geometry": {
+        "type": "object",
+        "properties": {
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "坐標",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "description": "圖形類別",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WKT": {
+        "type": "object",
+        "properties": {
+          "LinkID": {
+            "type": "string",
+            "description": "基礎路段代碼",
+            "nullable": true
+          },
+          "Geometry": {
+            "type": "string",
+            "description": "WKT坐標資料",
+            "nullable": true
+          },
+          "Version": {
+            "type": "string",
+            "description": "資料版本編號",
+            "nullable": true
+          },
+          "UpdateDate": {
+            "type": "string",
+            "description": "資料更新日期時間(格式:yyyy-MM-dd)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VersionLastest": {
+        "type": "object",
+        "properties": {
+          "Version": {
+            "type": "string",
+            "description": "資料版本編號",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "最後資料版本編號"
+      },
+      "VersionHistorical": {
+        "type": "object",
+        "properties": {
+          "Version": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "資料版本編號",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "資料版本歷史編號"
+      }
+    },
+    "securitySchemes": {
+      "TDX": {
+        "type": "oauth2",
+        "description": "TDX會員可至【會員專區-資料服務-服務金鑰】功能頁面，從預設金鑰(或建立新的金鑰)取得Client Id和Client Secret資訊，分別輸入至下方client_id和client_secret欄位、按下Authorize按鈕，即可開始於Swagger介面呼叫TDX API。",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token",
+            "scopes": { }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "TDX": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "ChangeLog",
+      "description": "歷史軌跡資料"
+    },
+    {
+      "name": "DiffLog",
+      "description": "異動比對資料"
+    },
+    {
+      "name": "Historical",
+      "description": "歷史版本編碼資料"
+    },
+    {
+      "name": "Link",
+      "description": "路段基礎資料"
+    },
+    {
+      "name": "Node",
+      "description": "路口虛擬中心點資料"
+    },
+    {
+      "name": "Shape",
+      "description": "路段線形資料"
+    },
+    {
+      "name": "Version",
+      "description": "路段編碼版本資料"
+    }
+  ]
+}

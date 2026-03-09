@@ -1,0 +1,820 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "共通資料-公共運輸",
+    "description": "本平臺提供涵蓋全國尺度之交通旅運資料服務API，歡迎各產政學單位介接使用。\n<br><span class=swagger-description-indicatation>利用本平臺開放資料進行各項應用服務開發時，請考量不同特性使用者(如：性別/身心障礙/老幼等)的需求，並歡迎回饋寶貴意見。</span>\n<br>計費方式：\n<br>計次：1,500次/1點\n<br>計量：150MB/1點\n---\n##### API使用說明與注意事項：\n1. 如您尚未註冊平臺會員帳號，或未以帳號登入，您將僅能以「訪客模式」使用平臺服務，包含：限以瀏覽器存取，限使用`【基礎服務】`，且限制每個呼叫來源端IP每日存取至多20次。。\n2. 如您已註冊平臺會員帳號，請務必確保在存取服務(包含瀏覽器、程式呼叫API)時帶入您的API金鑰，方能以「會員模式」使用完整平臺服務，包含平臺各類資料服務，如`【基礎服務】`、`【進階服務】`、`【加值服務】`、`【歷史服務】`、`【圖資服務】`、`【第三方服務】`等。\n3. 建議您立即[註冊平臺會員帳號](/register)，依您用量需求訂閱服務方案，並於[【會員中心->資料服務->API金鑰】](/user/dataservice/key)取得API金鑰(即Client Id和Client Secret資訊)。\n4. 會員訂閱服務方案之級別不同，將決定其API金鑰之存取頻率有不同限制，各個方案的存取頻率限制說明請參考[訂閱收費](/pricing)。\n5. 以瀏覽器帶入API金鑰之操作方式：請點選Swagger UI上的Authorize按鈕，依指示填入Client Id和Client Secret資訊並進行驗證，驗證完成後可開始於Swagger UI使用API。\n6. 以程式呼叫API帶入API金鑰之操作方式：請參考[範例程式](https://github.com/tdxmotc/SampleCode)。\n7. 不論您是以瀏覽器或是以程式呼叫API，所有服務存取行為均將被記錄並定期檢視，以確保系統資源使用的合理分配與避免遭受濫用。\n\nAPI OAS文本 :[請點我](https://tdx.transportdata.tw/webapi/File/Swagger/V3/9aa23880-013d-4919-be46-3d748d7001e4)",
+    "version": "v2"
+  },
+  "servers": [
+    {
+      "url": "https://tdx.transportdata.tw/api/basic"
+    }
+  ],
+  "paths": {
+    "/v2/Basic/Authority": {
+      "get": {
+        "tags": [
+          "Common"
+        ],
+        "summary": "取得業管機關資料",
+        "operationId": "BasicApi_Authority_2160",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.Authority"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.Authority"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在Response加上Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於Request加上If-Modified-Since header，若沒有更新，服務端會回應304 StatusCode且空值Content",
+            "content": {
+              "application/json": { },
+              "application/xml": { }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Basic/Provider": {
+      "get": {
+        "tags": [
+          "Common"
+        ],
+        "summary": "取得資料提供平台資料",
+        "operationId": "BasicApi_Provider_2161",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.Provider"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.Provider"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在Response加上Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於Request加上If-Modified-Since header，若沒有更新，服務端會回應304 StatusCode且空值Content",
+            "content": {
+              "application/json": { },
+              "application/xml": { }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Basic/Operator": {
+      "get": {
+        "tags": [
+          "Common"
+        ],
+        "summary": "取得營運業者資料",
+        "operationId": "BasicApi_Operator_2162",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.Operator"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.Operator"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在Response加上Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於Request加上If-Modified-Since header，若沒有更新，服務端會回應304 StatusCode且空值Content",
+            "content": {
+              "application/json": { },
+              "application/xml": { }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Basic/Calendar/Year/{Year}": {
+      "get": {
+        "tags": [
+          "Common"
+        ],
+        "summary": "取得年份行事曆資料",
+        "description": "行事曆資料可查詢起始年份為2021",
+        "operationId": "Calendar_2167",
+        "parameters": [
+          {
+            "name": "Year",
+            "in": "path",
+            "description": "年份",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Basic.Specification.V2.Calendar"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Basic.Specification.V2.Calendar"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PTX.Service.DTO.Shared.Specification.V2.Base.Authority": {
+        "title": "Authority",
+        "required": [
+          "AuthorityCode",
+          "AuthorityID",
+          "AuthorityName",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "AuthorityID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關代碼",
+            "xml": {
+              "name": "AuthorityID"
+            }
+          },
+          "AuthorityName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "業管機關名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "AuthorityPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "業管機關連絡電話",
+            "xml": {
+              "name": "AuthorityPhone"
+            }
+          },
+          "AuthorityEmail": {
+            "title": "String",
+            "type": "string",
+            "description": "業管機關電子信箱",
+            "xml": {
+              "name": "AuthorityEmail"
+            }
+          },
+          "AuthorityUrl": {
+            "title": "String",
+            "type": "string",
+            "description": "業管機關網址鏈結",
+            "xml": {
+              "name": "AuthorityUrl"
+            }
+          },
+          "AuthorityCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關簡碼",
+            "xml": {
+              "name": "AuthorityCode"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "description": "業管機關資料型別",
+        "xml": {
+          "name": "Authority"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.Authority0": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.Authority"
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.NameType": {
+        "title": "NameType",
+        "type": "object",
+        "properties": {
+          "Zh_tw": {
+            "title": "String",
+            "type": "string",
+            "description": "中文繁體名稱",
+            "xml": {
+              "name": "Zh_tw"
+            }
+          },
+          "En": {
+            "title": "String",
+            "type": "string",
+            "description": "英文名稱",
+            "xml": {
+              "name": "En"
+            }
+          }
+        },
+        "description": "名稱資料型別",
+        "xml": {
+          "name": "NameType"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.Provider": {
+        "title": "Provider",
+        "required": [
+          "ProviderCode",
+          "ProviderID",
+          "ProviderName",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "ProviderID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "資料提供平台代碼",
+            "xml": {
+              "name": "ProviderID"
+            }
+          },
+          "ProviderName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "資料提供平台名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "ProviderPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "資料提供平台連絡電話",
+            "xml": {
+              "name": "ProviderPhone"
+            }
+          },
+          "ProviderEmail": {
+            "title": "String",
+            "type": "string",
+            "description": "資料提供平台電子信箱",
+            "xml": {
+              "name": "ProviderEmail"
+            }
+          },
+          "ProviderUrl": {
+            "title": "String",
+            "type": "string",
+            "description": "資料提供平台網址鏈結",
+            "xml": {
+              "name": "ProviderUrl"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "ProviderCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "資料提供平台簡碼",
+            "xml": {
+              "name": "ProviderCode"
+            }
+          }
+        },
+        "description": "資料提供平台資料型別",
+        "xml": {
+          "name": "Provider"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.Provider1": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.Provider"
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.Operator": {
+        "title": "Operator",
+        "required": [
+          "AuthorityCode",
+          "OperatorID",
+          "OperatorName",
+          "OperatorNo",
+          "ProviderID",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "ProviderID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "資料提供平台代碼",
+            "xml": {
+              "name": "ProviderID"
+            }
+          },
+          "OperatorID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運業者代碼",
+            "xml": {
+              "name": "OperatorID"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "OperatorPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者連絡電話",
+            "xml": {
+              "name": "OperatorPhone"
+            }
+          },
+          "OperatorEmail": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者電子信箱",
+            "xml": {
+              "name": "OperatorEmail"
+            }
+          },
+          "OperatorUrl": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者網址鏈結",
+            "xml": {
+              "name": "OperatorUrl"
+            }
+          },
+          "ReservationUrl": {
+            "title": "String",
+            "type": "string",
+            "description": "訂票網址鏈結",
+            "xml": {
+              "name": "ReservationUrl"
+            }
+          },
+          "ReservationPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "訂票連絡電話",
+            "xml": {
+              "name": "ReservationPhone"
+            }
+          },
+          "OperatorCode": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者簡碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "AuthorityCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運業者業管機關簡碼(對於於公路客運/國道客運而言為THB)",
+            "xml": {
+              "name": "AuthorityCode"
+            }
+          },
+          "SubAuthorityCode": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者所屬業管子機關簡碼(對於公路客運/國道客運路線而言為區監理所如THB-VO10-1..等)",
+            "xml": {
+              "name": "SubAuthorityCode"
+            }
+          },
+          "OperatorNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運業者編號[交通部票證資料系統定義]",
+            "xml": {
+              "name": "OperatorNo"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "description": "營運業者資料型別",
+        "xml": {
+          "name": "Operator"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.Operator2": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.Operator"
+      },
+      "PTX.Service.DTO.Basic.Specification.V2.Calendar": {
+        "title": "Calendar",
+        "type": "object",
+        "properties": {
+          "CalendarDate": {
+            "title": "String",
+            "type": "string",
+            "description": "行事曆日期",
+            "xml": {
+              "name": "CalendarDate"
+            }
+          },
+          "Season": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "日期-季",
+            "format": "int32"
+          },
+          "DayOfWeek": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "日期-星期",
+            "format": "int32"
+          },
+          "IsWorkday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "該日期是否為工作日",
+            "format": "int32"
+          },
+          "IsHoliday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "該日期是否為例假日",
+            "format": "int32"
+          },
+          "IsLongHoliday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "該日期是否為【連續假期(連續三天以上的例假日)】",
+            "format": "int32"
+          },
+          "IsBeforeLongHoliday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "該日期是否為【連續假期(連續三天以上例假日)】的前一日",
+            "format": "int32"
+          },
+          "IsAfterLongHoliday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "該日期是否為【連續假期(連續三天以上例假日)】的後一日",
+            "format": "int32"
+          },
+          "EventName": {
+            "title": "String",
+            "type": "string",
+            "description": "事件名稱",
+            "xml": {
+              "name": "EventName"
+            }
+          }
+        },
+        "description": "行事曆功能API回應Model",
+        "xml": {
+          "name": "Calendar"
+        }
+      },
+      "PTX.Service.DTO.Basic.Specification.V2.Calendar3": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Basic.Specification.V2.Calendar"
+      }
+    },
+    "securitySchemes": {
+      "TDX": {
+        "type": "oauth2",
+        "description": "TDX會員可至【會員專區-資料服務-服務金鑰】功能頁面，從預設金鑰(或建立新的金鑰)取得Client Id和Client Secret資訊，分別輸入至下方client_id和client_secret欄位、按下Authorize按鈕，即可開始於Swagger介面呼叫TDX API。",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token",
+            "scopes": { }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "TDX": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Common",
+      "description": "共通資料(公共運輸)"
+    }
+  ]
+}

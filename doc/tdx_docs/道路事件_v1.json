@@ -1,0 +1,1761 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "道路事件",
+    "description": "本平臺提供涵蓋全國尺度之道路事件服務API，歡迎各產政學單位介接使用。\n<br><span class=swagger-description-indicatation>利用本平臺開放資料進行各項應用服務開發時，請考量不同特性使用者(如：性別/身心障礙/老幼等)的需求，並歡迎回饋寶貴意見。</span>\n<br>計費方式：\n<br>計次：1,500次/1點\n<br>計量：150MB/1點\n---\n##### API使用說明與注意事項：\n1. 如您尚未註冊平臺會員帳號，或未以帳號登入，您將僅能以「訪客模式」使用平臺服務，包含：限以瀏覽器存取，限使用`【基礎服務】`，且限制每個呼叫來源端IP每日存取至多20次。。\n2. 如您已註冊平臺會員帳號，請務必確保在存取服務(包含瀏覽器、程式呼叫API)時帶入您的API金鑰，方能以「會員模式」使用完整平臺服務，包含平臺各類資料服務，如`【基礎服務】`、`【進階服務】`、`【加值服務】`、`【歷史服務】`、`【圖資服務】`、`【第三方服務】`等。\n3. 建議您立即[註冊平臺會員帳號](/register)，依您用量需求訂閱服務方案，並於[【會員中心->資料服務->API金鑰】](/user/dataservice/key)取得API金鑰(即Client Id和Client Secret資訊)。\n4. 會員訂閱服務方案之級別不同，將決定其API金鑰之存取頻率有不同限制，各個方案的存取頻率限制說明請參考[訂閱收費](/pricing)。\n5. 以瀏覽器帶入API金鑰之操作方式：請點選Swagger UI上的Authorize按鈕，依指示填入Client Id和Client Secret資訊並進行驗證，驗證完成後可開始於Swagger UI使用API。\n6. 以程式呼叫API帶入API金鑰之操作方式：請參考[範例程式](https://github.com/tdxmotc/SampleCode)。\n7. 不論您是以瀏覽器或是以程式呼叫API，所有服務存取行為均將被記錄並定期檢視，以確保系統資源使用的合理分配與避免遭受濫用。\n\nAPI OAS文本 :[請點我](https://tdx.transportdata.tw/webapi/File/Swagger/V3/60abfa19-ffe3-4eef-a4b1-0539435dfca9)",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "https://tdx.transportdata.tw/api/basic"
+    }
+  ],
+  "paths": {
+    "/v1/Traffic/RoadEvent/Event/City/{City}": {
+      "get": {
+        "tags": [
+          "City"
+        ],
+        "summary": "取得指定[縣市]的預告性事件資料",
+        "operationId": "TrafficEvent_API_Event",
+        "parameters": [
+          {
+            "name": "City",
+            "in": "path",
+            "description": "指定縣市代碼",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Taipei",
+                "NewTaipei",
+                "Taoyuan",
+                "Taichung",
+                "Tainan",
+                "Keelung",
+                "YilanCounty",
+                "KinmenCounty"
+              ],
+              "type": "string"
+            },
+            "x-enum": {
+              "YilanCounty": "宜蘭縣",
+              "Taipei": "臺北市",
+              "PenghuCounty": "澎湖縣",
+              "ChanghuaCounty": "彰化縣",
+              "Chiayi": "嘉義市",
+              "Keelung": "基隆市",
+              "MiaoliCounty": "苗栗縣",
+              "LienchiangCounty": "連江縣",
+              "TaitungCounty": "臺東縣",
+              "KinmenCounty": "金門縣",
+              "HualienCounty": "花蓮縣",
+              "HsinchuCounty": "新竹縣",
+              "PingtungCounty": "屏東縣",
+              "ChiayiCounty": "嘉義縣",
+              "Taichung": "臺中市",
+              "Hsinchu": "新竹市",
+              "YunlinCounty": "雲林縣",
+              "Tainan": "臺南市",
+              "NantouCounty": "南投縣",
+              "Taoyuan": "桃園市",
+              "NewTaipei": "新北市",
+              "Kaohsiung": "高雄市"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$count",
+            "in": "query",
+            "description": "查詢數量",
+            "schema": {
+              "enum": [
+                true,
+                false
+              ],
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Static.Event]"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Static.Event]"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/Traffic/RoadEvent/LiveEvent/Highway": {
+      "get": {
+        "tags": [
+          "Highway"
+        ],
+        "summary": "取得省道之即時性道路事件",
+        "operationId": "TrafficEvent_API_THB_LiveEvent",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$count",
+            "in": "query",
+            "description": "查詢數量",
+            "schema": {
+              "enum": [
+                true,
+                false
+              ],
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEvent]"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEvent]"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/Traffic/RoadEvent/LiveEvent/Freeway": {
+      "get": {
+        "tags": [
+          "Freeway"
+        ],
+        "summary": "取得高速公路之即時性道路事件",
+        "operationId": "TrafficEvent_API_NFB_LiveEvent",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$count",
+            "in": "query",
+            "description": "查詢數量",
+            "schema": {
+              "enum": [
+                true,
+                false
+              ],
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEvent]"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEvent]"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/Traffic/RoadEvent/LiveEvent/City/{City}": {
+      "get": {
+        "tags": [
+          "City"
+        ],
+        "summary": "取得指定[縣市]的即時性事件資料",
+        "operationId": "TrafficEvent_API_LiveEvent",
+        "parameters": [
+          {
+            "name": "City",
+            "in": "path",
+            "description": "指定縣市代碼",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Taipei",
+                "NewTaipei",
+                "Taoyuan",
+                "Taichung",
+                "Tainan",
+                "Kaohsiung",
+                "Keelung",
+                "YilanCounty",
+                "KinmenCounty"
+              ],
+              "type": "string"
+            },
+            "x-enum": {
+              "TaitungCounty": "臺東縣",
+              "Kaohsiung": "高雄市",
+              "PenghuCounty": "澎湖縣",
+              "ChiayiCounty": "嘉義縣",
+              "KinmenCounty": "金門縣",
+              "YilanCounty": "宜蘭縣",
+              "LienchiangCounty": "連江縣",
+              "PingtungCounty": "屏東縣",
+              "Taipei": "臺北市",
+              "HualienCounty": "花蓮縣",
+              "MiaoliCounty": "苗栗縣",
+              "HsinchuCounty": "新竹縣",
+              "YunlinCounty": "雲林縣",
+              "NantouCounty": "南投縣",
+              "NewTaipei": "新北市",
+              "Taichung": "臺中市",
+              "Taoyuan": "桃園市",
+              "ChanghuaCounty": "彰化縣",
+              "Hsinchu": "新竹市",
+              "Chiayi": "嘉義市",
+              "Keelung": "基隆市",
+              "Tainan": "臺南市"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$count",
+            "in": "query",
+            "description": "查詢數量",
+            "schema": {
+              "enum": [
+                true,
+                false
+              ],
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEvent]"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEvent]"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/Traffic/RoadEvent/Authority": {
+      "get": {
+        "tags": [
+          "Common"
+        ],
+        "summary": "取得業管機關資料",
+        "operationId": "TrafficEvent_API_Authority",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.Authority"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.Authority"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在Response加上Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於Request加上If-Modified-Since header，若沒有更新，服務端會回應304 StatusCode且空值Content",
+            "content": {
+              "application/json": { },
+              "application/xml": { }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Static.Event]": {
+        "title": "EventList",
+        "required": [
+          "AuthorityCode",
+          "Events",
+          "SrcUpdateInterval",
+          "SrcUpdateTime",
+          "UpdateInterval",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "UpdateTime": {
+            "type": "string",
+            "description": "<details>\r\n  <summary>本平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)</summary>\r\n                與來源Inbound XML不同，為中心端處理完後提供資料的更新時間\r\n              </details>",
+            "format": "date-time"
+          },
+          "UpdateInterval": {
+            "type": "integer",
+            "description": "<details>\r\n  <summary>本平台資料更新週期(秒)</summary>\r\n                與來源Inbound XML不同，為中心端更新資料的週期\r\n              </details>",
+            "format": "int32"
+          },
+          "SrcUpdateTime": {
+            "type": "string",
+            "description": "<details>\r\n  <summary>來源端平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)</summary>\r\n                為來源Inbound XML中的UpdateTime [該欄位由本平台自動產製]\r\n              </details>",
+            "format": "date-time"
+          },
+          "SrcUpdateInterval": {
+            "type": "integer",
+            "description": "<details>\r\n  <summary>來源端平台資料更新週期(秒) : [-1:'不定期更新']</summary>\r\n                為來源Inbound XML中的UpdateInterval [該欄位由本平台自動產製]\r\n              </details>",
+            "format": "int32"
+          },
+          "AuthorityCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關簡碼",
+            "xml": {
+              "name": "AuthorityCode"
+            }
+          },
+          "Events": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Static.Event"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "Count": {
+            "type": "integer",
+            "description": "<details>\r\n  <summary>資料總筆數</summary>\r\n                與來源Inbound XML不同，為提供資料的總筆數  [該欄位由本平台自動產製]\r\n              </details>",
+            "format": "int64"
+          }
+        },
+        "xml": {
+          "name": "EventWrapperOfEvent",
+          "namespace": "https://ptx.transportdata.tw/standard/schema/"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Static.Event": {
+        "title": "Event",
+        "required": [
+          "Description",
+          "EffectiveTime",
+          "EventID",
+          "EventStep",
+          "EventSubType",
+          "EventTitle",
+          "EventType",
+          "ExpireTime",
+          "LastUpdateTime",
+          "Location",
+          "LocationType",
+          "PublishTime",
+          "Source"
+        ],
+        "type": "object",
+        "properties": {
+          "EventID": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "EventID"
+            }
+          },
+          "EventTitle": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "EventTitle"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "EventType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[1:'交通事故',2:'施工',3:'壅塞',4:'特殊管制',5:'天氣',6:'災害',7:'活動',8:'其它異常告警']"
+          },
+          "EventSubType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[101:'人與汽機車事故',102:'車與車事故',103:'汽機車本身事故',104:'平交道事故',105:'火燒車事故',106:'危險原物料事故',198:'其他的交通事故',199:'未知的交通事故',201:'橋梁施工',202:'爆破施工',203:'設施施工',204:'拆除施工',205:'挖掘施工',206:'管線施工',207:'道路或鋪面施工',208:'移動或清掃施工',209:'拓寬施工',210:'隧道施工',211:'匝道施工',298:'其他的施工',299:'未知的施工',301:'車多',302:'壅塞',303:'嚴重壅塞',304:'極度壅塞',401:'疏運',402:'預警性封閉',403:'演習',404:'維安',498:'其他的特殊管制',499:'未知的特殊管制',501:'濃霧',502:'豪雨',503:'強風',504:'高溫',505:'低溫',506:'颱風的天氣',507:'冰雹',508:'下雪',509:'塵霾',598:'其他的天氣',599:'未知的天氣',601:'地震',602:'海嘯',603:'落石',604:'坍方',605:'淹水',606:'山崩',607:'土石流',608:'火災',609:'煙塵',610:'危險物品洩漏',611:'颱風的災害',698:'其他的災害',699:'未知的災害',701:'學術',702:'藝文',703:'旅遊',704:'公益',705:'體育',706:'婚喪喜慶',707:'集會遊行',708:'宗教活動',709:'節慶',798:'其他的活動',799:'未知的活動',801:'散落物',802:'路面損毀',803:'路面坑洞',804:'路面積水',805:'號誌故障',806:'路燈故障',807:'故障車',808:'車輛逆行',809:'機車誤闖',810:'自行車誤闖',811:'行人誤闖',812:'動物闖入',813:'隧道照明設備故障',814:'隧道機電設備故障',898:'其他的異常',899:'未知的異常']"
+          },
+          "EventStep": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "EffectiveTime": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          },
+          "ExpireTime": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          },
+          "Positions": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Positions"
+            }
+          },
+          "Geometry": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Geometry"
+            }
+          },
+          "LocationType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[0:'道路主線',1:'交流道或匝道',2:'匝道出入口',3:'交叉路口',254:'其他',255:'未知']"
+          },
+          "Location": {
+            "title": "Location",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Location"
+              }
+            ],
+            "xml": {
+              "name": "Location"
+            }
+          },
+          "Impact": {
+            "title": "Impact",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Impact[PTX.Model.DataMarket.POCO.Event.Static.EventDuration]"
+              }
+            ],
+            "xml": {
+              "name": "Impact`1"
+            }
+          },
+          "WebURL": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "WebURL"
+            }
+          },
+          "AttachmentURLs": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            },
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "Source": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Source"
+            }
+          },
+          "PublishTime": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          },
+          "LastUpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "xml": {
+          "name": "Event"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.Location": {
+        "title": "Location",
+        "type": "object",
+        "properties": {
+          "FreeExpressHighway": {
+            "title": "FreeExpressHighway",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.FreeExpressHighway"
+              }
+            ],
+            "xml": {
+              "name": "FreeExpressHighway"
+            }
+          },
+          "CityRoad": {
+            "title": "CityRoad",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.CityRoad"
+              }
+            ],
+            "xml": {
+              "name": "CityRoad"
+            }
+          },
+          "Intersection": {
+            "title": "Intersection",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Intersection"
+              }
+            ],
+            "xml": {
+              "name": "Intersection"
+            }
+          },
+          "Address": {
+            "title": "Address",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Address"
+              }
+            ],
+            "xml": {
+              "name": "Address"
+            }
+          },
+          "Place": {
+            "title": "Place",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Place"
+              }
+            ],
+            "xml": {
+              "name": "Place"
+            }
+          },
+          "Other": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Other"
+            }
+          }
+        },
+        "xml": {
+          "name": "Location"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.FreeExpressHighway": {
+        "title": "FreeExpressHighway",
+        "required": [
+          "Direction",
+          "EndKM",
+          "Road",
+          "StartKM"
+        ],
+        "type": "object",
+        "properties": {
+          "Road": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Road"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[0:'東向',1:'西向',2:'南向',3:'北向',4:'雙向']"
+          },
+          "StartKM": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "StartKM"
+            }
+          },
+          "EndKM": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "EndKM"
+            }
+          },
+          "SectionStart": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "SectionStart"
+            }
+          },
+          "SectionEnd": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "SectionEnd"
+            }
+          },
+          "Interchange": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Interchange"
+            }
+          },
+          "Ramp": {
+            "title": "Ramp",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Ramp"
+              }
+            ],
+            "xml": {
+              "name": "Ramp"
+            }
+          }
+        },
+        "xml": {
+          "name": "FreeExpressHighway"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.Ramp": {
+        "title": "Ramp",
+        "required": [
+          "Direction",
+          "EntryExit"
+        ],
+        "type": "object",
+        "properties": {
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[0:'東向',1:'西向',2:'南向',3:'北向']"
+          },
+          "EntryExit": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[0:'出口',1:'入口']"
+          }
+        },
+        "xml": {
+          "name": "Ramp"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.CityRoad": {
+        "title": "CityRoad",
+        "type": "object",
+        "properties": {
+          "Roadways": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Roadway"
+            },
+            "xml": {
+              "name": "List`1"
+            }
+          }
+        },
+        "xml": {
+          "name": "CityRoad"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.Roadway": {
+        "title": "Roadway",
+        "required": [
+          "City",
+          "Direction",
+          "Road",
+          "Town"
+        ],
+        "type": "object",
+        "properties": {
+          "City": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "City"
+            }
+          },
+          "Town": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Town"
+            }
+          },
+          "Road": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Road"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[0:'東向',1:'西向',2:'南向',3:'北向',4:'東北向',5:'東南向',6:'西南向',7:'西北向',8:'雙向']"
+          },
+          "SectionStart": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "SectionStart"
+            }
+          },
+          "SectionEnd": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "SectionEnd"
+            }
+          }
+        },
+        "xml": {
+          "name": "Roadway"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.Intersection": {
+        "title": "Intersection",
+        "required": [
+          "City",
+          "Roads"
+        ],
+        "type": "object",
+        "properties": {
+          "City": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "City"
+            }
+          },
+          "Roads": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            },
+            "xml": {
+              "name": "List`1"
+            }
+          }
+        },
+        "xml": {
+          "name": "Intersection"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.Address": {
+        "title": "Address",
+        "required": [
+          "City",
+          "EndNo",
+          "Road",
+          "StartNo",
+          "Town"
+        ],
+        "type": "object",
+        "properties": {
+          "City": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "City"
+            }
+          },
+          "Town": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Town"
+            }
+          },
+          "Road": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Road"
+            }
+          },
+          "Lane": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Lane"
+            }
+          },
+          "Alley": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Alley"
+            }
+          },
+          "StartNo": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "StartNo"
+            }
+          },
+          "EndNo": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "EndNo"
+            }
+          }
+        },
+        "xml": {
+          "name": "Address"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.Place": {
+        "title": "Place",
+        "required": [
+          "POI"
+        ],
+        "type": "object",
+        "properties": {
+          "POI": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "POI"
+            }
+          }
+        },
+        "xml": {
+          "name": "Place"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.Impact[PTX.Model.DataMarket.POCO.Event.Static.EventDuration]": {
+        "title": "Impact",
+        "required": [
+          "BlockedLanes",
+          "BlockWay",
+          "Description",
+          "Regulations",
+          "Severity"
+        ],
+        "type": "object",
+        "properties": {
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "Severity": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[-99:'來源未提供',0:'無影響',1:'部分阻斷交通',2:'完全阻斷交通',254:'其他',255:'未知']"
+          },
+          "Regulations": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "title": "Int32",
+              "type": "integer",
+              "description": "[-99:'來源未提供',0:'無管制',1:'全封閉',2:'部分封閉',3:'高乘載管制',4:'調撥車道',5:'開放路肩',6:'匝道儀控',7:'號誌管控',8:'交管人員現場指揮',9:'特定車種管制需求',254:'其他',255:'未知']"
+            },
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "Duration": {
+            "title": "EventDuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Static.EventDuration"
+              }
+            ],
+            "xml": {
+              "name": "EventDuration"
+            }
+          },
+          "BlockWay": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[-99:'來源未提供',0:'無阻斷',1:'僅單向',2:'雙向',254:'其他',255:'未知']"
+          },
+          "BlockedLanes": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "BlockedLanes"
+            }
+          },
+          "Detour": {
+            "title": "Detour",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Detour"
+              }
+            ],
+            "xml": {
+              "name": "Detour"
+            }
+          }
+        },
+        "xml": {
+          "name": "Impact`1"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Static.EventDuration": {
+        "title": "EventDuration",
+        "type": "object",
+        "properties": {
+          "OccurType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[0:'Successive',1:'Daily',2:'Weekdays',3:'Weekends',4:'WeekendsAndHoildays',5:'Others']"
+          },
+          "OccurDays": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "title": "Int32",
+              "type": "integer",
+              "description": "[0:'SunDay',1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thurday',5:'Friday',6:'Saturday',7:'Hoildays']"
+            },
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "OccurDates": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            },
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "StartTime": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "StartTime"
+            }
+          },
+          "EndTime": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "EndTime"
+            }
+          }
+        },
+        "xml": {
+          "name": "EventDuration"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.Detour": {
+        "title": "Detour",
+        "required": [
+          "AttachmentURL",
+          "Description"
+        ],
+        "type": "object",
+        "properties": {
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "AttachmentURL": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "AttachmentURL"
+            }
+          },
+          "Geometry": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Geometry"
+            }
+          }
+        },
+        "xml": {
+          "name": "Detour"
+        }
+      },
+      "PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEvent]": {
+        "title": "LiveEventList",
+        "required": [
+          "AuthorityCode",
+          "LiveEvents",
+          "SrcUpdateInterval",
+          "SrcUpdateTime",
+          "UpdateInterval",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "UpdateTime": {
+            "type": "string",
+            "description": "<details>\r\n  <summary>本平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)</summary>\r\n                與來源Inbound XML不同，為中心端處理完後提供資料的更新時間\r\n              </details>",
+            "format": "date-time"
+          },
+          "UpdateInterval": {
+            "type": "integer",
+            "description": "<details>\r\n  <summary>本平台資料更新週期(秒)</summary>\r\n                與來源Inbound XML不同，為中心端更新資料的週期\r\n              </details>",
+            "format": "int32"
+          },
+          "SrcUpdateTime": {
+            "type": "string",
+            "description": "<details>\r\n  <summary>來源端平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)</summary>\r\n                為來源Inbound XML中的UpdateTime [該欄位由本平台自動產製]\r\n              </details>",
+            "format": "date-time"
+          },
+          "SrcUpdateInterval": {
+            "type": "integer",
+            "description": "<details>\r\n  <summary>來源端平台資料更新週期(秒) : [-1:'不定期更新']</summary>\r\n                為來源Inbound XML中的UpdateInterval [該欄位由本平台自動產製]\r\n              </details>",
+            "format": "int32"
+          },
+          "AuthorityCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關簡碼",
+            "xml": {
+              "name": "AuthorityCode"
+            }
+          },
+          "LiveEvents": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Realtime.LiveEvent"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "Count": {
+            "type": "integer",
+            "description": "<details>\r\n  <summary>資料總筆數</summary>\r\n                與來源Inbound XML不同，為提供資料的總筆數  [該欄位由本平台自動產製]\r\n              </details>",
+            "format": "int64"
+          }
+        },
+        "xml": {
+          "name": "EventWrapperOfLiveEvent",
+          "namespace": "https://ptx.transportdata.tw/standard/schema/"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Realtime.LiveEvent": {
+        "title": "LiveEvent",
+        "required": [
+          "Description",
+          "EffectiveTime",
+          "EventID",
+          "EventStep",
+          "EventSubType",
+          "EventTitle",
+          "EventType",
+          "LastUpdateTime",
+          "Location",
+          "LocationType",
+          "PublishTime",
+          "Source"
+        ],
+        "type": "object",
+        "properties": {
+          "EventID": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "EventID"
+            }
+          },
+          "EventTitle": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "EventTitle"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "EventType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[1:'交通事故',2:'施工',3:'壅塞',4:'特殊管制',5:'天氣',6:'災害',7:'活動',8:'其它異常告警']"
+          },
+          "EventSubType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[101:'人與汽機車事故',102:'車與車事故',103:'汽機車本身事故',104:'平交道事故',105:'火燒車事故',106:'危險原物料事故',198:'其他的交通事故',199:'未知的交通事故',201:'橋梁施工',202:'爆破施工',203:'設施施工',204:'拆除施工',205:'挖掘施工',206:'管線施工',207:'道路或鋪面施工',208:'移動或清掃施工',209:'拓寬施工',210:'隧道施工',211:'匝道施工',298:'其他的施工',299:'未知的施工',301:'車多',302:'壅塞',303:'嚴重壅塞',304:'極度壅塞',401:'疏運',402:'預警性封閉',403:'演習',404:'維安',498:'其他的特殊管制',499:'未知的特殊管制',501:'濃霧',502:'豪雨',503:'強風',504:'高溫',505:'低溫',506:'颱風的天氣',507:'冰雹',508:'下雪',509:'塵霾',598:'其他的天氣',599:'未知的天氣',601:'地震',602:'海嘯',603:'落石',604:'坍方',605:'淹水',606:'山崩',607:'土石流',608:'火災',609:'煙塵',610:'危險物品洩漏',611:'颱風的災害',698:'其他的災害',699:'未知的災害',701:'學術',702:'藝文',703:'旅遊',704:'公益',705:'體育',706:'婚喪喜慶',707:'集會遊行',708:'宗教活動',709:'節慶',798:'其他的活動',799:'未知的活動',801:'散落物',802:'路面損毀',803:'路面坑洞',804:'路面積水',805:'號誌故障',806:'路燈故障',807:'故障車',808:'車輛逆行',809:'機車誤闖',810:'自行車誤闖',811:'行人誤闖',812:'動物闖入',813:'隧道照明設備故障',814:'隧道機電設備故障',898:'其他的異常',899:'未知的異常']"
+          },
+          "EventStep": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "EffectiveTime": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          },
+          "ExpireTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Positions": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Positions"
+            }
+          },
+          "Geometry": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Geometry"
+            }
+          },
+          "LocationType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[0:'道路主線',1:'交流道或匝道',2:'匝道出入口',3:'交叉路口',254:'其他',255:'未知']"
+          },
+          "Location": {
+            "title": "Location",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Location"
+              }
+            ],
+            "xml": {
+              "name": "Location"
+            }
+          },
+          "Impact": {
+            "title": "Impact",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Impact[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEventDuration]"
+              }
+            ],
+            "xml": {
+              "name": "Impact`1"
+            }
+          },
+          "AttachmentURLs": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            },
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "Source": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Source"
+            }
+          },
+          "PublishTime": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          },
+          "LastUpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "xml": {
+          "name": "LiveEvent"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Base.Impact[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEventDuration]": {
+        "title": "Impact",
+        "required": [
+          "BlockedLanes",
+          "BlockWay",
+          "Description",
+          "Regulations",
+          "Severity"
+        ],
+        "type": "object",
+        "properties": {
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "Severity": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[-99:'來源未提供',0:'無影響',1:'部分阻斷交通',2:'完全阻斷交通',254:'其他',255:'未知']"
+          },
+          "Regulations": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "title": "Int32",
+              "type": "integer",
+              "description": "[-99:'來源未提供',0:'無管制',1:'全封閉',2:'部分封閉',3:'高乘載管制',4:'調撥車道',5:'開放路肩',6:'匝道儀控',7:'號誌管控',8:'交管人員現場指揮',9:'特定車種管制需求',254:'其他',255:'未知']"
+            },
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "Duration": {
+            "title": "LiveEventDuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Realtime.LiveEventDuration"
+              }
+            ],
+            "xml": {
+              "name": "LiveEventDuration"
+            }
+          },
+          "BlockWay": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "[-99:'來源未提供',0:'無阻斷',1:'僅單向',2:'雙向',254:'其他',255:'未知']"
+          },
+          "BlockedLanes": {
+            "title": "String",
+            "type": "string",
+            "xml": {
+              "name": "BlockedLanes"
+            }
+          },
+          "Detour": {
+            "title": "Detour",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Detour"
+              }
+            ],
+            "xml": {
+              "name": "Detour"
+            }
+          }
+        },
+        "xml": {
+          "name": "Impact`1"
+        }
+      },
+      "PTX.Model.DataMarket.POCO.Event.Realtime.LiveEventDuration": {
+        "title": "LiveEventDuration",
+        "type": "object",
+        "properties": {
+          "DurationStartTime": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          },
+          "DurationEndTime": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "xml": {
+          "name": "LiveEventDuration"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.Authority": {
+        "title": "Authority",
+        "required": [
+          "AuthorityAddress",
+          "AuthorityCode",
+          "AuthorityEmail",
+          "AuthorityName",
+          "AuthorityOID",
+          "AuthorityPhone",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "AuthorityCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關簡碼",
+            "xml": {
+              "name": "AuthorityCode"
+            }
+          },
+          "AuthorityName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "業管機關名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "AuthorityOID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關識別代碼(可參閱: https://oid.nat.gov.tw/OIDWeb/)",
+            "xml": {
+              "name": "AuthorityOID"
+            }
+          },
+          "AuthorityPhone": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關連絡電話",
+            "xml": {
+              "name": "AuthorityPhone"
+            }
+          },
+          "AuthorityEmail": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關電子信箱",
+            "xml": {
+              "name": "AuthorityEmail"
+            }
+          },
+          "AuthorityAddress": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關地址",
+            "xml": {
+              "name": "AuthorityAddress"
+            }
+          },
+          "AuthorityUrl": {
+            "title": "String",
+            "type": "string",
+            "description": "業管機關官網網址",
+            "xml": {
+              "name": "AuthorityUrl"
+            }
+          },
+          "LogoURL": {
+            "title": "String",
+            "type": "string",
+            "description": "業管機關Logo網址",
+            "xml": {
+              "name": "LogoURL"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "description": "業管機關",
+        "xml": {
+          "name": "Authority"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.Authority0": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.Authority"
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.NameType": {
+        "title": "NameType",
+        "type": "object",
+        "properties": {
+          "Zh_tw": {
+            "title": "String",
+            "type": "string",
+            "description": "中文繁體名稱",
+            "xml": {
+              "name": "Zh_tw"
+            }
+          },
+          "En": {
+            "title": "String",
+            "type": "string",
+            "description": "英文名稱",
+            "xml": {
+              "name": "En"
+            }
+          }
+        },
+        "xml": {
+          "name": "NameType"
+        }
+      }
+    },
+    "securitySchemes": {
+      "TDX": {
+        "type": "oauth2",
+        "description": "TDX會員可至【會員專區-資料服務-服務金鑰】功能頁面，從預設金鑰(或建立新的金鑰)取得Client Id和Client Secret資訊，分別輸入至下方client_id和client_secret欄位、按下Authorize按鈕，即可開始於Swagger介面呼叫TDX API。",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token",
+            "scopes": { }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "TDX": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "City",
+      "description": "縣市道路事件資訊"
+    },
+    {
+      "name": "Highway",
+      "description": "省道道路事件資訊"
+    },
+    {
+      "name": "Freeway",
+      "description": "高速公路道路事件資訊"
+    },
+    {
+      "name": "Common",
+      "description": "共通資訊"
+    }
+  ]
+}

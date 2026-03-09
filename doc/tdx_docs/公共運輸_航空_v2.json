@@ -1,0 +1,5009 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "公共運輸-航空",
+    "description": "本平臺提供涵蓋全國尺度之交通旅運資料服務API，歡迎各產政學單位介接使用。\n<br><span class=swagger-description-indicatation>利用本平臺開放資料進行各項應用服務開發時，請考量不同特性使用者(如：性別/身心障礙/老幼等)的需求，並歡迎回饋寶貴意見。</span>\n<br>計費方式：\n<br>計次：1,500次/1點\n<br>計量：150MB/1點\n---\n##### API使用說明與注意事項：\n1. 如您尚未註冊平臺會員帳號，或未以帳號登入，您將僅能以「訪客模式」使用平臺服務，包含：限以瀏覽器存取，限使用`【基礎服務】`，且限制每個呼叫來源端IP每日存取至多20次。。\n2. 如您已註冊平臺會員帳號，請務必確保在存取服務(包含瀏覽器、程式呼叫API)時帶入您的API金鑰，方能以「會員模式」使用完整平臺服務，包含平臺各類資料服務，如`【基礎服務】`、`【進階服務】`、`【加值服務】`、`【歷史服務】`、`【圖資服務】`、`【第三方服務】`等。\n3. 建議您立即[註冊平臺會員帳號](/register)，依您用量需求訂閱服務方案，並於[【會員中心->資料服務->API金鑰】](/user/dataservice/key)取得API金鑰(即Client Id和Client Secret資訊)。\n4. 會員訂閱服務方案之級別不同，將決定其API金鑰之存取頻率有不同限制，各個方案的存取頻率限制說明請參考[訂閱收費](/pricing)。\n5. 以瀏覽器帶入API金鑰之操作方式：請點選Swagger UI上的Authorize按鈕，依指示填入Client Id和Client Secret資訊並進行驗證，驗證完成後可開始於Swagger UI使用API。\n6. 以程式呼叫API帶入API金鑰之操作方式：請參考[範例程式](https://github.com/tdxmotc/SampleCode)。\n7. 不論您是以瀏覽器或是以程式呼叫API，所有服務存取行為均將被記錄並定期檢視，以確保系統資源使用的合理分配與避免遭受濫用。\n\nAPI OAS文本 :[請點我](https://tdx.transportdata.tw/webapi/File/Swagger/V3/eb87998f-2f9c-4592-8d75-c62e5b724962)",
+    "version": "v2"
+  },
+  "servers": [
+    {
+      "url": "https://tdx.transportdata.tw/api/basic"
+    }
+  ],
+  "paths": {
+    "/v2/Air/Airport": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得機場資料",
+        "description": "取得所有機場資料",
+        "operationId": "AirApi_Airport_2010",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport"
+                  },
+                  "xml": {
+                    "name": "ArrayOfAirport",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/Airport/{IATA}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得指定[機場]資料",
+        "description": "取得指定[機場]資料",
+        "operationId": "AirApi_Airport_2010_1",
+        "parameters": [
+          {
+            "name": "IATA",
+            "in": "path",
+            "description": "機場代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport"
+                }
+              }
+            }
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/Airline/{IATA}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得指定[航空公司]資料",
+        "description": "取得指定[航空公司]資料",
+        "operationId": "AirApi_Airline_2011",
+        "parameters": [
+          {
+            "name": "IATA",
+            "in": "path",
+            "description": "航空公司代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airline"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airline"
+                }
+              }
+            }
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/Airline": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得航空公司資料",
+        "description": "取得所有航空公司資料",
+        "operationId": "AirApi_Airline_2011_1",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airline"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airline"
+                  },
+                  "xml": {
+                    "name": "ArrayOfAirline",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/FIDS/Airport/Departure": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得機場的即時出境航班",
+        "description": "取得機場的即時出境航班",
+        "operationId": "AirApi_Departure_2012",
+        "parameters": [
+          {
+            "name": "IsCargo",
+            "in": "query",
+            "description": "是否為貨機",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSDeparture"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSDeparture"
+                  },
+                  "xml": {
+                    "name": "ArrayOfFIDSDeparture",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/FIDS/Airport/Departure/{IATA}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得指定[機場的即時出境航班]",
+        "description": "取得指定的[機場即時出境航班]",
+        "operationId": "AirApi_Departure_2012_1",
+        "parameters": [
+          {
+            "name": "IATA",
+            "in": "path",
+            "description": "機場代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "IsCargo",
+            "in": "query",
+            "description": "是否為貨機",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSDeparture"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSDeparture"
+                  },
+                  "xml": {
+                    "name": "ArrayOfFIDSDeparture",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/FIDS/Airport/Arrival": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得機場的即時入境航班",
+        "description": "取得機場的即時入境航班",
+        "operationId": "AirApi_Arrival_2013",
+        "parameters": [
+          {
+            "name": "IsCargo",
+            "in": "query",
+            "description": "是否為貨機",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSArrival"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSArrival"
+                  },
+                  "xml": {
+                    "name": "ArrayOfFIDSArrival",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/FIDS/Airport/Arrival/{IATA}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得指定[機場的即時入境航班]",
+        "description": "取得[指定機場]的即時入境航班",
+        "operationId": "AirApi_Arrival_2013_1",
+        "parameters": [
+          {
+            "name": "IATA",
+            "in": "path",
+            "description": "機場代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "IsCargo",
+            "in": "query",
+            "description": "是否為貨機",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSArrival"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSArrival"
+                  },
+                  "xml": {
+                    "name": "ArrayOfFIDSArrival",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/FIDS/Flight": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得即時航班資料",
+        "description": "取得即時航班資料",
+        "operationId": "AirApi_Flight_2014",
+        "parameters": [
+          {
+            "name": "IsCargo",
+            "in": "query",
+            "description": "是否為貨機",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDS"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDS"
+                  },
+                  "xml": {
+                    "name": "ArrayOfFIDS",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/FIDS/Flight/{FlightNo}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得指定[即時航班]資料",
+        "operationId": "AirApi_Flight_2014_1",
+        "parameters": [
+          {
+            "name": "FlightNo",
+            "in": "path",
+            "description": "航機班號",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "IsCargo",
+            "in": "query",
+            "description": "是否為貨機",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDS"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDS"
+                  },
+                  "xml": {
+                    "name": "ArrayOfFIDS",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/FIDS/Airport": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得機場的即時航班資料",
+        "description": "取得即時航班資料",
+        "operationId": "AirApi_FIDS_2015",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport_FIDS"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport_FIDS"
+                  },
+                  "xml": {
+                    "name": "ArrayOfAirport_FIDS",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/FIDS/Airport/{IATA}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得指定[機場的即時航班]資料",
+        "description": "取得指定[機場的即時航班]資料",
+        "operationId": "AirApi_FIDS_2015_1",
+        "parameters": [
+          {
+            "name": "IATA",
+            "in": "path",
+            "description": "機場代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "pattern": "^((?!Arrival|Departure).)*$",
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport_FIDS"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport_FIDS"
+                  },
+                  "xml": {
+                    "name": "ArrayOfAirport_FIDS",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/METAR/Airport": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得[國內機場]氣象資訊觀測資料",
+        "description": "### 目前提供之機場氣象觀測站IATA代碼清單\n- TSA:松山機場 KHH:高雄機場\n- TPE:桃園機場 MFK:北竿機場\n- LZN:南竿機場 KNH:金門機場\n- MZG:澎湖機場 RMQ:臺中機場\n- CYI:嘉義機場 TNN:臺南機場\n- HUN:花蓮機場 TTT:臺東機場\n- KYD:蘭嶼機場 GNI:綠島機場",
+        "operationId": "AirApi_METAR_2016",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.METAR"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.METAR"
+                  },
+                  "xml": {
+                    "name": "ArrayOfMETAR",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/METAR/Airport/{IATA}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得指定[國內機場]氣象資訊觀測資料",
+        "description": "取得指定[國內機場]氣象資訊觀測資料",
+        "operationId": "AirApi_METAR_2016_1",
+        "parameters": [
+          {
+            "name": "IATA",
+            "in": "path",
+            "description": "機場代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.METAR"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.METAR"
+                  },
+                  "xml": {
+                    "name": "ArrayOfMETAR",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/GeneralSchedule/Domestic": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得國內航空定期時刻表",
+        "operationId": "AirApi_Domestic_2017",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.GeneralFlightSchedule"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.GeneralFlightSchedule"
+                  },
+                  "xml": {
+                    "name": "ArrayOfGeneralFlightSchedule",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/GeneralSchedule/International": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得國際航空定期時刻表",
+        "operationId": "AirApi_International_2018",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.GeneralFlightSchedule"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.GeneralFlightSchedule"
+                  },
+                  "xml": {
+                    "name": "ArrayOfGeneralFlightSchedule",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/DailyFlightSchedule/Domestic/{IATA}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得國內指定 [航空公司] 每日飛行班表資料",
+        "description": "立榮航空(B7)提供近15天每日飛行班表，德安航空(DA)提供近60天每日飛行班表，華信航空(AE)月初可查詢當月每日飛行班表，月底可查詢次月每日飛行班表",
+        "operationId": "AirApi_Domestic_DailySchedule_2020",
+        "parameters": [
+          {
+            "name": "IATA",
+            "in": "path",
+            "description": "航空公司代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "enum": [
+                "AE",
+                "B7",
+                "DA"
+              ],
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.DailyFlightSchedule"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.DailyFlightSchedule"
+                  },
+                  "xml": {
+                    "name": "ArrayOfDailyFlightSchedule",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/RouteFare/Domestic/{IATA}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得國內指定 [航空公司] 航線票價資料",
+        "description": "提供各航空公司官網公告之法定票價資料",
+        "operationId": "AirApi_Domestic_RouteFare_2021",
+        "parameters": [
+          {
+            "name": "IATA",
+            "in": "path",
+            "description": "航空公司代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "enum": [
+                "AE",
+                "B7",
+                "DA"
+              ],
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.RouteFare"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.RouteFare"
+                  },
+                  "xml": {
+                    "name": "ArrayOfRouteFare",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/SeatAvailability/Domestic/{IATA}/AirRoute/{AirRoute}/FlightDate/{FlightDate}/FlightNumber/{FlightNumber}": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得國內指定 [航空公司] 指定 [航線代碼][航班日期][班機號碼] 即時剩餘位資料",
+        "description": "1. 可透過每日飛行班表之航線/日期/航班編號參數，於航班即時剩餘位資料中查詢\n1. 航班即時剩餘位資料為確保資料即時性，採使用者呼叫再向航空公司呼叫的的機制，因此響應時間較慢\n1. 各航空公司將視呼叫情形調整rate limit，立榮航空即時航班剩餘位rate limit: 每個IP，每半小時100次，若超過100次則擋半小時，一天最多5,000次",
+        "operationId": "AirApi_Domestic_SeatAvailability_2022",
+        "parameters": [
+          {
+            "name": "IATA",
+            "in": "path",
+            "description": "航空公司代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "enum": [
+                "AE",
+                "B7",
+                "DA"
+              ],
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "AirRoute",
+            "in": "path",
+            "description": "航線代碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "FlightDate",
+            "in": "path",
+            "description": "航班日期，格式為 yyyy-MM-dd",
+            "required": true,
+            "schema": {
+              "title": "DateOnly",
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "FlightNumber",
+            "in": "path",
+            "description": "班機號碼",
+            "required": true,
+            "schema": {
+              "title": "String",
+              "type": "string",
+              "xml": { }
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.SeatAvailability"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.SeatAvailability"
+                  },
+                  "xml": {
+                    "name": "ArrayOfSeatAvailability",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/Air/News": {
+      "get": {
+        "tags": [
+          "Air"
+        ],
+        "summary": "取得最新消息資料",
+        "operationId": "AirApi_News_2023",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Model.Air.POCO.V2.News"
+                  },
+                  "xml": {
+                    "name": "ArrayOfNews",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "title": "Array",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PTX.Model.Air.POCO.V2.News"
+                  },
+                  "xml": {
+                    "name": "ArrayOfNews",
+                    "namespace": "https://ptx.transportdata.tw/standard/schema/",
+                    "wrapped": true
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "服務端會在 Response 加上 Last-Modified header，表示最近的更新時間。客戶端能利用此時間，於 Request 加上 If-Modified-Since header，若沒有更新，服務端會回應 304 StatusCode 且空值 Content"
+          },
+          "299": {
+            "description": "加入參數'?health=true'即可查詢此API服務的健康狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PTX.Service.DTO.Air.Specification.V2.Airport": {
+        "title": "Airport",
+        "required": [
+          "AirportCityName",
+          "AirportID",
+          "AirportName",
+          "AirportPosition",
+          "UpdateTime",
+          "VersionID"
+        ],
+        "type": "object",
+        "properties": {
+          "AirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirportID"
+            }
+          },
+          "AirportName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "機場中文名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "AirportIATA": {
+            "title": "String",
+            "type": "string",
+            "description": "機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirportIATA"
+            }
+          },
+          "AirportICAO": {
+            "title": "String",
+            "type": "string",
+            "description": "機場ICAO國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirportICAO"
+            }
+          },
+          "AirportPosition": {
+            "title": "PointType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.PointType"
+              }
+            ],
+            "description": "機場位置",
+            "nullable": true,
+            "xml": {
+              "name": "PointType"
+            }
+          },
+          "AirportCityName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "機場所屬城市",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "AirportAddress": {
+            "title": "String",
+            "type": "string",
+            "description": "機場地址",
+            "nullable": true,
+            "xml": {
+              "name": "AirportAddress"
+            }
+          },
+          "AirportPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "機場聯繫電話",
+            "nullable": true,
+            "xml": {
+              "name": "AirportPhone"
+            }
+          },
+          "AirportNationality": {
+            "title": "String",
+            "type": "string",
+            "description": "機場國籍",
+            "nullable": true,
+            "xml": {
+              "name": "AirportNationality"
+            }
+          },
+          "AuthorityID": {
+            "title": "String",
+            "type": "string",
+            "description": "業管機關代碼(流水號)",
+            "nullable": true,
+            "xml": {
+              "name": "AuthorityID"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "VersionID": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "資料版本編號",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "機場資料",
+        "xml": {
+          "name": "Airport"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Airport0": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport"
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.NameType": {
+        "title": "NameType",
+        "type": "object",
+        "properties": {
+          "Zh_tw": {
+            "title": "String",
+            "type": "string",
+            "description": "中文繁體名稱",
+            "nullable": true,
+            "xml": {
+              "name": "Zh_tw"
+            }
+          },
+          "En": {
+            "title": "String",
+            "type": "string",
+            "description": "英文名稱",
+            "nullable": true,
+            "xml": {
+              "name": "En"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "名稱資料型別",
+        "xml": {
+          "name": "NameType"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V2.Base.PointType": {
+        "title": "PointType",
+        "type": "object",
+        "properties": {
+          "PositionLon": {
+            "type": "number",
+            "description": "位置經度(WGS84)",
+            "format": "double",
+            "nullable": true
+          },
+          "PositionLat": {
+            "type": "number",
+            "description": "位置緯度(WGS84)",
+            "format": "double",
+            "nullable": true
+          },
+          "GeoHash": {
+            "title": "String",
+            "type": "string",
+            "description": "地理空間編碼",
+            "nullable": true,
+            "xml": {
+              "name": "GeoHash"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "座標資料型別",
+        "xml": {
+          "name": "PointType"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth": {
+        "title": "DisplayHealth",
+        "required": [
+          "Inbound",
+          "Outbound",
+          "ServiceID",
+          "ServiceName"
+        ],
+        "type": "object",
+        "properties": {
+          "ServiceID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "API服務代碼",
+            "xml": {
+              "name": "ServiceID"
+            }
+          },
+          "ServiceName": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "API服務中文名稱",
+            "xml": {
+              "name": "ServiceName"
+            }
+          },
+          "Inbound": {
+            "title": "Inbound",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.Inbound"
+              }
+            ],
+            "description": "本平台資料來源轉入狀態",
+            "nullable": true,
+            "xml": {
+              "name": "Inbound"
+            }
+          },
+          "Outbound": {
+            "title": "Outbound",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.Outbound"
+              }
+            ],
+            "description": "本平台API狀態",
+            "nullable": true,
+            "xml": {
+              "name": "Outbound"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "API服務健康狀態",
+        "xml": {
+          "name": "DisplayHealth"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.Inbound": {
+        "title": "Inbound",
+        "required": [
+          "CheckTime",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "CheckTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "檢核時間",
+            "format": "date-time"
+          },
+          "Status": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "檢核結果狀態 : [0:'失敗',1:'成功',2:'資料清洗中']",
+            "format": "int32"
+          },
+          "Reason": {
+            "title": "String",
+            "type": "string",
+            "description": "檢核失敗原因",
+            "nullable": true,
+            "xml": {
+              "name": "Reason"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "本平台資料來源轉入狀態",
+        "xml": {
+          "name": "Inbound"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.Outbound": {
+        "title": "Outbound",
+        "required": [
+          "CheckTime",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "CheckTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "檢核時間",
+            "format": "date-time"
+          },
+          "Status": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "檢核結果狀態 : [0:'失敗',1:'成功',2:'資料清洗中']",
+            "format": "int32"
+          },
+          "Reason": {
+            "title": "String",
+            "type": "string",
+            "description": "檢核失敗原因",
+            "nullable": true,
+            "xml": {
+              "name": "Reason"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "本平台API狀態",
+        "xml": {
+          "name": "Outbound"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Airline": {
+        "title": "Airline",
+        "required": [
+          "AirlineID",
+          "AirlineName",
+          "AirlineNameAlias",
+          "UpdateTime",
+          "VersionID"
+        ],
+        "type": "object",
+        "properties": {
+          "AirlineID": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "AirlineName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "航空公司名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "AirlineNameAlias": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "航空公司簡稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "AirlineIATA": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineIATA"
+            }
+          },
+          "AirlineICAO": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司ICAO國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineICAO"
+            }
+          },
+          "AirlineEmail": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司電子信箱",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineEmail"
+            }
+          },
+          "AirlineAddress": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司地址",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineAddress"
+            }
+          },
+          "AirlinePhone": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司聯繫電話",
+            "nullable": true,
+            "xml": {
+              "name": "AirlinePhone"
+            }
+          },
+          "AirlineNationality": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司國籍",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineNationality"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "VersionID": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "資料版本編號",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "航空公司資料",
+        "xml": {
+          "name": "Airline"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.FIDSDeparture": {
+        "title": "FIDSDeparture",
+        "required": [
+          "AirlineID",
+          "ArrivalAirportID",
+          "DepartureAirportID",
+          "FlightDate",
+          "FlightNumber",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "FlightDate": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "航班日期(ISO8601格式:yyyy-MM-dd)",
+            "format": "date-time"
+          },
+          "FlightNumber": {
+            "title": "String",
+            "type": "string",
+            "description": "航機班號(不包含航空公司的AirlineID，僅有班號數字)",
+            "nullable": true,
+            "xml": {
+              "name": "FlightNumber"
+            }
+          },
+          "AirRouteType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "航線種類(目前民航局與桃機的FIDS系統都尚未提供此欄位資料) : [-2:'特殊',1:'國際',2:'國內',3:'兩岸',4:'國際包機',5:'國內包機',6:'兩岸包機']",
+            "format": "int32",
+            "nullable": true
+          },
+          "AirlineID": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "DepartureAirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "起點機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureAirportID"
+            }
+          },
+          "ArrivalAirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "目的地機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalAirportID"
+            }
+          },
+          "ScheduleDepartureTime": {
+            "type": "string",
+            "description": "表訂出發時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ActualDepartureTime": {
+            "type": "string",
+            "description": "實際出發時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "EstimatedDepartureTime": {
+            "type": "string",
+            "description": "預估出發時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "DepartureRemark": {
+            "title": "String",
+            "type": "string",
+            "description": "航班屬性狀態, ,為該機場觀點的狀態",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureRemark"
+            }
+          },
+          "DepartureRemarkEn": {
+            "title": "String",
+            "type": "string",
+            "description": "航班屬性狀態(英文)",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureRemarkEn"
+            }
+          },
+          "Terminal": {
+            "title": "String",
+            "type": "string",
+            "description": "航廈",
+            "nullable": true,
+            "xml": {
+              "name": "Terminal"
+            }
+          },
+          "Gate": {
+            "title": "String",
+            "type": "string",
+            "description": "登機門(僅客機提供)",
+            "nullable": true,
+            "xml": {
+              "name": "Gate"
+            }
+          },
+          "Apron": {
+            "title": "String",
+            "type": "string",
+            "description": "停機坪(僅貨機提供)",
+            "nullable": true,
+            "xml": {
+              "name": "Apron"
+            }
+          },
+          "CodeShare": {
+            "title": "String",
+            "type": "string",
+            "description": "航班共用班號",
+            "nullable": true,
+            "xml": {
+              "name": "CodeShare"
+            }
+          },
+          "IsCargo": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "是否為貨機"
+          },
+          "AcType": {
+            "title": "String",
+            "type": "string",
+            "description": "航空器型號",
+            "nullable": true,
+            "xml": {
+              "name": "AcType"
+            }
+          },
+          "BaggageClaim": {
+            "title": "String",
+            "type": "string",
+            "description": "行李轉盤(到站FIDS可能有「行李轉盤」資訊, 離站FIDS不會有, 貨機則無此資訊)",
+            "nullable": true,
+            "xml": {
+              "name": "BaggageClaim"
+            }
+          },
+          "CheckCounter": {
+            "title": "String",
+            "type": "string",
+            "description": "報到櫃檯(離站FIDS可能有「報到櫃台」資訊, 到站FIDS不會有, 貨機則無此資訊)",
+            "nullable": true,
+            "xml": {
+              "name": "CheckCounter"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "出發航班顯示資料",
+        "xml": {
+          "name": "FIDSDeparture"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.FIDSDeparture1": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSDeparture"
+      },
+      "PTX.Service.DTO.Air.Specification.V2.FIDSArrival": {
+        "title": "FIDSArrival",
+        "required": [
+          "AirlineID",
+          "ArrivalAirportID",
+          "DepartureAirportID",
+          "FlightDate",
+          "FlightNumber",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "FlightDate": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "航班日期(ISO8601格式:yyyy-MM-dd)",
+            "format": "date-time"
+          },
+          "FlightNumber": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "航機班號(不包含航空公司的AirlineID，僅有班號數字)",
+            "xml": {
+              "name": "FlightNumber"
+            }
+          },
+          "AirRouteType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "航線種類(目前民航局與桃機的FIDS系統都尚未提供此欄位資料) : [-2:'特殊',1:'國際',2:'國內',3:'兩岸',4:'國際包機',5:'國內包機',6:'兩岸包機']",
+            "format": "int32",
+            "nullable": true
+          },
+          "AirlineID": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "DepartureAirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "起點機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureAirportID"
+            }
+          },
+          "ArrivalAirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "目的地機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalAirportID"
+            }
+          },
+          "ScheduleArrivalTime": {
+            "type": "string",
+            "description": "表訂抵達時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ActualArrivalTime": {
+            "type": "string",
+            "description": "實際抵達時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "EstimatedArrivalTime": {
+            "type": "string",
+            "description": "預估抵達時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ArrivalRemark": {
+            "title": "String",
+            "type": "string",
+            "description": "航班屬性狀態,為該機場觀點的狀態",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalRemark"
+            }
+          },
+          "ArrivalRemarkEn": {
+            "title": "String",
+            "type": "string",
+            "description": "航班屬性狀態(英文)",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalRemarkEn"
+            }
+          },
+          "Terminal": {
+            "title": "String",
+            "type": "string",
+            "description": "航廈",
+            "nullable": true,
+            "xml": {
+              "name": "Terminal"
+            }
+          },
+          "Gate": {
+            "title": "String",
+            "type": "string",
+            "description": "登機門(僅客機提供)",
+            "nullable": true,
+            "xml": {
+              "name": "Gate"
+            }
+          },
+          "Apron": {
+            "title": "String",
+            "type": "string",
+            "description": "停機坪(僅貨機提供)",
+            "nullable": true,
+            "xml": {
+              "name": "Apron"
+            }
+          },
+          "CodeShare": {
+            "title": "String",
+            "type": "string",
+            "description": "航班共用班號",
+            "nullable": true,
+            "xml": {
+              "name": "CodeShare"
+            }
+          },
+          "IsCargo": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "是否為貨機"
+          },
+          "AcType": {
+            "title": "String",
+            "type": "string",
+            "description": "航空器型號",
+            "nullable": true,
+            "xml": {
+              "name": "AcType"
+            }
+          },
+          "BaggageClaim": {
+            "title": "String",
+            "type": "string",
+            "description": "行李轉盤(到站FIDS可能有「行李轉盤」資訊, 離站FIDS不會有, 貨機則無此資訊)",
+            "nullable": true,
+            "xml": {
+              "name": "BaggageClaim"
+            }
+          },
+          "CheckCounter": {
+            "title": "String",
+            "type": "string",
+            "description": "報到櫃檯(離站FIDS可能有「報到櫃台」資訊, 到站FIDS不會有, 貨機則無此資訊)",
+            "nullable": true,
+            "xml": {
+              "name": "CheckCounter"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "抵達航班顯示資料",
+        "xml": {
+          "name": "FIDSArrival"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.FIDSArrival2": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSArrival"
+      },
+      "PTX.Service.DTO.Air.Specification.V2.FIDS": {
+        "title": "FIDS",
+        "required": [
+          "AirlineID",
+          "ArrivalAirportID",
+          "DepartureAirportID",
+          "FlightDate",
+          "FlightNumber",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "FlightDate": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "航班日期(ISO8601格式:yyyy-MM-dd)",
+            "format": "date-time"
+          },
+          "FlightNumber": {
+            "title": "String",
+            "type": "string",
+            "description": "航機班號(不包含航空公司的AirlineID，僅有班號數字)",
+            "nullable": true,
+            "xml": {
+              "name": "FlightNumber"
+            }
+          },
+          "AirRouteType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "航線種類 : [-2:'特殊',1:'國際',2:'國內',3:'兩岸',4:'國際包機',5:'國內包機',6:'兩岸包機']",
+            "format": "int32",
+            "nullable": true
+          },
+          "AirlineID": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "DepartureAirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "起點機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureAirportID"
+            }
+          },
+          "ArrivalAirportID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "目的地機場IATA國際代碼",
+            "xml": {
+              "name": "ArrivalAirportID"
+            }
+          },
+          "ScheduleDepartureTime": {
+            "type": "string",
+            "description": "表訂出發時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ActualDepartureTime": {
+            "type": "string",
+            "description": "實際出發時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "EstimatedDepartureTime": {
+            "type": "string",
+            "description": "預估出發時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ScheduleArrivalTime": {
+            "type": "string",
+            "description": "表訂抵達時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ActualArrivalTime": {
+            "type": "string",
+            "description": "實際抵達時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "EstimatedArrivalTime": {
+            "type": "string",
+            "description": "預估抵達時間(ISO8601格式:yyyy-MM-ddTHH:mm)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "DepartureRemark": {
+            "title": "String",
+            "type": "string",
+            "description": "航班屬性狀態,為第三方觀點的狀態(資料來源:民航局)",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureRemark"
+            }
+          },
+          "DepartureRemarkEn": {
+            "title": "String",
+            "type": "string",
+            "description": "航班屬性狀態(英文)",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureRemarkEn"
+            }
+          },
+          "ArrivalRemark": {
+            "title": "String",
+            "type": "string",
+            "description": "航班屬性狀態,為該機場觀點的狀態",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalRemark"
+            }
+          },
+          "ArrivalRemarkEn": {
+            "title": "String",
+            "type": "string",
+            "description": "航班屬性狀態(英文)",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalRemarkEn"
+            }
+          },
+          "FlightStatus": {
+            "title": "String",
+            "type": "string",
+            "description": "航班運行狀態,以航班的角度的狀態",
+            "nullable": true,
+            "xml": {
+              "name": "FlightStatus"
+            }
+          },
+          "FlightStatusEn": {
+            "title": "String",
+            "type": "string",
+            "description": "航班運行狀態(英文)",
+            "nullable": true,
+            "xml": {
+              "name": "FlightStatusEn"
+            }
+          },
+          "FlightStatusPC": {
+            "title": "String",
+            "type": "string",
+            "description": "航班運行狀態百分比(國內線)",
+            "nullable": true,
+            "xml": {
+              "name": "FlightStatusPC"
+            }
+          },
+          "FlightRemark": {
+            "title": "String",
+            "type": "string",
+            "description": "航班屬性",
+            "nullable": true,
+            "xml": {
+              "name": "FlightRemark"
+            }
+          },
+          "ArrivalTerminal": {
+            "title": "String",
+            "type": "string",
+            "description": "抵達航廈",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalTerminal"
+            }
+          },
+          "DepartureTerminal": {
+            "title": "String",
+            "type": "string",
+            "description": "出發航廈",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureTerminal"
+            }
+          },
+          "ArrivalGate": {
+            "title": "String",
+            "type": "string",
+            "description": "抵達登機門(僅客機提供)",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalGate"
+            }
+          },
+          "DepartureGate": {
+            "title": "String",
+            "type": "string",
+            "description": "出發登機門(僅客機提供)",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureGate"
+            }
+          },
+          "ArrivalApron": {
+            "title": "String",
+            "type": "string",
+            "description": "抵達停機坪(僅貨機提供)",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalApron"
+            }
+          },
+          "DepartureApron": {
+            "title": "String",
+            "type": "string",
+            "description": "出發停機坪(僅貨機提供)",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureApron"
+            }
+          },
+          "CodeShare": {
+            "title": "String",
+            "type": "string",
+            "description": "航班共用班號",
+            "nullable": true,
+            "xml": {
+              "name": "CodeShare"
+            }
+          },
+          "IsCargo": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "是否為貨機"
+          },
+          "AcType": {
+            "title": "String",
+            "type": "string",
+            "description": "航空器型號",
+            "nullable": true,
+            "xml": {
+              "name": "AcType"
+            }
+          },
+          "BaggageClaim": {
+            "title": "String",
+            "type": "string",
+            "description": "行李轉盤",
+            "nullable": true,
+            "xml": {
+              "name": "BaggageClaim"
+            }
+          },
+          "CheckCounter": {
+            "title": "String",
+            "type": "string",
+            "description": "報到櫃檯",
+            "nullable": true,
+            "xml": {
+              "name": "CheckCounter"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "航班顯示資料",
+        "xml": {
+          "name": "FIDS"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.FIDS3": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDS"
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Airport_FIDS": {
+        "title": "Airport_FIDS",
+        "required": [
+          "AirportID",
+          "FIDSArrival",
+          "FIDSDeparture",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "AirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirportID"
+            }
+          },
+          "FIDSDeparture": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSDeparture"
+            },
+            "description": "出發航班顯示資料",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "FIDSArrival": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.FIDSArrival"
+            },
+            "description": "抵達航班顯示資料",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "航班顯示資料(以機場角度)",
+        "xml": {
+          "name": "Airport_FIDS"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Airport_FIDS4": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Airport_FIDS"
+      },
+      "PTX.Service.DTO.Air.Specification.V2.METAR": {
+        "title": "METAR",
+        "required": [
+          "AirportID",
+          "AirportName",
+          "Ceiling",
+          "CityName",
+          "CountryName",
+          "MetarText",
+          "MetarTime",
+          "ObservationTime",
+          "StationID",
+          "StationPosition",
+          "Temperature",
+          "UpdateTime",
+          "Visibility",
+          "WeatherDescription",
+          "WindDirection",
+          "WindSpeed"
+        ],
+        "type": "object",
+        "properties": {
+          "AirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "機場代碼(IATA)",
+            "nullable": true,
+            "xml": {
+              "name": "AirportID"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "type": "string",
+            "description": "機場氣象觀測站代碼(ICAO)",
+            "nullable": true,
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "CountryName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "國家名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "CityName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "機場所屬城市",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "AirportName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "機場名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "StationPosition": {
+            "title": "PointType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.PointType"
+              }
+            ],
+            "description": "機場氣象觀測站座標",
+            "nullable": true,
+            "xml": {
+              "name": "PointType"
+            }
+          },
+          "ObservationTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "觀測時間",
+            "format": "date-time"
+          },
+          "MetarText": {
+            "title": "String",
+            "type": "string",
+            "description": "機場天氣報告(METAR/SPECI)",
+            "nullable": true,
+            "xml": {
+              "name": "MetarText"
+            }
+          },
+          "MetarTime": {
+            "title": "String",
+            "type": "string",
+            "description": "機場天氣報告時間(地方時)",
+            "nullable": true,
+            "xml": {
+              "name": "MetarTime"
+            }
+          },
+          "WindDirection": {
+            "title": "String",
+            "type": "string",
+            "description": "風向(含單位)",
+            "nullable": true,
+            "xml": {
+              "name": "WindDirection"
+            }
+          },
+          "WindSpeed": {
+            "title": "String",
+            "type": "string",
+            "description": "風速(含單位)",
+            "nullable": true,
+            "xml": {
+              "name": "WindSpeed"
+            }
+          },
+          "Visibility": {
+            "title": "String",
+            "type": "string",
+            "description": "盛行能見度(含單位，9999以10公里以上表示)",
+            "nullable": true,
+            "xml": {
+              "name": "Visibility"
+            }
+          },
+          "Ceiling": {
+            "title": "String",
+            "type": "string",
+            "description": "雲冪(含單位)",
+            "nullable": true,
+            "xml": {
+              "name": "Ceiling"
+            }
+          },
+          "Temperature": {
+            "title": "String",
+            "type": "string",
+            "description": "溫度(含單位)",
+            "nullable": true,
+            "xml": {
+              "name": "Temperature"
+            }
+          },
+          "WeatherDescription": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "天氣描述",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "本平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "METAR"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.METAR5": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.METAR"
+      },
+      "PTX.Service.DTO.Air.Specification.V2.GeneralFlightSchedule": {
+        "title": "GeneralFlightSchedule",
+        "required": [
+          "AirlineID",
+          "ArrivalAirportID",
+          "ArrivalTime",
+          "DepartureAirportID",
+          "DepartureTime",
+          "FlightNumber",
+          "Friday",
+          "Monday",
+          "Saturday",
+          "ScheduleEndDate",
+          "ScheduleStartDate",
+          "Sunday",
+          "Thursday",
+          "Tuesday",
+          "UpdateTime",
+          "VersionID",
+          "Wednesday"
+        ],
+        "type": "object",
+        "properties": {
+          "AirlineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "航空公司IATA國際代碼",
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "ScheduleStartDate": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "班表開始日期(ISO8601格式:yyyy-MM-dd)",
+            "format": "date-time"
+          },
+          "ScheduleEndDate": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "班表結束日期(ISO8601格式:yyyy-MM-dd)",
+            "format": "date-time"
+          },
+          "FlightNumber": {
+            "title": "String",
+            "type": "string",
+            "description": "班機號碼(包含航空公司的AirlineID，結構為AirlineID加上3~4碼航機班號數字；若班號僅有兩碼，其結構會加上0補足三碼，\"AirlineID + 0 + 兩碼班號\")",
+            "nullable": true,
+            "xml": {
+              "name": "FlightNumber"
+            }
+          },
+          "DepartureAirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "起點機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureAirportID"
+            }
+          },
+          "DepartureTime": {
+            "title": "String",
+            "type": "string",
+            "description": "起點機場出發時間 (格式: HH:mm 當地時間，跨日以+1 表示)",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureTime"
+            }
+          },
+          "CodeShare": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.CodeShare"
+            },
+            "description": "共用班號",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "ArrivalAirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "目的地機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalAirportID"
+            }
+          },
+          "ArrivalTime": {
+            "title": "String",
+            "type": "string",
+            "description": "終點機場抵達時間 (格式: HH:mm 當地時間，跨日以+1 表示)",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalTime"
+            }
+          },
+          "Monday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "週一飛行與否"
+          },
+          "Tuesday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "週二飛行與否"
+          },
+          "Wednesday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "週三飛行與否"
+          },
+          "Thursday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "週四飛行與否"
+          },
+          "Friday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "週五飛行與否"
+          },
+          "Saturday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "週六飛行與否"
+          },
+          "Sunday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "週日飛行與否"
+          },
+          "Terminal": {
+            "title": "String",
+            "type": "string",
+            "description": "航廈",
+            "nullable": true,
+            "xml": {
+              "name": "Terminal"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "VersionID": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "資料版本編號",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "航空定期時刻表資料",
+        "xml": {
+          "name": "GeneralFlightSchedule"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.GeneralFlightSchedule6": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.GeneralFlightSchedule"
+      },
+      "PTX.Service.DTO.Air.Specification.V2.CodeShare": {
+        "title": "CodeShare",
+        "required": [
+          "AirlineID",
+          "FlightNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "AirlineID": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "FlightNumber": {
+            "title": "String",
+            "type": "string",
+            "description": "航機班號(不包含航空公司的AirlineID，僅有班號數字)",
+            "nullable": true,
+            "xml": {
+              "name": "FlightNumber"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "共用班號",
+        "xml": {
+          "name": "CodeShare"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.DailyFlightSchedule": {
+        "title": "DailyFlightSchedule",
+        "required": [
+          "AircraftType",
+          "AirlineID",
+          "AirRouteID",
+          "ArrivalAirport",
+          "ArrivalTime",
+          "DepartureAirport",
+          "DepartureTime",
+          "FlightDate",
+          "FlightNumber",
+          "FlightRemark",
+          "SrcUpdateTime",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "AirlineID": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "AirRouteID": {
+            "title": "String",
+            "type": "string",
+            "description": "航線代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirRouteID"
+            }
+          },
+          "FlightDate": {
+            "title": "String",
+            "type": "string",
+            "description": "航班日期，格式為 yyyy-MM-dd",
+            "nullable": true,
+            "xml": {
+              "name": "FlightDate"
+            }
+          },
+          "FlightNumber": {
+            "title": "String",
+            "type": "string",
+            "description": "班機號碼",
+            "nullable": true,
+            "xml": {
+              "name": "FlightNumber"
+            }
+          },
+          "DepartureAirport": {
+            "title": "Airport",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.Airport"
+              }
+            ],
+            "description": "起點機場",
+            "nullable": true,
+            "xml": {
+              "name": "Airport"
+            }
+          },
+          "DepartureTime": {
+            "title": "String",
+            "type": "string",
+            "description": "起飛時間，以當地時間 HH:mm 表示，跨日以「+1」表示",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureTime"
+            }
+          },
+          "TransitAirports": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.TransitAirport"
+            },
+            "description": "中繼機場資料",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "AircraftType": {
+            "title": "String",
+            "type": "string",
+            "description": "主要機型代號(IATA)",
+            "nullable": true,
+            "xml": {
+              "name": "AircraftType"
+            }
+          },
+          "SecondaryAircraftTypes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.SecondaryAircraftType"
+            },
+            "description": "次要機型",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "CodeShares": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.CodeShare"
+            },
+            "description": "航班共用班號",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "ArrivalAirport": {
+            "title": "Airport",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.Airport"
+              }
+            ],
+            "description": "目的地機場",
+            "nullable": true,
+            "xml": {
+              "name": "Airport"
+            }
+          },
+          "ArrivalTime": {
+            "title": "String",
+            "type": "string",
+            "description": "抵達目的地機場時間，以當地時間 HH:mm 表示，跨日以「+1」表示",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalTime"
+            }
+          },
+          "FlightRemark": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "班次註記，其中：X:班次取消, S:共用班號, 空白:一般班次",
+            "xml": {
+              "name": "FlightRemark"
+            }
+          },
+          "AirFlightType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "航班種類 : [-2:'特殊',1:'國際',2:'國內',3:'兩岸',4:'國際包機',5:'國內包機',6:'兩岸包機']",
+            "format": "int32",
+            "nullable": true
+          },
+          "IsCargo": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否為全貨機 : [0:'否',1:'是']",
+            "format": "int32",
+            "nullable": true
+          },
+          "SeatCapacity": {
+            "type": "integer",
+            "description": "可售最大座位數",
+            "format": "int32",
+            "nullable": true
+          },
+          "LoadCapacity": {
+            "type": "number",
+            "description": "負載容量噸數(噸)",
+            "format": "float",
+            "nullable": true
+          },
+          "FlightDistance": {
+            "type": "number",
+            "description": "航線航段飛航哩程(哩)",
+            "format": "float",
+            "nullable": true
+          },
+          "SrcUpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "來源端平台資料更新時間 (ISO8601 格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "本平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "航空每日飛行班表資料",
+        "xml": {
+          "name": "DailyFlightSchedule"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.DailyFlightSchedule7": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.DailyFlightSchedule"
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Embedded.TransitAirport": {
+        "title": "TransitAirport",
+        "required": [
+          "ArrivalTime",
+          "DepartureTime",
+          "TransitAirportID",
+          "TransitSequence"
+        ],
+        "type": "object",
+        "properties": {
+          "TransitSequence": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "中繼資料次序(由 1 開始)",
+            "format": "int32"
+          },
+          "TransitAirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "中繼機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "TransitAirportID"
+            }
+          },
+          "TransitCause": {
+            "title": "String",
+            "type": "string",
+            "description": "中繼原因",
+            "nullable": true,
+            "xml": {
+              "name": "TransitCause"
+            }
+          },
+          "ArrivalTime": {
+            "title": "String",
+            "type": "string",
+            "description": "中繼機場到場時間，以當地時間 HH:mm 表示，跨日以「+1」表示",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalTime"
+            }
+          },
+          "DepartureTime": {
+            "title": "String",
+            "type": "string",
+            "description": "中繼機場離場時間，以當地時間 HH:mm 表示，跨日以「+1」表示",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureTime"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "中繼機場資訊",
+        "xml": {
+          "name": "TransitAirport"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Embedded.SecondaryAircraftType": {
+        "title": "SecondaryAircraftType",
+        "required": [
+          "AircraftType",
+          "Priority"
+        ],
+        "type": "object",
+        "properties": {
+          "Priority": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "中次要機型優先順序(由 1 開始)",
+            "format": "int32"
+          },
+          "AircraftType": {
+            "title": "String",
+            "type": "string",
+            "description": "次要機型代號(IATA)",
+            "nullable": true,
+            "xml": {
+              "name": "AircraftType"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "次要機型資訊",
+        "xml": {
+          "name": "SecondaryAircraftType"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Embedded.CodeShare": {
+        "title": "CodeShare",
+        "required": [
+          "FlightNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "FlightNumber": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "班機號碼",
+            "xml": {
+              "name": "FlightNumber"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "航班共用班號資訊",
+        "xml": {
+          "name": "CodeShare"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Embedded.Airport": {
+        "title": "Airport",
+        "required": [
+          "AirportID",
+          "AirportName"
+        ],
+        "type": "object",
+        "properties": {
+          "AirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "機場IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirportID"
+            }
+          },
+          "AirportName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V2.Base.NameType"
+              }
+            ],
+            "description": "機場名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "機場資訊",
+        "xml": {
+          "name": "Airport"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.RouteFare": {
+        "title": "RouteFare",
+        "required": [
+          "AirlineID",
+          "AirRouteID",
+          "ArrivalAirport",
+          "DepartureAirport",
+          "Fares",
+          "SrcUpdateTime",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "AirlineID": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司 IATA 國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "AirRouteID": {
+            "title": "String",
+            "type": "string",
+            "description": "航線代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirRouteID"
+            }
+          },
+          "DepartureAirport": {
+            "title": "Airport",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.Airport"
+              }
+            ],
+            "description": "起點機場資訊",
+            "nullable": true,
+            "xml": {
+              "name": "Airport"
+            }
+          },
+          "ArrivalAirport": {
+            "title": "Airport",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.Airport"
+              }
+            ],
+            "description": "迄點機場資訊",
+            "nullable": true,
+            "xml": {
+              "name": "Airport"
+            }
+          },
+          "Fares": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.Fare"
+            },
+            "description": "票價內容",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "SrcUpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "來源端平台資料更新時間 (ISO8601 格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "本平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "航線票價資料",
+        "xml": {
+          "name": "RouteFare"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.RouteFare8": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.RouteFare"
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Embedded.Fare": {
+        "title": "Fare",
+        "required": [
+          "FareClass",
+          "FareName",
+          "Price",
+          "TicketType"
+        ],
+        "type": "object",
+        "properties": {
+          "FareName": {
+            "title": "String",
+            "type": "string",
+            "description": "票價名稱",
+            "nullable": true,
+            "xml": {
+              "name": "FareName"
+            }
+          },
+          "TicketType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "票種類型 : [1:'一般民眾',2:'離島居民']",
+            "format": "int32"
+          },
+          "FareClass": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "費率等級 : [1:'成人',2:'學生',3:'孩童',4:'敬老',5:'愛心',6:'愛心孩童',7:'愛心優待/愛心陪伴',8:'軍警',9:'縣府補助愛心',10:'縣府補助愛心陪同',11:'促銷優惠']",
+            "format": "int32"
+          },
+          "CabinClass": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "艙等 : [1:'頭等艙',2:'商務艙',3:'豪華經濟艙',4:'經濟艙']",
+            "format": "int32",
+            "nullable": true
+          },
+          "Price": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "計費價格(新臺幣)",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "票價內容",
+        "xml": {
+          "name": "Fare"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.SeatAvailability": {
+        "title": "SeatAvailability",
+        "required": [
+          "AirlineID",
+          "AirRouteID",
+          "ArrivalAirport",
+          "DepartureAirport",
+          "FlightDate",
+          "FlightNumber",
+          "SeatStatus",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "AirlineID": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司IATA國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "AirRouteID": {
+            "title": "String",
+            "type": "string",
+            "description": "航線代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirRouteID"
+            }
+          },
+          "FlightDate": {
+            "title": "String",
+            "type": "string",
+            "description": "航班日期，格式為 yyyy-MM-dd",
+            "nullable": true,
+            "xml": {
+              "name": "FlightDate"
+            }
+          },
+          "FlightNumber": {
+            "title": "String",
+            "type": "string",
+            "description": "班機號碼",
+            "nullable": true,
+            "xml": {
+              "name": "FlightNumber"
+            }
+          },
+          "DepartureAirport": {
+            "title": "Airport",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.Airport"
+              }
+            ],
+            "description": "起點機場資訊",
+            "nullable": true,
+            "xml": {
+              "name": "Airport"
+            }
+          },
+          "ArrivalAirport": {
+            "title": "Airport",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.Airport"
+              }
+            ],
+            "description": "迄點機場資訊",
+            "nullable": true,
+            "xml": {
+              "name": "Airport"
+            }
+          },
+          "TotalSeats": {
+            "type": "integer",
+            "description": "機艙客位數",
+            "format": "int32",
+            "nullable": true
+          },
+          "SoldSeats": {
+            "type": "integer",
+            "description": "已售座位數",
+            "format": "int32",
+            "nullable": true
+          },
+          "SeatStatus": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "機艙售票狀態 : [1:'尚有空位',2:'座位有限(小於 5 位)',3:'無座位']",
+            "format": "int32"
+          },
+          "CabinSeats": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.Embedded.CabinSeat"
+            },
+            "description": "艙等座位資訊",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "訊息更新時間",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "航班即時剩餘位動態資料",
+        "xml": {
+          "name": "SeatAvailability"
+        }
+      },
+      "PTX.Service.DTO.Air.Specification.V2.SeatAvailability9": {
+        "$ref": "#/components/schemas/PTX.Service.DTO.Air.Specification.V2.SeatAvailability"
+      },
+      "PTX.Service.DTO.Air.Specification.V2.Embedded.CabinSeat": {
+        "title": "CabinSeat",
+        "required": [
+          "CabinClass",
+          "SeatStatus",
+          "SoldSeats",
+          "TotalSeats"
+        ],
+        "type": "object",
+        "properties": {
+          "CabinClass": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "艙等 : [1:'頭等艙',2:'商務艙',3:'豪華經濟艙',4:'經濟艙']",
+            "format": "int32"
+          },
+          "TotalSeats": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "艙等客位數",
+            "format": "int32"
+          },
+          "SoldSeats": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "艙等已售座位數",
+            "format": "int32"
+          },
+          "SeatStatus": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "艙等售票狀態 : [1:'尚有空位',2:'座位有限(小於 5 位)',3:'無座位']",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "艙等座位資訊",
+        "xml": {
+          "name": "CabinSeat"
+        }
+      },
+      "PTX.Model.Air.POCO.V2.News": {
+        "title": "News",
+        "required": [
+          "ContactName",
+          "ContactPhone",
+          "Department",
+          "Description",
+          "Language",
+          "NewsID",
+          "PublishTime",
+          "Title",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "NewsID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "消息代碼",
+            "xml": {
+              "name": "NewsID"
+            }
+          },
+          "Language": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "語系\nZh_tw: 中文;\nEn: 英文;\nZh_cn: 中文簡體;\nJa: 日文;\nKo: 韓文",
+            "xml": {
+              "name": "Language"
+            }
+          },
+          "Department": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "發布單位",
+            "xml": {
+              "name": "Department"
+            }
+          },
+          "AirportID": {
+            "title": "String",
+            "type": "string",
+            "description": "機場 IATA 國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirportID"
+            }
+          },
+          "AirlineID": {
+            "title": "String",
+            "type": "string",
+            "description": "航空公司 IATA 國際代碼",
+            "nullable": true,
+            "xml": {
+              "name": "AirlineID"
+            }
+          },
+          "Title": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "消息標題",
+            "xml": {
+              "name": "Title"
+            }
+          },
+          "NewsCategory": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "消息類別\n1：最新消息(預設)\n2：營運資訊(如航空公司時刻表、班次、票價、活動等營運相關訊息)\n3：通阻資訊(如天候因素、異常事件等導致發生營運中斷之相關訊息)\n99：其他",
+            "format": "int32"
+          },
+          "Description": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "內容描述",
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "ContactName": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "聯絡人",
+            "xml": {
+              "name": "ContactName"
+            }
+          },
+          "ContactPhone": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "連絡電話",
+            "xml": {
+              "name": "ContactPhone"
+            }
+          },
+          "NewsURL": {
+            "title": "String",
+            "type": "string",
+            "description": "消息網址連結",
+            "nullable": true,
+            "xml": {
+              "name": "NewsURL"
+            }
+          },
+          "AttachmentURL": {
+            "title": "String",
+            "type": "string",
+            "description": "附件網址連結",
+            "nullable": true,
+            "xml": {
+              "name": "AttachmentURL"
+            }
+          },
+          "StartTime": {
+            "type": "string",
+            "description": "當筆消息的公告起始日期時間 ISO8601 格式(yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "EndTime": {
+            "type": "string",
+            "description": "當筆消息的公告結束日期時間 ISO8601 格式(yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time",
+            "nullable": true
+          },
+          "PublishTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "當筆消息的發布日期時間 ISO8601 格式(yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "當筆訊息的更新日期時間 ISO8601 格式(yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "最新消息資訊",
+        "xml": {
+          "name": "News"
+        }
+      },
+      "PTX.Model.Air.POCO.V2.News10": {
+        "$ref": "#/components/schemas/PTX.Model.Air.POCO.V2.News"
+      }
+    },
+    "securitySchemes": {
+      "TDX": {
+        "type": "oauth2",
+        "description": "TDX會員可至【會員專區-資料服務-服務金鑰】功能頁面，從預設金鑰(或建立新的金鑰)取得Client Id和Client Secret資訊，分別輸入至下方client_id和client_secret欄位、按下Authorize按鈕，即可開始於Swagger介面呼叫TDX API。",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token",
+            "scopes": { }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "TDX": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Air",
+      "description": "航空"
+    }
+  ]
+}
