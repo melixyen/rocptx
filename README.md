@@ -200,8 +200,122 @@ rocptx.id.tra.getPTXV3('1008');
 
 - `doc/API_MAPPING.md`：目前 SDK 公開方法總表與方法數量統計
 - `doc/README.md`：文件索引與維護規則
+- `doc/AGENT_SKILL.md`：與本 README 同一套規則，但改寫成給 AI Agent 執行的格式
 - `doc/tdx_docs/upgrade_plan.md`：SDK 與 TDX Swagger 的差異、缺口與升級順序
 - `doc/tdx_docs/*.json`：TDX 原始 Swagger / OpenAPI 規格
+
+## 開發與擴充指南（給維護者）
+
+這一節是給人看的開發導覽；如果是要給 AI Agent 自動讀取與執行，請看 `doc/AGENT_SKILL.md`。
+
+兩份文件的規則應保持一致，差別只在表達方式：
+
+- `README.md`：偏導讀、解釋、讓人快速理解
+- `doc/AGENT_SKILL.md`：偏決策順序、限制條件、checklist
+
+### 先用 5 個問題決定新 API 放哪裡
+
+1. **它屬於哪個運具領域？**
+   - Bus → `src/bus.js`
+   - Metro 共用能力 → `src/metro.js`
+   - Metro 公司特化 → `src/trtc.js`、`src/tmrt.js`、`src/krtc.js`、`src/tymetro.js`、`src/klrt.js`
+   - THSR → `src/thsr.js`
+   - TRA → `src/tra.js`
+   - AFR → `src/afr.js`
+
+2. **它是 v2 還是 v3？**
+   - 版本直接決定 namespace，例如 `thsr.v2`、`tra.v3`、`bus.v3`
+
+3. **它是 raw endpoint，還是高階操作方法？**
+   - raw endpoint：先補 `urls` / `v2urls` / `v3urls`，讓 `_Xxx` 先成立
+   - 高階方法：再評估是否需要 `getXxx(...)`、`ByRouteName`、`ByNumber` 這類 helper
+
+4. **它是共用邏輯，還是 operator-specific？**
+   - 共用 metro 邏輯應放 `src/metro.js`
+   - 只有單一業者需要的整理或查詢，才放公司 wrapper
+
+5. **它需要額外的轉換或搜尋能力嗎？**
+   - 只是一般查詢：留在 transport module
+   - 需要 ID 轉換：評估 `src/id.js`
+   - 需要二次整理資料：評估 `catchData`
+   - 需要路網推導 / 轉乘搜尋：才評估 `router*`
+
+### 依既有骨架擴充，不要先發明新架構
+
+這個 repo 的主體不是大型 class hierarchy，而是：
+
+- `common.js` / `ptx.js` 提供共用常數、query helper 與 request helper
+- transport module 負責包裝 API 與公開 namespace
+- `id.js`、`router*`、`datax` 負責補足轉換、路網與靜態資料
+- `src/main.js` 負責把公開模組掛到最終輸出
+
+新增 API 時，建議遵守這個順序：
+
+1. 先補 endpoint mapping（`urls` / `v2urls` / `v3urls`）
+2. 讓低階 `_Xxx` wrapper 可以使用
+3. 視需要再包高階 `getXxx(...)`
+4. 若有資料重整需求，再補 `catchData`
+5. 若有跨版本 / 跨系統 ID 差異，再補 `src/id.js`
+6. 若真的需要路徑搜尋或轉乘推導，再補 `router*`
+
+### 什麼時候該加 convenience method
+
+不是每條 endpoint 都值得包裝成高階 helper。通常只有在下列情況才建議新增：
+
+- 某種 filter 會反覆出現，例如 `StationID`、`RouteID`、`TrainNo`
+- path parameter 需要包成更穩定、易用的 API，例如 `getFromToFare(from, to)`
+- 需要補日期預設值，例如 today timetable
+- 需要幫使用者處理 ID 轉換
+- 需要提供更語意化的 alias
+
+如果新方法只是單純轉呼叫 `_Xxx`，又沒有提升可讀性，通常可以先不包。
+
+### 各 transport family 的實作重點
+
+#### Bus
+
+- `bus` v2 延續 callback / `ptx.getURL` 風格
+- `bus.v3`、`bus.v3.drts`、`bus.v3.shuttleHospital` 延續 Promise / auto-generated `_Xxx` 風格
+- 常見高階查詢是 `ByRouteName`、`ByNumber` 與 City / InterCity 切換
+- 如果 Swagger 只有 City 版，就不要硬補 InterCity 版本
+
+#### Metro
+
+- 共用能力先放 `src/metro.js`
+- 公司別差異與整理邏輯放各自 wrapper
+- 延續 `new metro.baseMethod(companyTag)` 的建立方式
+- 搜尋 / 檢索擴充通常落在公司 wrapper 或 `catchData`
+
+#### THSR / TRA / AFR
+
+- 三者的模式都很接近：先補 endpoint mapping，再補查詢 helper
+- `catchData` 用在資料重整，不是 raw wrapper
+- 若涉及 v2 / v3 或 RP / PTX station ID 差異，要同步檢查 `src/id.js`
+- `tra` / `tra.v3` 共存時，要特別留意版本橋接與 station ID 轉換
+
+### 文件、匯出與打包要一起檢查
+
+如果是要公開給使用者使用的新 namespace 或新能力，至少要同步檢查：
+
+1. `src/main.js` 是否有匯出
+2. `doc/API_MAPPING.md` 是否要補公開方法清單
+3. `README.md` 是否要補對外說明
+4. `doc/README.md` 是否要補文件索引
+5. `doc/tdx_docs/upgrade_plan.md` 是否要更新覆蓋率或缺口
+
+打包時則遵守兩個原則：
+
+- 入口以 `src/main.js` 為準，輸出由 `rollup.config.js` 與 `package.json` 控制
+- 不要直接手改 `dist`，應該讓 source 與 export 正確後再打包
+
+### 最後只要記住 6 件事
+
+1. 先分類，再寫 code。
+2. 先補 `urls`，再補 `_Xxx`，最後才補 `getXxx`。
+3. 沿用同檔案既有風格，不要硬統一整個 repo。
+4. 需要資料整理時用 `catchData`；需要 ID 互轉時用 `id.js`；需要路徑推導時才用 `router`。
+5. 要公開就記得接到 `src/main.js`。
+6. 新增功能後，文件與打包流程要一起檢查。
 
 ## 現況說明
 
