@@ -14,7 +14,7 @@ Dynamic public traffic library of Taiwan and Kinmen, Lienchiang.
 
 - `bus` / `bus.v3`：公車 v2 / v3 查詢
 - `metro`：捷運共同底層能力
-- `trtc` / `tmrt` / `krtc` / `tymetro` / `klrt`：各捷運系統 wrapper
+- `trtc` / `tmrt` / `krtc` / `tymc` / `klrt`：各捷運系統 wrapper
 - `thsr.v2`：台灣高鐵
 - `tra` / `tra.v3`：台鐵 v2 / v3
 - `afr.v3`：AFR rail v3 查詢
@@ -96,7 +96,7 @@ rocptx.id.tra.getPTXV3('1008');
 - `trtc`
 - `tmrt`
 - `krtc`
-- `tymetro`
+- `tymc`
 - `klrt`
 - `thsr`
 - `tra`
@@ -139,7 +139,7 @@ rocptx.id.tra.getPTXV3('1008');
 ### `metro` family
 
 - `metro` 提供各捷運系統共用的 `_Xxx` 低階 API 與 `baseMethod`
-- `trtc` / `tmrt` / `krtc` / `tymetro` / `klrt` 提供更方便的公司別 wrapper
+- `trtc` / `tmrt` / `krtc` / `tymc` / `klrt` 提供更方便的公司別 wrapper
 - 常用能力包括：`getRoute`、`getStation`、`getStationOfLine`、`getLineTransfer`、`getAlert`、`getLivePosition`、`getStationTransfer`、`getFromToFare`、`getStationTimeTable`
 
 ### `thsr`
@@ -193,7 +193,7 @@ rocptx.id.tra.getPTXV3('1008');
 - `rocptx.id.thsr`
 - `rocptx.id.tra`
 - `rocptx.id.trtc`
-- `rocptx.id.tymetro`
+- `rocptx.id.tymc`
 - `rocptx.id.getMRTStationIDInWhatLine`
 
 ## 文件導覽
@@ -218,7 +218,7 @@ rocptx.id.tra.getPTXV3('1008');
 1. **它屬於哪個運具領域？**
    - Bus → `src/bus.js`
    - Metro 共用能力 → `src/metro.js`
-   - Metro 公司特化 → `src/trtc.js`、`src/tmrt.js`、`src/krtc.js`、`src/tymetro.js`、`src/klrt.js`
+   - Metro 公司特化 → `src/trtc.js`、`src/tmrt.js`、`src/krtc.js`、`src/tymc.js`、`src/klrt.js`
    - THSR → `src/thsr.js`
    - TRA → `src/tra.js`
    - AFR → `src/afr.js`

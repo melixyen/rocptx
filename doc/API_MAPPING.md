@@ -39,7 +39,7 @@
 | `trtc` | 73 | 繼承 `metro` 61 + 額外 helper 12 |
 | `tmrt` | 71 | 繼承 `metro` 61 + 額外 helper 10 |
 | `krtc` | 71 | 繼承 `metro` 61 + 額外 helper 10 |
-| `tymetro` | 71 | 繼承 `metro` 61 + 額外 helper 10 |
+| `tymc` | 71 | 繼承 `metro` 61 + 額外 helper 10 |
 | `klrt` | 71 | 繼承 `metro` 61 + 額外 helper 10 |
 | `thsr.v2` | 48 | convenience 15 + `_Xxx` 28 + `catchData` 5 |
 | `tra` | 46 | convenience 11 + `_Xxx` 25 + `catchData` 10 |
@@ -61,7 +61,7 @@
 | `trtc` | `src/trtc.js` | 台北捷運 wrapper |
 | `tmrt` | `src/tmrt.js` | 台中捷運 wrapper |
 | `krtc` | `src/krtc.js` | 高雄捷運 wrapper |
-| `tymetro` | `src/tymetro.js` | 桃園捷運 wrapper |
+| `tymc` | `src/tymc.js` | 桃園捷運 wrapper |
 | `klrt` | `src/klrt.js` | 高雄輕軌 wrapper |
 | `thsr` | `src/thsr.js` | 高鐵 namespace |
 | `tra` | `src/tra.js` | 台鐵 v2 / v3 |
@@ -106,7 +106,7 @@
 ### `data` / `datax`
 
 - `data`：人工維護的基礎資料庫
-- `datax`：目前包含 `trtc`、`krtc`、`tymetro`、`tmrt`、`klrt`、`thsr`、`tra`、`trav3` 等擴增資料
+- `datax`：目前包含 `trtc`、`krtc`、`tymc`、`tmrt`、`klrt`、`thsr`、`tra`、`trav3` 等擴增資料
 
 ### `metro`
 
@@ -123,7 +123,7 @@
 `companyTag` 目前對應：
 
 - `trtc -> TRTC`
-- `tymetro -> TYMC`
+- `tymc -> TYMC`
 - `tmrt -> TMRT`
 - `klrt -> KLRT`
 - `krtc -> KRTC`
@@ -195,7 +195,7 @@
 - `TimeTable`
 - `TimeSimple`
 
-### `trtc` / `tmrt` / `krtc` / `tymetro` / `klrt`
+### `trtc` / `tmrt` / `krtc` / `tymc` / `klrt`
 
 這五個模組都繼承 `metro.baseMethod`，因此都具有上面列出的低階 `_Xxx` 方法、便利方法與 `catchData`。
 
@@ -206,7 +206,7 @@
 | `trtc` | `checkRouteIdOnUse`、`getLineData`、`getLineID`、`getOriginalLineByLineID`、`getStationData`、`getStationIDAry`、`getStationID`、`getStationIDInWhatLine`、`getStationTime`、`getFormatStationTime`、`getOriginalStationID`、`getByStationID` |
 | `tmrt` | `checkRouteIdOnUse`、`getLineData`、`getLineID`、`getOriginalLineByLineID`、`getStationIDAry`、`getStationID`、`getStationIDInWhatLine`、`getStationTime`、`getFormatStationTime`、`getOriginalStationID` |
 | `krtc` | `checkRouteIdOnUse`、`getLineData`、`getLineID`、`getOriginalLineByLineID`、`getStationIDAry`、`getStationID`、`getStationIDInWhatLine`、`getStationTime`、`getFormatStationTime`、`getOriginalStationID` |
-| `tymetro` | `checkRouteIdOnUse`、`getLineData`、`getLineID`、`getOriginalLineByLineID`、`getStationIDAry`、`getStationID`、`getStationIDInWhatLine`、`getStationTime`、`getFormatStationTime`、`getOriginalStationID` |
+| `tymc` | `checkRouteIdOnUse`、`getLineData`、`getLineID`、`getOriginalLineByLineID`、`getStationIDAry`、`getStationID`、`getStationIDInWhatLine`、`getStationTime`、`getFormatStationTime`、`getOriginalStationID` |
 | `klrt` | `checkRouteIdOnUse`、`getLineData`、`getLineID`、`getOriginalLineByLineID`、`getStationIDAry`、`getStationID`、`getStationIDInWhatLine`、`getStationTime`、`getFormatStationTime`、`getOriginalStationID` |
 
 ### `bus`
@@ -513,7 +513,7 @@ AFR 目前實作於 `rocptx.afr.v3`。
 
 - `router.bus`：`findDirectBus`
 - `router.v1`：目前為空物件 placeholder
-- `router.v2`：目前提供 `trtc`、`krtc`、`tymetro`
+- `router.v2`：目前提供 `trtc`、`krtc`、`tymc`
 
 `router.v2.<company>` 目前方法：
 
@@ -533,7 +533,7 @@ AFR 目前實作於 `rocptx.afr.v3`。
 - `thsr`
 - `tra`
 - `trtc`
-- `tymetro`
+- `tymc`
 - `getMRTStationIDInWhatLine`
 
 各子工具方法：
@@ -541,7 +541,7 @@ AFR 目前實作於 `rocptx.afr.v3`。
 - `id.thsr`：`getPTXV2`、`getRPIDbyPTXV2`
 - `id.tra`：`getPTXV2`、`getPTXV3`、`getPTXV3byV2`、`getPTXV2byV3`、`getRPIDbyPTXV2`、`getRPIDbyPTXV3`
 - `id.trtc`：`getPTXV2`、`getRPIDbyPTXV2`、`getLINE_LineIDbyRPID`、`getLINE_RPIDbyLineID`
-- `id.tymetro`：`getPTXV2`、`getRPIDbyPTXV2`、`getLINE_LineIDbyRPID`、`getLINE_RPIDbyLineID`
+- `id.tymc`：`getPTXV2`、`getRPIDbyPTXV2`、`getLINE_LineIDbyRPID`、`getLINE_RPIDbyLineID`
 
 ## 和既有文件 / TDX docs 的同步結果
 
@@ -559,7 +559,7 @@ AFR 目前實作於 `rocptx.afr.v3`。
 
 - `doc/tdx_docs/公共運輸_公車_v2.json` 的主要 Bus v2 規格群組已可對應到 `bus.js`
 - 目前 Bus 主要剩餘擴充範圍已轉到 `公共運輸_公車_v3.json` 與更高階 helper
-- `router.v2` 目前僅支援 `trtc`、`krtc`、`tymetro`，尚未擴到 `tmrt` / `klrt`
+- `router.v2` 目前僅支援 `trtc`、`krtc`、`tymc`，尚未擴到 `tmrt` / `klrt`
 - 多數 rail / metro Swagger 端點已能透過自動產生 `_Xxx` 存取，但並非每個端點都已有高階 convenience wrapper
 
 ### 尚未完整建立

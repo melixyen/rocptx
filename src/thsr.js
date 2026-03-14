@@ -268,15 +268,35 @@ aryMakeV2Function.forEach(function(fn){
         thsr.v2['_' + fn] = function(){
             let ptr = 0;
             let arg = arguments;
-            if(arg.length < paramCount) throw('Lose parameter, need ' + paramAry.join());
+            
+            let isObjArgs = false;
+            let paramsObj = null;
+            let cleanParamAry = paramAry.map(p => p.replace(/[{}]/g, ''));
+
+            if(arg.length > 0 && typeof arg[0] === 'object' && arg[0] !== null) {
+                if (cleanParamAry.some(p => p in arg[0])) {
+                    isObjArgs = true;
+                    paramsObj = arg[0];
+                }
+            }
+
+            if(!isObjArgs && arg.length < paramCount) throw('Lose parameter, need ' + paramAry.join());
+            
             let url = urlAry.map((c)=>{
                 if(/^\{/.test(c)){
-                    c = arg[ptr];
-                    ptr++;
+                    let key = c.replace(/[{}]/g, '');
+                    if(isObjArgs) {
+                        if(paramsObj[key] === undefined) throw('Lose parameter, need ' + key);
+                        c = paramsObj[key];
+                    } else {
+                        c = arg[ptr];
+                        ptr++;
+                    }
                 }
                 return c;
             }).join('/');
-            let cfg = arguments[paramCount];
+            
+            let cfg = isObjArgs ? arguments[1] : arguments[paramCount];
             cfg = setDefaultCfg(cfg);
             var param = processCfg(cfg);
             return getPTX(url + param, cfg);

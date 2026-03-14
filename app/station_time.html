@@ -164,7 +164,7 @@ ptx.lineTime.trtc = ptx.lineTime.trtc.concat(BRLineTime);
 	var menuBarTpl =  Vue.compile('<div id="menuBar" class="bs_no_select">' +
 		'<div class="btn1" v-on:click="changePanel(\'trtc\')">台北捷運</div>' +
 		'<div class="btn1" v-on:click="changePanel(\'krtc\')">高雄捷運</div>' +
-		'<div class="btn1" v-on:click="changePanel(\'tymetro\')">桃園捷運</div>' +
+		'<div class="btn1" v-on:click="changePanel(\'tymc\')">桃園捷運</div>' +
 	'</div>');
 	Vue.component('vcmp_menu_bar', {
 		render: menuBarTpl.render,
@@ -294,7 +294,7 @@ ptx.lineTime.trtc = ptx.lineTime.trtc.concat(BRLineTime);
 	}
 	var trtcPanel = makeMrtPanel('trtc');
 	var krtcPanel = makeMrtPanel('krtc');
-	var tymetroPanel = makeMrtPanel('tymetro');
+	var tymcPanel = makeMrtPanel('tymc');
 
 	BB.initFn = function(){
 		var tpl = Vue.compile('<div id="main">' + 
@@ -303,7 +303,7 @@ ptx.lineTime.trtc = ptx.lineTime.trtc.concat(BRLineTime);
 			'<div id="panel">' +
 				'<vcmp_trtc_panel v-bind:show_trtc="(panelName==\'trtc\')" v-if="(panelName==\'trtc\')" v-on:printj="printJSON" />' +
 				'<vcmp_krtc_panel v-bind:show_krtc="(panelName==\'krtc\')" v-if="(panelName==\'krtc\')" v-on:printj="printJSON" />' +
-				'<vcmp_tymetro_panel v-bind:show_tymetro="(panelName==\'tymetro\')" v-if="(panelName==\'tymetro\')" v-on:printj="printJSON" />' +
+				'<vcmp_tymc_panel v-bind:show_tymc="(panelName==\'tymc\')" v-if="(panelName==\'tymc\')" v-on:printj="printJSON" />' +
 				'<vcmp_klrt_panel v-bind:show_klrt="(panelName==\'klrt\')" v-if="(panelName==\'klrt\')" v-on:printj="printJSON" />' +
 			'</div>' +
 			'<div id="output">' +
@@ -377,7 +377,7 @@ ptx.lineTime.trtc = ptx.lineTime.trtc.concat(BRLineTime);
 					var flagNotMainTerminal = !!(mainTerminal.indexOf(car.To)==-1);
 					var rt = '';
 					if(flagNotMainTerminal) rt += ' notMain';
-					if(this.panelName=='tymetro' && car.TrainType==2) rt += ' fast';
+					if(this.panelName=='tymc' && car.TrainType==2) rt += ' fast';
 					return rt;
 				},
 				getTerminalString: function(t){

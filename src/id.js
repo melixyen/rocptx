@@ -3,201 +3,250 @@ import pData from './data.js';
 
 //====================== ID 提取 ==============================
 
-function getMRTStationIDInWhatLine(StatioinID){
-    if(/^[a-zA-Z]{1}\d{2}/gi.test(StatioinID)){
-        return StatioinID.substr(0,1);
-    }else if(/^[a-zA-Z]{2}\d{2}/gi.test(StatioinID)){
-        return StatioinID.substr(0,2);
-    }else if(/^[a-zA-Z]{1}\d{1}/gi.test(StatioinID)){
-        return StatioinID.substr(0,1);
+function getMRTStationIDInWhatLine(StatioinID) {
+    if (/^[a-zA-Z]{1}\d{2}/gi.test(StatioinID)) {
+        return StatioinID.substr(0, 1);
+    } else if (/^[a-zA-Z]{2}\d{2}/gi.test(StatioinID)) {
+        return StatioinID.substr(0, 2);
+    } else if (/^[a-zA-Z]{1}\d{1}/gi.test(StatioinID)) {
+        return StatioinID.substr(0, 1);
     }
 }
 
 //====================== ID 轉換 ==============================
 
-function findData(ary, col, val){
-    for(let i=0; i<ary.length; i++){
+function findData(ary, col, val) {
+    for (let i = 0; i < ary.length; i++) {
         let colData = ary[i][col];
-        if(colData==val){
+        if (colData == val) {
             return ary[i];
-        }else if(typeof(colData)=='object' && colData.length && colData.indexOf(val)>=0){
+        } else if (typeof (colData) == 'object' && colData.length && colData.indexOf(val) >= 0) {
             return ary[i];
         }
     }
     return false;
 }
 
-function idTrans(objS){
+function idTrans(objS) {
     //objS.value 原始值放到 objS.from
     //objS.Line 如果有多個 StationID 對應到一組 id 時用 Line 區別 
     objS.returnType = objS.returnType || 'string';//"string":只給對應 id。"data":給整個車站的 data obj。預設為 string
     objS.fromType = objS.fromType || 'id';//原來的車站 ID 格式，對應到 data 內的欄位名稱做搜尋匹配
     objS.toType = objS.toType || 'id';//轉換規則，對應到 data 內的欄位名稱給值，若 returnType 為 data 就不看了
-    if(objS.value.indexOf('_') > 0 && !objS.company){
+    if (objS.value.indexOf('_') > 0 && !objS.company) {
         objS.company = objS.value.split('_')[0];
     }
-    if(!objS.company) return false;
+    if (!objS.company) return false;
     objS.from = objS.value;
     // if(/^tra/.test(objS.company) && objS.value.indexOf('_') > 0){ objS.from = objS.value.split('_')[1]; }
 
     let stationAry = [], stData = {}, tmpA = false, rt = false;
-    switch(objS.company){
+    switch (objS.company) {
         case 'tra':
             stationAry = pData.tra.station_ary;
             stData = findData(stationAry, objS.fromType, objS.from);
-            if(stData){
-                if(objS.returnType=='string'){
+            if (stData) {
+                if (objS.returnType == 'string') {
                     rt = stData[objS.toType];
-                }else{
+                } else {
                     rt = stData;
                 }
             }
-        break;
+            break;
         case 'trtc':
             stationAry = pData.trtc.station_ary;
             stData = findData(stationAry, objS.fromType, objS.from);
-            if(stData){
-                if(objS.returnType=='string'){
+            if (stData) {
+                if (objS.returnType == 'string') {
                     tmpA = stData[objS.toType];
-                    if(typeof(tmpA)=='object' && tmpA.length && objS.LineID){
-                        if(/^trtc/.test(objS.LineID)){
+                    if (typeof (tmpA) == 'object' && tmpA.length && objS.LineID) {
+                        if (/^trtc/.test(objS.LineID)) {
                             objS.LineID = findData(pData.trtc.line, 'id', objS.LineID)['LineID'];//如果給的是 rocptx 的路線 id 則於此處交換為 PTX 上操作 TRTC 的 LineID
                         }
                         var testReg = new RegExp('^' + objS.LineID + '[0-9]', 'i');
-                        var returnValue = tmpA.find(function(k){
+                        var returnValue = tmpA.find(function (k) {
                             return testReg.test(k);
                         })
                         rt = returnValue;
-                    }else{
+                    } else {
                         rt = stData[objS.toType];
                     }
-                }else{
+                } else {
                     rt = stData;
                 }
             }
-        break;
-        case 'tymetro':
-            stationAry = pData.tymetro.station_ary;
+            break;
+        case 'tymc':
+            stationAry = pData.tymc.station_ary;
             stData = findData(stationAry, objS.fromType, objS.from);
-            if(stData){
-                if(objS.returnType=='string'){
+            if (stData) {
+                if (objS.returnType == 'string') {
                     tmpA = stData[objS.toType];
-                    if(typeof(tmpA)=='object' && tmpA.length && objS.LineID){
-                        if(/^tymetro/.test(objS.LineID)){
-                            objS.LineID = findData(pData.tymetro.line, 'id', objS.LineID)['LineID'];//如果給的是 rocptx 的路線 id 則於此處交換為 PTX 上操作 TYMetro 的 LineID
+                    if (typeof (tmpA) == 'object' && tmpA.length && objS.LineID) {
+                        if (/^tymc/.test(objS.LineID)) {
+                            objS.LineID = findData(pData.tymc.line, 'id', objS.LineID)['LineID'];//如果給的是 rocptx 的路線 id 則於此處交換為 PTX 上操作 TYMC 的 LineID
                         }
                         var testReg = new RegExp('^' + objS.LineID + '[0-9]', 'i');
-                        var returnValue = tmpA.find(function(k){
+                        var returnValue = tmpA.find(function (k) {
                             return testReg.test(k);
                         })
                         rt = returnValue;
-                    }else{
+                    } else {
                         rt = stData[objS.toType];
                     }
-                }else{
+                } else {
                     rt = stData;
                 }
             }
-        break;
+            break;
+        case 'ntmc':
+            stationAry = pData.ntmc.station_ary;
+            stData = findData(stationAry, objS.fromType, objS.from);
+            if (stData) {
+                if (objS.returnType == 'string') {
+                    tmpA = stData[objS.toType];
+                    if (typeof (tmpA) == 'object' && tmpA.length && objS.LineID) {
+                        if (/^ntmc/.test(objS.LineID)) {
+                            objS.LineID = findData(pData.ntmc.line, 'id', objS.LineID)['LineID'];//如果給的是 rocptx 的路線 id 則於此處交換為 PTX 上操作 NTMC 的 LineID
+                        }
+                        var testReg = new RegExp('^' + objS.LineID + '[0-9]', 'i');
+                        var returnValue = tmpA.find(function (k) {
+                            return testReg.test(k);
+                        })
+                        rt = returnValue;
+                    } else {
+                        rt = stData[objS.toType];
+                    }
+                } else {
+                    rt = stData;
+                }
+            }
+            break;
     }
     return rt;
 }
 
-function mrtLineTrans(objS){
+function mrtLineTrans(objS) {
     //objS.value 原始值放到 objS.from
     objS.returnType = objS.returnType || 'string';//"string":只給對應 id。"data":給整個車站的 data obj。預設為 string
     objS.fromType = objS.fromType || 'id';//原來的車站 ID 格式，對應到 data 內的欄位名稱做搜尋匹配
     objS.toType = objS.toType || 'LineID';//轉換規則，對應到 data 內的欄位名稱給值，若 returnType 為 data 就不看了
-    if(!objS.company || !objS.value) return false;
-    
+    if (!objS.company || !objS.value) return false;
+
     let lineAry = [], lineData = {}, tmpA = false, rt = false;
-    switch(objS.company){
+    switch (objS.company) {
         case "trtc":
             lineAry = pData.trtc.line;
             lineData = findData(lineAry, objS.fromType, objS.value);
-            if(lineData){
-                rt = (objS.returnType=='string') ? lineData[objS.toType] : lineData;
+            if (lineData) {
+                rt = (objS.returnType == 'string') ? lineData[objS.toType] : lineData;
             }
-        break;
-        case "tymetro":
-            lineAry = pData.tymetro.line;
+            break;
+        case "tymc":
+            lineAry = pData.tymc.line;
             lineData = findData(lineAry, objS.fromType, objS.value);
-            if(lineData){
-                rt = (objS.returnType=='string') ? lineData[objS.toType] : lineData;
+            if (lineData) {
+                rt = (objS.returnType == 'string') ? lineData[objS.toType] : lineData;
             }
-        break;
+            break;
+        case "ntmc":
+            lineAry = pData.ntmc.line;
+            lineData = findData(lineAry, objS.fromType, objS.value);
+            if (lineData) {
+                rt = (objS.returnType == 'string') ? lineData[objS.toType] : lineData;
+            }
+            break;
     }
     return rt;
 }
 
 let thsr = {
-    getPTXV2: function(id){
-        return id.replace('thsr_','');
+    getPTXV2: function (id) {
+        return id.replace('thsr_', '');
     },
-    getRPIDbyPTXV2: function(id){
+    getRPIDbyPTXV2: function (id) {
         return 'thsr_' + id;
     }
 }
 
 let tra = {
-    getPTXV2: function(id){
-        if(id) id = id.replace(/^tra_/, '');
+    getPTXV2: function (id) {
+        if (id) id = id.replace(/^tra_/, '');
         return id;
     },
-    getPTXV3: function(id){
-        if(!/^tra_/.test(id)) id = 'tra_' + id;
-        return idTrans({company:'tra', value:id, toType: 'v3id'})
+    getPTXV3: function (id) {
+        if (!/^tra_/.test(id)) id = 'tra_' + id;
+        return idTrans({ company: 'tra', value: id, toType: 'v3id' })
     },
-    getPTXV3byV2: function(id){
+    getPTXV3byV2: function (id) {
         id = 'tra_' + id;
-        return idTrans({company:'tra', value:id, toType: 'v3id'})
+        return idTrans({ company: 'tra', value: id, toType: 'v3id' })
     },
-    getPTXV2byV3: function(id){
-        return this.getPTXV2(idTrans({company:'tra', value:id.toString(), fromType:'v3id', toType: 'id'}))
+    getPTXV2byV3: function (id) {
+        return this.getPTXV2(idTrans({ company: 'tra', value: id.toString(), fromType: 'v3id', toType: 'id' }))
     },
-    getRPIDbyPTXV2: function(id){//rocptx station id
+    getRPIDbyPTXV2: function (id) {//rocptx station id
         return 'tra_' + id;
     },
-    getRPIDbyPTXV3: function(id){
-        return idTrans({company:'tra', value:id.toString(), fromType:'v3id', toType: 'id'})
+    getRPIDbyPTXV3: function (id) {
+        return idTrans({ company: 'tra', value: id.toString(), fromType: 'v3id', toType: 'id' })
     }
 }
 
 let trtc = {
-    getPTXV2: function(id, line){
-        var param = {company:'trtc', value:id, fromType:'id', toType: 'StationID'};
-        if(line){
+    getPTXV2: function (id, line) {
+        var param = { company: 'trtc', value: id, fromType: 'id', toType: 'StationID' };
+        if (line) {
             param.LineID = line;
         }
         return idTrans(param);
     },
-    getRPIDbyPTXV2: function(id){
-        return idTrans({company:'trtc', value:id, fromType:'StationID', toType: 'id'})
+    getRPIDbyPTXV2: function (id) {
+        return idTrans({ company: 'trtc', value: id, fromType: 'StationID', toType: 'id' })
     },
-    getLINE_LineIDbyRPID: function(id){
-        return mrtLineTrans({company:'trtc', value:id, fromType:'id', toType:'LineID'})
+    getLINE_LineIDbyRPID: function (id) {
+        return mrtLineTrans({ company: 'trtc', value: id, fromType: 'id', toType: 'LineID' })
     },
-    getLINE_RPIDbyLineID: function(id){
-        return mrtLineTrans({company:'trtc', value:id, fromType:'LineID', toType:'id'})
+    getLINE_RPIDbyLineID: function (id) {
+        return mrtLineTrans({ company: 'trtc', value: id, fromType: 'LineID', toType: 'id' })
     }
 }
 
-let tymetro = {
-    getPTXV2: function(id, line){
-        var param = {company:'tymetro', value:id, fromType:'id', toType: 'StationID'};
-        if(line){
+let tymc = {
+    getPTXV2: function (id, line) {
+        var param = { company: 'tymc', value: id, fromType: 'id', toType: 'StationID' };
+        if (line) {
             param.LineID = line;
         }
         return idTrans(param);
     },
-    getRPIDbyPTXV2: function(id){
-        return idTrans({company:'tymetro', value:id, fromType:'StationID', toType: 'id'})
+    getRPIDbyPTXV2: function (id) {
+        return idTrans({ company: 'tymc', value: id, fromType: 'StationID', toType: 'id' })
     },
-    getLINE_LineIDbyRPID: function(id){
-        return mrtLineTrans({company:'tymetro', value:id, fromType:'id', toType:'LineID'})
+    getLINE_LineIDbyRPID: function (id) {
+        return mrtLineTrans({ company: 'tymc', value: id, fromType: 'id', toType: 'LineID' })
     },
-    getLINE_RPIDbyLineID: function(id){
-        return mrtLineTrans({company:'tymetro', value:id, fromType:'LineID', toType:'id'})
+    getLINE_RPIDbyLineID: function (id) {
+        return mrtLineTrans({ company: 'tymc', value: id, fromType: 'LineID', toType: 'id' })
+    }
+}
+
+let ntmc = {
+    getPTXV2: function (id, line) {
+        var param = { company: 'ntmc', value: id, fromType: 'id', toType: 'StationID' };
+        if (line) {
+            param.LineID = line;
+        }
+        return idTrans(param);
+    },
+    getRPIDbyPTXV2: function (id) {
+        return idTrans({ company: 'ntmc', value: id, fromType: 'StationID', toType: 'id' })
+    },
+    getLINE_LineIDbyRPID: function (id) {
+        return mrtLineTrans({ company: 'ntmc', value: id, fromType: 'id', toType: 'LineID' })
+    },
+    getLINE_RPIDbyLineID: function (id) {
+        return mrtLineTrans({ company: 'ntmc', value: id, fromType: 'LineID', toType: 'id' })
     }
 }
 
@@ -207,7 +256,8 @@ let id = {
     thsr: thsr,
     tra: tra,
     trtc: trtc,
-    tymetro: tymetro,
+    tymc: tymc,
+    ntmc: ntmc,
     getMRTStationIDInWhatLine: getMRTStationIDInWhatLine
 }
 

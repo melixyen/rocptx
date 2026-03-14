@@ -8,11 +8,12 @@ import metro from './metro.js';
 import trtc from './trtc.js';
 import tmrt from './tmrt.js';
 import krtc from './krtc.js';
-import tymetro from './tymetro.js';
+import tymc from './tymc.js';
 import klrt from './klrt.js';
 import thsr from './thsr.js';
 import tra from './tra.js';
 import afr from './afr.js';
+import ntmc from './ntmc.js';
 import router from './router.js';
 import jsSHA from './jsSHA';
 import id from './id';
@@ -29,25 +30,26 @@ var combine = {
 	trtc: trtc,
 	tmrt: tmrt,
 	krtc: krtc,
-	tymetro: tymetro,
+	tymc: tymc,
 	klrt: klrt,
 	thsr: thsr,
 	tra: tra,
+	ntmc: ntmc,
 	afr: afr,
 	router: router,
 	jsSHA: jsSHA,
 	id: id,
 	common: common
 }
-for(var k in combine){
+for (var k in combine) {
 	ptx[k] = combine[k];
 }
 
-if(inBrowser){
-	if(!window.rocptx) window.rocptx = ptx;
-	if(!window.$trainTaiwanLib) window.$trainTaiwanLib = {};
-	if(!window.$trainTaiwanLib.ptx) window.$trainTaiwanLib.ptx = ptx;
-	if(!window.Promise) console.log("PTX library need Promise, please include a Promise polyfill.")
+if (inBrowser) {
+	if (!window.rocptx) window.rocptx = ptx;
+	if (!window.$trainTaiwanLib) window.$trainTaiwanLib = {};
+	if (!window.$trainTaiwanLib.ptx) window.$trainTaiwanLib.ptx = ptx;
+	if (!window.Promise) console.log("PTX library need Promise, please include a Promise polyfill.")
 }
 
 

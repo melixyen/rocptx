@@ -1,10 +1,10 @@
 import trtc_line from './datax/trtc.line.json';
 import krtc_line from './datax/krtc.line.json';
-import tymetro_line from './datax/tymetro.line.json';
+import tymc_line from './datax/tymc.line.json';
 
 import trtc_station from './datax/trtc.station.json';
 import krtc_station from './datax/krtc.station.json';
-import tymetro_station from './datax/tymetro.station.json';
+import tymc_station from './datax/tymc.station.json';
 import tmrt_station from './datax/tmrt.station.json';
 
 import trtc_transfer from './datax/trtc.transfer.json';
@@ -20,20 +20,21 @@ import tra_train from './datax/tra.train.json';
 //import trav3_station from './datax/tra.v3.station.json';
 //import trav3_train from './datax/tra.v3.train.json';
 
-function getObjID(uid){
+function getObjID(uid) {
 	//透過 uid 拆解找對應的資料，uid 格式為 {公司名}_{路線名}，例如 trtc_R 為台北捷運紅線
-	if(/^TRA-|^TRTC-|^TMRT-|^KRTC-|^TYMC-|^KLRT-|^THSR-/.test(uid)){
-		if(/^TRA-/.test(uid)) uid = uid.replace(/^TRA-/,'tra_');
-		else if(/^TRTC-/.test(uid)) uid = uid.replace(/^TRTC-/,'trtc_');
-		else if(/^TMRT-/.test(uid)) uid = uid.replace(/^TMRT-/,'tmrt_');
-		else if(/^KRTC-/.test(uid)) uid = uid.replace(/^KRTC-/,'krtc_');
-		else if(/^TYMC-/.test(uid)) uid = uid.replace(/^TYMC-/,'tymetro_');
-		else if(/^KLRT-/.test(uid)) uid = uid.replace(/^KLRT-/,'klrt_');
-		else if(/^THSR-/.test(uid)) uid = uid.replace(/^THSR-/,'thsr_');
+	if (/^TRA-|^TRTC-|^TMRT-|^KRTC-|^TYMC-|^NTMC-|^KLRT-|^THSR-/.test(uid)) {
+		if (/^TRA-/.test(uid)) uid = uid.replace(/^TRA-/, 'tra_');
+		else if (/^TRTC-/.test(uid)) uid = uid.replace(/^TRTC-/, 'trtc_');
+		else if (/^TMRT-/.test(uid)) uid = uid.replace(/^TMRT-/, 'tmrt_');
+		else if (/^KRTC-/.test(uid)) uid = uid.replace(/^KRTC-/, 'krtc_');
+		else if (/^TYMC-/.test(uid)) uid = uid.replace(/^TYMC-/, 'tymc_');
+		else if (/^NTMC-/.test(uid)) uid = uid.replace(/^NTMC-/, 'ntmc_');
+		else if (/^KLRT-/.test(uid)) uid = uid.replace(/^KLRT-/, 'klrt_');
+		else if (/^THSR-/.test(uid)) uid = uid.replace(/^THSR-/, 'thsr_');
 	}
 	let ary = uid.split('_');
 	let companyTag = ary[0];
-	let id = uid.replace(companyTag+'_','');
+	let id = uid.replace(companyTag + '_', '');
 	return {
 		company: companyTag,
 		id: id
@@ -54,9 +55,13 @@ const datax = {
 		station: krtc_station,
 		transfer: krtc_transfer
 	},
-	tymetro: {
-		line: tymetro_line,
-		station: tymetro_station
+	tymc: {
+		line: tymc_line,
+		station: tymc_station
+	},
+	ntmc: {
+		line: [],
+		station: []
 	},
 	thsr: {
 		station: thsr_station
@@ -66,23 +71,23 @@ const datax = {
 		station: tra_station,
 		train: tra_train
 	},
-	getLine: function(uid){
+	getLine: function (uid) {
 		let objA = getObjID(uid);
-		if(arguments.length==2){
-			objA = {company:arguments[0], id:arguments[1]}
+		if (arguments.length == 2) {
+			objA = { company: arguments[0], id: arguments[1] }
 		}
-		if(!this[objA.company]) throw  'Company ' + objA.company + ' is not defined. Error on datax.js getLine';
+		if (!this[objA.company]) throw 'Company ' + objA.company + ' is not defined. Error on datax.js getLine';
 		let lineAry = this[objA.company].line;
-		return lineAry.find((c)=>c.LineID==objA.id);
+		return lineAry.find((c) => c.LineID == objA.id);
 	},
-	getStation: function(uid){
+	getStation: function (uid) {
 		let objA = getObjID(uid);
-		if(arguments.length==2){
-			objA = {company:arguments[0], id:arguments[1]}
+		if (arguments.length == 2) {
+			objA = { company: arguments[0], id: arguments[1] }
 		}
-		if(!this[objA.company]) throw  'Company ' + objA.company + ' is not defined. Error on datax.js getStation';
+		if (!this[objA.company]) throw 'Company ' + objA.company + ' is not defined. Error on datax.js getStation';
 		let stAry = this[objA.company].station;
-		return stAry.find((c)=>c.StationID==objA.id);
+		return stAry.find((c) => c.StationID == objA.id);
 	}
 }
 

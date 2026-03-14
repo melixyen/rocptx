@@ -21,7 +21,7 @@ Primary rule: **reuse the current `src/*.js` structure; do not invent a new arch
 ### Transport wrappers
 - `src/bus.js`
 - `src/metro.js`
-- `src/trtc.js`, `src/tmrt.js`, `src/krtc.js`, `src/tymetro.js`, `src/klrt.js`
+- `src/trtc.js`, `src/tmrt.js`, `src/krtc.js`, `src/tymc.js`, `src/klrt.js`
 - `src/thsr.js`
 - `src/tra.js`
 - `src/afr.js`
@@ -105,6 +105,17 @@ Most transport modules follow this structure:
 - Bus v2 also uses `manageBy = 'City' | 'InterCity'`
 - do **not** copy another module's config style into the current file unless the file already uses it
 
+### Dynamic parameter functions (`_Xxx` with URL variables)
+
+Auto-generated `_Xxx` wrappers for URLs containing `{Key}` path variables support two calling conventions:
+
+1. **Positional arguments** (original style): `tra.v3._ODFareFromTo('0920', '0950', cfg)`
+2. **Object argument** (new style): `tra.v3._ODFareFromTo({ OriginStationID: '0920', DestinationStationID: '0950' }, cfg)`
+
+Detection rule: if the first argument is a non-null object and contains at least one key matching a URL variable name, the function uses object mapping. Otherwise it falls back to positional arguments.
+
+This applies to all files with auto-generated dynamic parameter functions: `tra.js`, `thsr.js`, `bus.js`, `afr.js`.
+
 ---
 
 ## When to add higher-level helpers
@@ -181,7 +192,7 @@ Use it when the task is to run `rocptx` from Node in a scriptable / CLI form, in
 ### Purpose and boundaries
 - keep Node automation code in `nodejs/`
 - keep SDK implementation in `src/`
-- keep compiled library output in `dist/rocptx.js`
+- keep compiled library output in `dist/ptx.js` (Main build target)
 - do **not** bundle `nodejs/` automation code into `dist`
 - do **not** move Node runtime shims back into `src/` unless the task is explicitly to make the SDK itself natively Node-first
 
@@ -189,6 +200,41 @@ Use it when the task is to run `rocptx` from Node in a scriptable / CLI form, in
 - `nodejs/runtime.js`: installs a Node-side `XMLHttpRequest` shim backed by `fetch`, loads `dist/rocptx.js`, and initializes token auth
 - `nodejs/auto-crawler.js`: crawler classes and CLI entrypoint
 - `nodejs/auto-crawler.test.js`: live integration-style smoke tests through the crawler layer
+- `nodejs/catch.js`: CLI tool for downloading data bundles (`--catch`) and calling individual API endpoints (`--urls`)
+- `nodejs/catch.md`: usage documentation for `catch.js`
+
+### catch.js CLI
+
+`catch.js` supports two primary actions: downloading static data bundles and invoking individual API endpoints with dynamic URL parameters.
+
+#### Primary actions (exactly one required)
+- `--help`: display usage help
+- `--catch <type>`: download a static data bundle (e.g. `line`, `station`, `timetable`)
+- `--urls <API> [$Key=Value ...]`: call a specific API endpoint with dynamic URL variable substitution
+
+#### Common options
+- `--company <name>`: **(required)** target transport company (`trtc`, `krtc`, `tymc`, `ntmc`, `tmrt`, `klrt`, `thsrv2`, `tra`, `trav3`)
+- `--download`: save result to `download/` directory as JSON file; without this flag result prints to stdout
+- `--ver <num>`: select API version for `--urls` (e.g. `--ver 3` uses `v3urls`)
+- `--filename <name>`: custom output filename (default: `{company}.{action}.json`)
+- `--AppID <id>`, `--AppKey <key>`: override API credentials
+
+#### `--urls` variable substitution rules
+- `$Key=Value` arguments must immediately follow `--urls <API>` with no `--` flags in between
+- every `$Key` must map to a `{Key}` in the API URL; unmatched keys cause an error
+- every `{Key}` in the API URL must have a corresponding `$Key=Value`; missing keys cause an error
+
+#### Examples
+```bash
+# Download TRA line bundle
+node catch.js --download --catch line --company tra
+
+# Query TRA v3 OD fare (print to stdout)
+node catch.js --urls ODFareFromTo $OriginStationID=0920 $DestinationStationID=0950 --company tra --ver 3
+
+# Query and save THSR OD fare
+node catch.js --download --urls ODFareFromTo $OriginStationID=0990 $DestinationStationID=1070 --company thsrv2
+```
 
 ### Required loading flow
 When working on the Node automation layer, preserve this order:
@@ -200,9 +246,15 @@ When working on the Node automation layer, preserve this order:
 5. call crawler methods, not raw SDK calls from the CLI surface
 
 ### Build and run commands
-- build Node-loadable compiled SDK: `npm run build:node-lib`
-- run crawler tests: `npm run test:nodejs`
-- run one crawler action manually: `node nodejs/auto-crawler.js <crawler> <action> [args...]`
+> [!IMPORTANT]
+> `npm run umd3` 是本專案最主要的編譯指令，會產生 UMD 格式的 `dist/ptx.js`，供瀏覽器及 Node.js runtime 使用。
+
+- 主要編譯指令 (UMD): `npm run umd3` (輸出至 `dist/ptx.js`)
+- 編譯 Node-loadable CJS 版本: `npm run build:node-lib` (輸出至 `dist/rocptx.js`)
+- 編譯瀏覽器最佳化 UMD 版本: `npm run build` (帶 minifiy，輸出至 `dist/ptx.min.js`)
+- 執行 crawler 測試: `npm run test:nodejs`
+- 指令式執行單一 Action: `node nodejs/auto-crawler.js <crawler> <action> [args...]`
+- 執行 catch.js: `node nodejs/catch.js <action> [options]`
 
 ### Credentials
 - prefer `ROCPTX_APP_ID` and `ROCPTX_APP_KEY` from environment when running Node automation
@@ -214,7 +266,7 @@ When working on the Node automation layer, preserve this order:
 - if the user asks for new crawler capabilities, add or extend crawler wrapper methods instead of exposing raw SDK internals directly in tests or CLI code
 - preserve the pattern `createCrawler()` / `createAllCrawlers()` for mounting automation classes
 - keep the CLI thin: parse args, resolve crawler, call method, print JSON
-- if `dist/rocptx.js` is missing, build it through the package script instead of hand-writing or copying bundle output
+- if `dist/rocptx.js` is missing, build it through `npm run build:node-lib` instead of hand-writing or copying bundle output
 
 ---
 

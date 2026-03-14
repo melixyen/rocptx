@@ -7,7 +7,7 @@ const crawlers = createAllCrawlers();
 const metroAndTraCrawlers = [
     ['trtc', crawlers.trtc],
     ['krtc', crawlers.krtc],
-    ['tymetro', crawlers.tymetro],
+    ['tymc', crawlers.tymc],
     ['tmrt', crawlers.tmrt],
     ['klrt', crawlers.klrt],
     ['tra', crawlers.tra],

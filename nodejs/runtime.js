@@ -127,7 +127,7 @@ async function getRocptx() {
         rocptxPromise = (async () => {
             installXMLHttpRequest();
 
-            const distEntry = path.resolve(__dirname, '../dist/rocptx.js');
+            const distEntry = path.resolve(__dirname, '../dist/ptx.js');
             if (!fs.existsSync(distEntry)) {
                 throw new Error(`Missing compiled library at ${distEntry}. Run \"npm run build:node-lib\" first.`);
             }

@@ -62,3 +62,7 @@ typings/
 
 # dev path
 distdev/
+
+# nodejs download folder
+nodejs/download/
+download/

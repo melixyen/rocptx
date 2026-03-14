@@ -51,8 +51,12 @@ class KrtcCrawler extends BaseMetroCrawler {
     constructor() { super('krtc'); }
 }
 
-class TymetroCrawler extends BaseMetroCrawler {
-    constructor() { super('tymetro'); }
+class TymcCrawler extends BaseMetroCrawler {
+    constructor() { super('tymc'); }
+}
+
+class NtmcCrawler extends BaseMetroCrawler {
+    constructor() { super('ntmc'); }
 }
 
 class TmrtCrawler extends BaseMetroCrawler {
@@ -133,7 +137,8 @@ function createAllCrawlers() {
     return {
         trtc: new TrtcCrawler(),
         krtc: new KrtcCrawler(),
-        tymetro: new TymetroCrawler(),
+        tymc: new TymcCrawler(),
+        ntmc: new NtmcCrawler(),
         tmrt: new TmrtCrawler(),
         klrt: new KlrtCrawler(),
         thsrv2: new ThsrV2Crawler(),
@@ -188,7 +193,8 @@ module.exports = {
     BaseMetroCrawler,
     TrtcCrawler,
     KrtcCrawler,
-    TymetroCrawler,
+    TymcCrawler,
+    NtmcCrawler,
     TmrtCrawler,
     KlrtCrawler,
     ThsrV2Crawler,

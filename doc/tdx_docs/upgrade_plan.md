@@ -27,7 +27,7 @@
 - `trtc`
 - `tmrt`
 - `krtc`
-- `tymetro`
+- `tymc`
 - `klrt`
 - `thsr`
 - `tra`
@@ -44,7 +44,7 @@
 3. `trtc`
 4. `tmrt`
 5. `krtc`
-6. `tymetro`
+6. `tymc`
 7. `klrt`
 8. `thsr`
 9. `tra`
@@ -57,7 +57,7 @@
 3. `trtc`
 4. `tmrt`
 5. `krtc`
-6. `tymetro`
+6. `tymc`
 7. `klrt`
 8. `thsr.v2`
 9. `tra`（主要對應 v2）
@@ -66,7 +66,7 @@
 
 補充：
 
-- **捷運營運商封裝模組**共 **5 個**：`trtc` / `tmrt` / `krtc` / `tymetro` / `klrt`
+- **捷運營運商封裝模組**共 **5 個**：`trtc` / `tmrt` / `krtc` / `tymc` / `klrt`
 - **明確可辨識的共用 base class** 主要為 **1 個**：`metro.baseMethod`
 
 ### 4. `doc/tdx_docs` 文件與 JSON 資源數量
@@ -88,7 +88,7 @@
 
 | 文件 | 路徑數 | 與目前 SDK 關係 | 判定 |
 |---|---:|---|---|
-| `公共運輸_軌道_v2.json` | 79 | 對應 `metro` / `trtc` / `tmrt` / `krtc` / `tymetro` / `klrt` / `thsr.v2` / `tra(v2)` | 部分對應 |
+| `公共運輸_軌道_v2.json` | 79 | 對應 `metro` / `trtc` / `tmrt` / `krtc` / `tymc` / `klrt` / `thsr.v2` / `tra(v2)` | 部分對應 |
 | `公共運輸_軌道_v3.json` | 49 | 對應 `tra.v3`、`afr.v3` | 已對應 |
 | `公共運輸_公車_v2.json` | 79 | 對應 `bus`，但僅覆蓋 route / station / ETA / realtime 等核心群組 | 部分對應 |
 | `公共運輸_公車_v3.json` | 55 | 對應 `bus.v3`（一般 `CityBus`、`DRTS`、`Shuttle/Hospital`） | 已對應 |
@@ -114,7 +114,7 @@
 目前 SDK 明確已經建立出可對應到 TDX 文件的主軸如下：
 
 1. **捷運（Metro v2）**
-   - 對應模組：`metro` + `trtc` + `tmrt` + `krtc` + `tymetro` + `klrt`
+   - 對應模組：`metro` + `trtc` + `tmrt` + `krtc` + `tymc` + `klrt`
    - 對應文件：`公共運輸_軌道_v2.json` 的 `v2/Rail/Metro/*`
 
 2. **高鐵（THSR v2）**

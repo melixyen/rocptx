@@ -623,17 +623,36 @@ function attachBusV3Api(target, urlMap, autoKeyName){
         target['_' + fn] = function(){
             let ptr = 0;
             let arg = arguments;
-            if(arg.length < paramCount) throw('Lose parameter, need ' + paramAry.join());
+            
+            let isObjArgs = false;
+            let paramsObj = null;
+
+            if(arg.length > 0 && typeof arg[0] === 'object' && arg[0] !== null) {
+                if (paramAry.some(p => p in arg[0])) {
+                    isObjArgs = true;
+                    paramsObj = arg[0];
+                }
+            }
+
+            if(!isObjArgs && arg.length < paramCount) throw('Lose parameter, need ' + paramAry.join());
+            
             let url = urlAry.map(function(c){
                 if(/^\{/.test(c)){
                     let key = c.replace(/[{}]/g, '');
-                    let value = arg[ptr++];
+                    let value;
+                    if(isObjArgs) {
+                        if(paramsObj[key] === undefined) throw('Lose parameter, need ' + key);
+                        value = paramsObj[key];
+                    } else {
+                        value = arg[ptr++];
+                    }
                     if(key == 'City') return getBusV3City(value);
                     return encodeURI(value);
                 }
                 return c;
             }).join('/');
-            let cfg = arguments[paramCount];
+            
+            let cfg = isObjArgs ? arguments[1] : arguments[paramCount];
             cfg = setBusV3DefaultCfg(cfg);
             var param = processBusV3Cfg(cfg);
             return ptx.getPromiseURL(url + param, cfg);
