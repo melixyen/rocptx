@@ -99,6 +99,29 @@ function idTrans(objS) {
                 }
             }
             break;
+        case 'krtc':
+            stationAry = pData.krtc.station_ary;
+            stData = findData(stationAry, objS.fromType, objS.from);
+            if (stData) {
+                if (objS.returnType == 'string') {
+                    tmpA = stData[objS.toType];
+                    if (typeof (tmpA) == 'object' && tmpA.length && objS.LineID) {
+                        if (/^krtc/.test(objS.LineID)) {
+                            objS.LineID = findData(pData.krtc.line, 'id', objS.LineID)['LineID'];//如果給的是 rocptx 的路線 id 則於此處交換為 PTX 上操作 KRTC 的 LineID
+                        }
+                        var testReg = new RegExp('^' + objS.LineID + '[0-9]', 'i');
+                        var returnValue = tmpA.find(function (k) {
+                            return testReg.test(k);
+                        })
+                        rt = returnValue;
+                    } else {
+                        rt = stData[objS.toType];
+                    }
+                } else {
+                    rt = stData;
+                }
+            }
+            break;
         case 'ntmc':
             stationAry = pData.ntmc.station_ary;
             stData = findData(stationAry, objS.fromType, objS.from);
@@ -144,6 +167,13 @@ function mrtLineTrans(objS) {
             break;
         case "tymc":
             lineAry = pData.tymc.line;
+            lineData = findData(lineAry, objS.fromType, objS.value);
+            if (lineData) {
+                rt = (objS.returnType == 'string') ? lineData[objS.toType] : lineData;
+            }
+            break;
+        case "krtc":
+            lineAry = pData.krtc.line;
             lineData = findData(lineAry, objS.fromType, objS.value);
             if (lineData) {
                 rt = (objS.returnType == 'string') ? lineData[objS.toType] : lineData;
@@ -231,6 +261,25 @@ let tymc = {
     }
 }
 
+let krtc = {
+    getPTXV2: function (id, line) {
+        var param = { company: 'krtc', value: id, fromType: 'id', toType: 'StationID' };
+        if (line) {
+            param.LineID = line;
+        }
+        return idTrans(param);
+    },
+    getRPIDbyPTXV2: function (id) {
+        return idTrans({ company: 'krtc', value: id, fromType: 'StationID', toType: 'id' })
+    },
+    getLINE_LineIDbyRPID: function (id) {
+        return mrtLineTrans({ company: 'krtc', value: id, fromType: 'id', toType: 'LineID' })
+    },
+    getLINE_RPIDbyLineID: function (id) {
+        return mrtLineTrans({ company: 'krtc', value: id, fromType: 'LineID', toType: 'id' })
+    }
+}
+
 let ntmc = {
     getPTXV2: function (id, line) {
         var param = { company: 'ntmc', value: id, fromType: 'id', toType: 'StationID' };
@@ -256,6 +305,7 @@ let id = {
     thsr: thsr,
     tra: tra,
     trtc: trtc,
+    krtc: krtc,
     tymc: tymc,
     ntmc: ntmc,
     getMRTStationIDInWhatLine: getMRTStationIDInWhatLine

@@ -3,22 +3,9 @@ const path = require('node:path');
 
 const DRADRA_APP_ID_B64 = 'bWVsaXh5ZW4tNGE3MDA1YWQtMWE0Ny00NDAx';
 const DRADRA_APP_KEY_B64 = 'MjlhOTM4MzUtNDM4OS00M2EyLTljOGMtMzBmYjgyMDdmZTA2';
-const MAX_RETRY_COUNT = 4;
-const RETRYABLE_STATUS_CODES = new Set([429]);
 
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getRetryDelayMs(response, attempt) {
-    const retryAfter = Number(response.headers.get('retry-after'));
-    if (Number.isFinite(retryAfter) && retryAfter > 0) {
-        return retryAfter * 1000;
-    }
-
-    return 1200 * (attempt + 1);
-}
-
+// 註：429 rate limit 的自動重試已下沉到 rocptx library 本體（src/ptx.js 的 rateLimitRetry），
+//     這個 shim 只負責單純的 XHR ↔ fetch 轉接，避免兩層重試疊加。
 class FetchXMLHttpRequest {
     constructor() {
         this.readyState = 0;
@@ -30,6 +17,7 @@ class FetchXMLHttpRequest {
         this._method = 'GET';
         this._url = '';
         this._headers = {};
+        this._responseHeaders = null;
         this._listeners = new Map();
     }
 
@@ -49,11 +37,13 @@ class FetchXMLHttpRequest {
         this._headers[name] = value;
     }
 
-    async send(body) {
-        return this._sendWithRetry(body, 0);
+    getResponseHeader(name) {
+        if (!this._responseHeaders) return null;
+        const value = this._responseHeaders.get(name);
+        return value === undefined ? null : value;
     }
 
-    async _sendWithRetry(body, attempt) {
+    async send(body) {
         const controller = new AbortController();
         let timedOut = false;
         let timeoutHandle;
@@ -75,14 +65,10 @@ class FetchXMLHttpRequest {
 
             this.status = response.status;
             this.statusText = response.statusText;
+            this._responseHeaders = response.headers;
             this.responseText = await response.text();
             this.response = this.responseText;
             this.readyState = 4;
-
-            if (RETRYABLE_STATUS_CODES.has(this.status) && attempt < MAX_RETRY_COUNT) {
-                await sleep(getRetryDelayMs(response, attempt));
-                return this._sendWithRetry(body, attempt + 1);
-            }
 
             this._dispatch('load');
         } catch (error) {

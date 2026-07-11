@@ -1,8 +1,13 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.0.4",
   "info": {
     "title": "公共運輸-航運",
     "description": "本平臺提供涵蓋全國尺度之交通旅運資料服務API，歡迎各產政學單位介接使用。\n<br><span class=swagger-description-indicatation>利用本平臺開放資料進行各項應用服務開發時，請考量不同特性使用者(如：性別/身心障礙/老幼等)的需求，並歡迎回饋寶貴意見。</span>\n<br>計費方式：\n<br>計次：1,500次/1點\n<br>計量：150MB/1點\n---\n##### API使用說明與注意事項：\n1. 如您尚未註冊平臺會員帳號，或未以帳號登入，您將僅能以「訪客模式」使用平臺服務，包含：限以瀏覽器存取，限使用`【基礎服務】`，且限制每個呼叫來源端IP每日存取至多20次。。\n2. 如您已註冊平臺會員帳號，請務必確保在存取服務(包含瀏覽器、程式呼叫API)時帶入您的API金鑰，方能以「會員模式」使用完整平臺服務，包含平臺各類資料服務，如`【基礎服務】`、`【進階服務】`、`【加值服務】`、`【歷史服務】`、`【圖資服務】`、`【第三方服務】`等。\n3. 建議您立即[註冊平臺會員帳號](/register)，依您用量需求訂閱服務方案，並於[【會員中心->資料服務->API金鑰】](/user/dataservice/key)取得API金鑰(即Client Id和Client Secret資訊)。\n4. 會員訂閱服務方案之級別不同，將決定其API金鑰之存取頻率有不同限制，各個方案的存取頻率限制說明請參考[訂閱收費](/pricing)。\n5. 以瀏覽器帶入API金鑰之操作方式：請點選Swagger UI上的Authorize按鈕，依指示填入Client Id和Client Secret資訊並進行驗證，驗證完成後可開始於Swagger UI使用API。\n6. 以程式呼叫API帶入API金鑰之操作方式：請參考[範例程式](https://github.com/tdxmotc/SampleCode)。\n7. 不論您是以瀏覽器或是以程式呼叫API，所有服務存取行為均將被記錄並定期檢視，以確保系統資源使用的合理分配與避免遭受濫用。\n\nAPI OAS文本 :[請點我](https://tdx.transportdata.tw/webapi/File/Swagger/V3/38e6a4c2-5111-4449-8f37-6347caf4a7fc)",
+    "termsOfService": "https://tdx.transportdata.tw/term",
+    "contact": {
+      "name": "TDX客服信箱",
+      "email": "tdx@motc.gov.tw"
+    },
     "version": "v3"
   },
   "servers": [
@@ -17,6 +22,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得指定[航線]的全臺航運之每日班表資料",
+        "description": "指定全臺之航線與港口名稱、代碼、停靠站序、進出港時間、預估航行時間、班次代碼、發車班距、日期、方向及尖離峰狀態等每日航運詳細班表資訊。",
         "operationId": "Ship_RouteType_DailySchedule2_3260",
         "parameters": [
           {
@@ -153,6 +159,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得指定[航線類別]的全臺航運之每日班表資料",
+        "description": "取得指定航線類別之全臺航線與港口名稱、代碼、停靠站序、進出港時間、預估航行時間、班次代碼、發車班距、日期、方向及尖離峰狀態等每日航運詳細班表資訊。",
         "operationId": "Ship_RouteType_DailySchedule_3259",
         "parameters": [
           {
@@ -295,6 +302,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得指定[航線]的全臺航運之定期班表資料",
+        "description": "取得指定全臺航線與業者資訊、營運期間與方向，並提供停靠港口、進出港時間、預估航行時間、班次代碼及班距等詳細定期班表與發車頻率資料。",
         "operationId": "Ship_RouteType_GeneralSchedule2_3269",
         "parameters": [
           {
@@ -431,6 +439,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得指定[航線類別]的全臺航運之定期班表資料",
+        "description": "取得指定全臺航線與業者資訊、營運期間與方向，並提供停靠港口、進出港時間、預估航行時間、班次代碼及班距等詳細定期班表與發車頻率資料。",
         "operationId": "Ship_RouteType_GeneralSchedule_3268",
         "parameters": [
           {
@@ -573,6 +582,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得指定[航線類別]的全臺航運之航線資料",
+        "description": "取得指定航線類別之全臺航線名稱、代碼、營運業者、船舶資訊、起訖港口、營運狀態、日期、票價描述、航線種類、距離、描述及路線圖與氣象預報連結等詳細資料。",
         "operationId": "Ship_RouteType_Route_3257",
         "parameters": [
           {
@@ -715,6 +725,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得指定[航線類別]的全臺航運之票價資料",
+        "description": "取得指定航線類別之全臺航線港口名稱與代碼、航線與營運業者資訊、票價代碼與名稱、票種類型、費率等級、艙等、計費價格、方向性描述及起迄站間票價等詳細資料。",
         "operationId": "Ship_RouteTypel_ODFare_3266",
         "parameters": [
           {
@@ -854,6 +865,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得航運指定[起迄港間]之票價資料",
+        "description": "取得指定起訖港間之航線港口名稱與代碼、航線與營運業者資訊、票價代碼與名稱、票種類型、費率等級、艙等、計費價格、方向性描述及起迄站間票價等詳細資料。",
         "operationId": "Ship_ODFare_3267",
         "parameters": [
           {
@@ -998,6 +1010,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得指定[航線]的全臺航運之特殊班表資料",
+        "description": "取得指定之全臺航線名稱與代碼、停靠港口資訊、進離港時間、營運業者、特殊日期班表、服務日狀態、班距、營運有效期限等全臺航運特殊班表詳細資料。",
         "operationId": "Ship_RouteType_SpecificSchedule2_3262",
         "parameters": [
           {
@@ -1134,6 +1147,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得指定[航線類別]的全臺航運之特殊班表資料",
+        "description": "取得指定航線類別之全臺航線名稱與代碼、停靠港口資訊、進離港時間、營運業者、特殊日期班表、服務日狀態、班距、營運有效期限等全臺航運特殊班表詳細資料。",
         "operationId": "Ship_RouteType_SpecificSchedule_3261",
         "parameters": [
           {
@@ -1273,6 +1287,7 @@
           "Ship Advanced(By RouteType)"
         ],
         "summary": "取得指定[航線類別]之航線靠港順序資料",
+        "description": "取得指定航線類別之營運業者代碼與名稱、航線代碼與名稱、港口代碼與名稱、路線站序、業管機關簡碼及去返程方向性描述等詳細路線站序資料。",
         "operationId": "Ship_RouteType_StopOfRoute_3258",
         "parameters": [
           {
@@ -1415,6 +1430,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得航運(國內+國際)之營運通阻資料",
+        "description": "包含本島來回離島及小三通之航線代碼、營運業者、港口名稱，並提供通阻訊息代碼、標題、說明、發布單位、營運狀況、影響等級、原因、影響範圍、網址及訊息起訖與發佈時間等詳細資訊。",
         "operationId": "Ship_International_Alert_3254",
         "parameters": [
           {
@@ -1536,6 +1552,7 @@
           "Common"
         ],
         "summary": "取得業管機關資料",
+        "description": "包含業管機關簡碼、名稱、識別代碼、連絡電話、電子信箱、地址、官網網址及Logo網址等詳細資訊。",
         "operationId": "Ship_Basic_Authority_3236",
         "parameters": [
           {
@@ -1660,6 +1677,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得國際航運之每日班表資料",
+        "description": "包含本島來回離島及小三通之航線與港口名稱、代碼、停靠站序、進出港時間、預估航行時間、班次代碼、發車班距、日期、方向及尖離峰狀態等每日航運詳細班表資訊。",
         "operationId": "Ship_International_DailySchedule_3252",
         "parameters": [
           {
@@ -1781,6 +1799,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得國際航運指定[航線]航運之每日班表資料",
+        "description": "取得指定之本島來回離島及小三通航線與港口代碼、名稱、停靠站序、進出港時間、預估航行時間、班次代碼、營運定期班表、發車班距、營運業者、航行日期及去返程方向等詳細資訊。",
         "operationId": "Ship_International_DailySchedule_3252_1",
         "parameters": [
           {
@@ -1913,6 +1932,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得國際航運之定期班表資料",
+        "description": "包含本島來回離島及小三通航線與業者資訊、營運期間與方向，並提供停靠港口、進出港時間、預估航行時間、班次代碼及班距等詳細定期班表與發車頻率資料。",
         "operationId": "Ship_International_GeneralSchedule_3251",
         "parameters": [
           {
@@ -2034,6 +2054,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得國際航運指定[航線]航運之定期班表資料",
+        "description": "取得指定之本島來回離島及小三通航線與業者資訊、營運期間與方向，並提供停靠港口、進出港時間、預估航行時間、班次代碼及班距等詳細定期班表與發車頻率資料。",
         "operationId": "Ship_International_GeneralSchedule_3251_1",
         "parameters": [
           {
@@ -2165,7 +2186,8 @@
         "tags": [
           "Ship (Domestic + International)"
         ],
-        "summary": "取得航運(國內+國際))之即時到離港資料",
+        "summary": "取得航運(國內+國際)之即時到離港資料",
+        "description": "包含本島來回離島及小三通航線之港口名稱與代碼、航線及船舶資訊、表訂與實際到離港時間、預估時間、航班狀態備註、取消原因、異動通知、航行日期及到離港即時看板資訊。",
         "operationId": "Ship_International_LiveBoard_3270",
         "parameters": [
           {
@@ -2287,6 +2309,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得航運(國內+國際)之船舶即時位置資料",
+        "description": "包含本島來回離島及小三通航線之船舶經緯度、代碼、名稱、位置、航行狀態、對地航速與航向、船舶種類及GPS記錄時間等即時資訊。",
         "operationId": "Ship_International_LivePosition_3237",
         "parameters": [
           {
@@ -2408,6 +2431,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得航運(國內+國際)之最新消息資料",
+        "description": "包含本島來回離島及小三通航線之消息代碼、語系、發布單位、營運業者代碼、標題、類別、內容描述、聯絡人與電話、消息及附件網址，以及消息的起始、結束、發布與更新時間。",
         "operationId": "Ship_International_News_3255",
         "parameters": [
           {
@@ -2529,6 +2553,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得國際航運之營運業者資料",
+        "description": "包含本島來回離島及小三通航線之營運業者代碼、名稱、Logo與統一編號，聯絡電話、電子信箱與地址，以及官方網站、票價查詢、訂票網站與訂票電話等詳細資料。",
         "operationId": "Ship_International_Operator_3232",
         "parameters": [
           {
@@ -2650,6 +2675,7 @@
           "Common"
         ],
         "summary": "取得港口資料",
+        "description": "包含港口經緯度、代碼、名稱、座標、地址、聯繫電話、官網網址，以及所屬城市與國家的名稱及代碼等詳細資訊。",
         "operationId": "Ship_Basic_Port_3231",
         "parameters": [
           {
@@ -2779,6 +2805,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得航運(國內+國際)之航線資料",
+        "description": "包含本島來回離島及小三通航線營運業者、船舶資訊、航線名稱與代碼、起訖港口、營運狀態、非營運期間、航線種類、票價描述、航線哩程及氣象預報連結等詳細資料。",
         "operationId": "Ship_International_Route_3233",
         "parameters": [
           {
@@ -2900,6 +2927,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得航運(國內+國際)之票價資料",
+        "description": "包含本島來回離島及小三通航線之營運業者、港口名稱、航線與票價代碼、票種、費率等級、艙等、價格、方向性、起迄港口及站間票價等詳細資訊。",
         "operationId": "Ship_International_ODFare_3264",
         "parameters": [
           {
@@ -3021,6 +3049,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得航運(國內+國際))之即時客位資料",
+        "description": "包含本島來回離島及小三通航線之代碼、艙等、客位數、訂位與劃位數、售票狀態、船舶名稱與代碼、目的地港口、離港時間、航班行駛狀態等即時客位與航運資訊。",
         "operationId": "Ship_International_SeatAvailability_3271",
         "parameters": [
           {
@@ -3142,6 +3171,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得航運(國內+國際)之航線靠港順序資料",
+        "description": "包含本島來回離島及小三通航線之營運業者代碼與名稱、航線代碼與名稱、港口代碼與名稱、路線站序、業管機關簡碼及去返程方向性描述等詳細路線站序資料。",
         "operationId": "Ship_International_StopOfRoute_3234",
         "parameters": [
           {
@@ -3263,6 +3293,7 @@
           "Ship (Domestic + International)"
         ],
         "summary": "取得航運(國內+國際)之船舶資料",
+        "description": "包含本島來回離島及小三通航線之船舶代碼、AIS與國際編號、台灣船號、船呼、名稱、國籍、營運業者代碼、總噸位、船長、船寬、最大載客數、分類、吃水深度及備註等詳細資料。",
         "operationId": "Ship_International_Vessel_3235",
         "parameters": [
           {
@@ -3384,6 +3415,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之營運通阻資料",
+        "description": "包含縣市航線之航線代碼、營運業者、港口名稱，並提供通阻訊息代碼、標題、說明、發布單位、營運狀況、影響等級、原因、影響範圍、網址及訊息起訖與發佈時間等詳細資訊。",
         "operationId": "Ship_Domestic_Alert_3247",
         "parameters": [
           {
@@ -3518,6 +3550,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之每日班表資料",
+        "description": "包含縣市之航線與港口名稱、代碼、停靠站序、進出港時間、預估航行時間、班次代碼、發車班距、日期、方向及尖離峰狀態等每日航運詳細班表資訊。",
         "operationId": "Ship_Domestic_DailySchedule_3245",
         "parameters": [
           {
@@ -3654,6 +3687,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市],[航線]之每日班表資料",
+        "description": "取得指定之縣市航線與港口代碼、名稱、停靠站序、進出港時間、預估航行時間、班次代碼、營運定期班表、發車班距、營運業者、航行日期及去返程方向等詳細資訊。",
         "operationId": "Ship_Domestic_DailySchedule_3245_1",
         "parameters": [
           {
@@ -3801,6 +3835,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之定期班表資料",
+        "description": "取得指定全臺航線與業者資訊、營運期間與方向、並提供停靠港口、進出港時間、預估航行時間、班次代碼與班次等詳細定期班表資料。",
         "operationId": "Ship_Domestic_GeneralSchedule_3244",
         "parameters": [
           {
@@ -3939,6 +3974,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市],[航線]之定期班表資料",
+        "description": "取得指定之縣市航線與業者資訊、營運期間與方向，並提供停靠港口、進出港時間、預估航行時間、班次代碼及班距等詳細定期班表與發車頻率資料。",
         "operationId": "Ship_Domestic_GeneralSchedule_3244_1",
         "parameters": [
           {
@@ -4088,6 +4124,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之即時到離港資料",
+        "description": "包含縣市航線之港口名稱與代碼、航線及船舶資訊、表訂與實際到離港時間、預估時間、航班狀態備註、取消原因、異動通知、航行日期及到離港即時看板資訊。",
         "operationId": "Ship_Domestic_LiveBoard_3272",
         "parameters": [
           {
@@ -4222,6 +4259,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之最新消息資料",
+        "description": "包含縣市航線之消息代碼、語系、發布單位、營運業者代碼、標題、類別、內容描述、聯絡人與電話、消息及附件網址，以及消息的起始、結束、發布與更新時間。",
         "operationId": "Ship_Domestic_News_3248",
         "parameters": [
           {
@@ -4357,6 +4395,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之航運營運業者資料",
+        "description": "包含縣市航線之營運業者代碼、名稱、Logo與統一編號，聯絡電話、電子信箱與地址，以及官方網站、票價查詢、訂票網站與訂票電話等詳細資料。",
         "operationId": "Ship_Domestic_Operator_3238",
         "parameters": [
           {
@@ -4497,6 +4536,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之航線資料",
+        "description": "包含縣市航線之營運業者、船舶資訊、航線名稱與代碼、起訖港口、營運狀態、非營運期間、航線種類、票價描述、航線哩程及氣象預報連結等詳細資料。",
         "operationId": "Ship_Domestic_Route_3239",
         "parameters": [
           {
@@ -4637,6 +4677,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之票價資料",
+        "description": "包含縣市航線之營運業者、港口名稱、航線與票價代碼、票種、費率等級、艙等、價格、方向性、起迄港口及站間票價等詳細資訊。",
         "operationId": "Ship_Domestic_ODFare_3242",
         "parameters": [
           {
@@ -4775,6 +4816,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之特殊班表資料",
+        "description": "包含縣市航線名稱與代碼、停靠港口資訊、進離港時間、營運業者、特殊日期班表、服務日狀態、班距、營運有效期限等航運特殊班表詳細資料。",
         "operationId": "Ship_Domestic_SpecificSchedule_3246",
         "parameters": [
           {
@@ -4909,6 +4951,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市],[航線]之特殊班表資料",
+        "description": "取得指定之縣市航線名稱與代碼、停靠港口資訊、進離港時間、營運業者、特殊日期班表、服務日狀態、班距、營運有效期限等航運特殊班表詳細資料。",
         "operationId": "Ship_Domestic_SpecificSchedule_3246_1",
         "parameters": [
           {
@@ -5054,6 +5097,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之航線靠港順序資料",
+        "description": "包含縣市航線之營運業者代碼與名稱、航線代碼與名稱、港口代碼與名稱、路線站序、業管機關簡碼及去返程方向性描述等詳細路線站序資料。",
         "operationId": "Ship_Domestic_StopOfRoute_3240",
         "parameters": [
           {
@@ -5193,6 +5237,7 @@
           "DomesticShip"
         ],
         "summary": "取得指定[縣市]之船舶資料",
+        "description": "包含縣市航線之船舶代碼、AIS與國際編號、台灣船號、船呼、名稱、國籍、營運業者代碼、總噸位、船長、船寬、最大載客數、分類、吃水深度及備註等詳細資料。",
         "operationId": "Ship_Domestic_Vessel_3241",
         "parameters": [
           {

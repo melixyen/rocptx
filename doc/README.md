@@ -45,6 +45,12 @@ doc/
 | `doc/tdx_docs/upgrade_plan.md` | 缺口盤點與升級規劃 | `src/*.js` + `tdx_docs/*.json` |
 | `doc/tdx_docs/*.json` | TDX 原始規格 | TDX 文件本身 |
 
+## 靜態資料更新
+
+- `npm run datax:refresh`：一鍵更新 `src/datax/*.json`（抓取 → 契約驗證 → 測試 → 打包）
+- 契約定義在 `nodejs/datax-schema.js`（記錄 SDK 使用的欄位），程式若新讀取欄位須同步補契約
+- 詳細說明見 `README.md` 的「靜態資料（datax）更新流程」
+
 ## 維護原則
 
 1. **SDK 原始碼優先**：方法名、命名空間與匯出結構以 `src/*.js` 為準
@@ -55,6 +61,10 @@ doc/
 
 ## 本輪已整理的重點
 
+- 2026-07-10：18 份 TDX Swagger JSON 全數刷新為線上最新版，`tdx.md` 重新生成
+- 2026-07-10：SDK 補齊新端點（`bus.v3.drts` 新群組、`bus.v3.shuttleSciencePark`、`metro._TransferStations`、`rail.v2`），並將 `ntmc`、`rail` 納入文件
+- 2026-07-10（第二批）：修正 Bus v2 舊方法 InterCity 路徑組法並補 2 組 Streaming、THSR 補至 30/30 全覆蓋、Metro 補 `News` / `StationPlatform` / `StoppingPattern`、`rail.v2` 補 `Operator`；upgrade_plan 6.1 待辦全數完成
+- 規格格式 / 參數變更明細（THSR `Items` 更名等）記錄於 `upgrade_plan.md` 第 7.3 節
 - 補回 `tmrt`、`thsr`、`router`、`id` 等實際公開模組說明
 - 將 `API_MAPPING.md` 改為目前 SDK 的方法索引，而非舊版概述文
 - 將 `router` 改為實際的 `bus / v1 / v2` 結構描述
@@ -70,4 +80,4 @@ doc/
 3. `README.md` 是否有對外說明需要同步
 4. `doc/tdx_docs/upgrade_plan.md` 是否需要更新缺口與優先級
 
-最後更新：2026-03-09
+最後更新：2026-07-10

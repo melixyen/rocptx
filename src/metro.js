@@ -22,6 +22,10 @@ const urls = {
     LivePosition: metroURL + '/LivePosition/', //取得列車即時位置資料
     StationTimeTable: metroURL + '/StationTimeTable/', //取得捷運站別時刻表資料
     StationTransfer: metroURL + '/StationTransfer/', //取得捷運車站跨運具轉乘資料
+    TransferStations: metroURL + '/TransferStations/', //取得指定捷運共站站點資料(RailSystem 限 TRTC_NTMC、KRTC)
+    News: metroURL + '/News/', //取得捷運最新消息資料
+    StationPlatform: metroURL + '/StationPlatform/', //取得捷運車站月台資訊資料(RailSystem 限 KLRT)
+    StoppingPattern: metroURL + '/StoppingPattern/', //取得捷運停靠模式資料(RailSystem 限 TYMC)
     Shape: metroURL + '/Shape/' //取得指定營運業者之軌道路網實體路線圖資資料
 }
 const companyTag = {
@@ -588,6 +592,7 @@ class baseMethod {
                             }).then(function (data) {//合併
                                 return promiseCatchLineCombine(json, data, 'Transfer', 'FromLineID');
                             }).catch(function () {
+                                json.forEach(function (c) { if (!c.Transfer) c.Transfer = []; });//API 不支援該營運商時保底空陣列
                                 return json;
                             })
                     }).then(function (json) {//抓站間距
@@ -624,17 +629,19 @@ class baseMethod {
                                         c.AveMins = Math.ceil((parseInt(c.MinHeadwayMins) + parseInt(c.MaxHeadwayMins)) / 2)
                                         return c;
                                     });
-                                    let tmpSD = rt.ServiceDays;
+                                    let tmpSD = rt.ServiceDay || rt.ServiceDays;//TDX 現行欄位為 ServiceDay(單數)，輸出維持舊格式 ServiceDays
                                     rt.ServiceDays = {
                                         ServiceTag: tmpSD.ServiceTag,
                                         NationalHolidays: tmpSD.NationalHolidays,
                                         week: [tmpSD.Sunday, tmpSD.Monday, tmpSD.Tuesday, tmpSD.Wednesday, tmpSD.Thursday, tmpSD.Friday, tmpSD.Saturday]
                                     }
+                                    delete rt.ServiceDay;
                                     return rt;
                                 });
                             }).then(function (data) {//合併
                                 return promiseCatchLineCombine(json, data, 'Frequency');
                             }).catch(function () {
+                                json.forEach(function (c) { if (!c.Frequency) c.Frequency = []; });//API 不支援該營運商時保底空陣列
                                 return json;
                             })
                     }).then(function (json) {
@@ -761,6 +768,7 @@ class baseMethod {
                     })
             },
             TimeSimple: function (progressFn) {
+                if (typeof (progressFn) != 'function') progressFn = (msg) => { };
                 return catchData.TimeTable(progressFn).then(function (json) {
                     progressFn('簡化輸出格式');
                     json.forEach((station, idx, arr) => {
@@ -771,7 +779,8 @@ class baseMethod {
                                 rt.LineID = data.LineID;
                                 rt.Direction = [[], []];//Direction 0 與 1 直接分配到陣列的 0 跟 1
                             }
-                            let weekStr = [data.ServiceDays.Sunday, data.ServiceDays.Monday, data.ServiceDays.Tuesday, data.ServiceDays.Wednesday, data.ServiceDays.Thursday, data.ServiceDays.Friday, data.ServiceDays.Saturday].map((day, idx) => { return (day) ? idx.toString() : '' }).join('');
+                            let sd = data.ServiceDay || data.ServiceDays;//TDX 現行欄位為 ServiceDay(單數)
+                            let weekStr = [sd.Sunday, sd.Monday, sd.Tuesday, sd.Wednesday, sd.Thursday, sd.Friday, sd.Saturday].map((day, idx) => { return (day) ? idx.toString() : '' }).join('');
                             let TrainType = undefined;
                             let Timetables = data.Timetables.map((time) => { if (time.TrainType) { TrainType = time.TrainType; }; return time.DepartureTime });
                             rt.Direction[data.Direction].push({

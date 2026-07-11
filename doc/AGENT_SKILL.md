@@ -21,15 +21,24 @@ Primary rule: **reuse the current `src/*.js` structure; do not invent a new arch
 ### Transport wrappers
 - `src/bus.js`
 - `src/metro.js`
-- `src/trtc.js`, `src/tmrt.js`, `src/krtc.js`, `src/tymc.js`, `src/klrt.js`
+- `src/trtc.js`, `src/tmrt.js`, `src/krtc.js`, `src/tymc.js`, `src/klrt.js`, `src/ntmc.js`
 - `src/thsr.js`
 - `src/tra.js`
 - `src/afr.js`
+- `src/rail.js` (cross-system rail queries, `rail.v2`)
 
 ### Support layers
 - `src/id.js`: station / line / version ID conversion
 - `src/router.js`, `src/router.v2.js`, `src/router.bus.js`: routing / transfer logic
-- `src/data.js`, `src/datax.js`: static or enriched data
+- `src/data.js`, `src/datax.js`: static or enriched data (datax also exposes out_data loaders)
+
+### Static data tiers & update pipeline
+- **Tier rule**: `src/datax/` = bundled into the library, loaded eagerly; `out_data/` = NOT imported, pure data storage, cloned to `dist/out_data/` at build time, loaded on demand via `datax.loadOutDataByFile` (Node fs) / `datax.loadOutDataByURL` (fetch) / `datax.attachData`.
+- **Moving a pack between tiers**: change its `location` in `nodejs/datax-runner.js` manifest, move the JSON file, and add/remove the import in `src/datax.js` if it enters/leaves the datax tier.
+- `nodejs/update-datax.js` (datax tier) and `nodejs/catch_out_data.js` (out_data tier): thin CLIs over `nodejs/datax-runner.js`; `npm run datax:refresh` runs both + tests + full build.
+- `nodejs/datax-schema.js`: field contract of every data file — the fields SDK actually reads. New data must pass this contract before being written. **When code starts reading a new field from a data file, add it to the contract.**
+- `nodejs/datax-contract.test.js`: every JSON in both tiers must have a contract entry and pass it; a pack must not exist in both tiers (enforced in `test:unit`).
+- Never overwrite existing data unless fresh data was fetched AND passed the contract (existing-data-preservation principle).
 
 ### Export and packaging
 - `src/main.js`: public export aggregator
@@ -47,6 +56,7 @@ Primary rule: **reuse the current `src/*.js` structure; do not invent a new arch
    - THSR → `src/thsr.js`
    - TRA → `src/tra.js`
    - AFR → `src/afr.js`
+   - Cross-system rail (`/v2/Rail/*` shared paths) → `src/rail.js`
 2. **Choose version**
    - keep v2 / v3 namespace boundaries intact
 3. **Choose layer**
@@ -58,6 +68,8 @@ Primary rule: **reuse the current `src/*.js` structure; do not invent a new arch
 5. **Choose support layer only if needed**
    - ID conversion → `src/id.js`
    - reshaped or merged data → `catchData`
+6. **Domain not covered by any module yet (bike, air, ship, parking, GIS, tourism, road, APS, ...)**
+   - Do NOT build a new module speculatively. Use `rocptx.req(path, parameters, options)` (defined in `src/ptx.js`) to call the endpoint directly from its Swagger path — it exists exactly for this case. Only promote it into a proper module once there is real, repeated usage.
    - path search / transfer inference → `router*`
 
 ---
@@ -114,7 +126,7 @@ Auto-generated `_Xxx` wrappers for URLs containing `{Key}` path variables suppor
 
 Detection rule: if the first argument is a non-null object and contains at least one key matching a URL variable name, the function uses object mapping. Otherwise it falls back to positional arguments.
 
-This applies to all files with auto-generated dynamic parameter functions: `tra.js`, `thsr.js`, `bus.js`, `afr.js`.
+This applies to all files with auto-generated dynamic parameter functions: `tra.js`, `thsr.js`, `bus.js`, `afr.js`, `rail.js`.
 
 ---
 

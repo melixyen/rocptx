@@ -13,6 +13,7 @@ import klrt from './klrt.js';
 import thsr from './thsr.js';
 import tra from './tra.js';
 import afr from './afr.js';
+import rail from './rail.js';
 import ntmc from './ntmc.js';
 import router from './router.js';
 import jsSHA from './jsSHA';
@@ -36,6 +37,7 @@ var combine = {
 	tra: tra,
 	ntmc: ntmc,
 	afr: afr,
+	rail: rail,
 	router: router,
 	jsSHA: jsSHA,
 	id: id,

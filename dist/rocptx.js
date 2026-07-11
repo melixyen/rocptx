@@ -6382,6 +6382,7 @@ CM.CONST_TDX_LEVEL_MAAS = '/maas'; // CM.v2url = 'https://ptx.transportdata.tw/M
 // === Basic ===
 
 var basicAPI = CM.CONST_TDX_API_URL + CM.CONST_TDX_LEVEL_BASIC;
+CM.railV2URL = basicAPI + '/v2/Rail';
 CM.metroURL = basicAPI + '/v2/Rail/Metro';
 CM.busURL = basicAPI + '/v2/Bus';
 CM.busV3URL = basicAPI + '/v3/Bus';
@@ -6947,6 +6948,154 @@ var fnTRTC = function fnTRTC() {
   return ptx.trtc;
 };
 
+var REQ_LEVEL_MAP = {
+  basic: CM.CONST_TDX_LEVEL_BASIC,
+  advanced: CM.CONST_TDX_LEVEL_ADVANCED,
+  premium: CM.CONST_TDX_LEVEL_PREMIUM,
+  historical: CM.CONST_TDX_LEVEL_HISTORICAL,
+  maas: CM.CONST_TDX_LEVEL_MAAS
+}; //========== TDX rate limit（429）自動重試 ==========
+//TDX 對任一 API 都可能回 429 API rate limit exceeded；底層（getURL / getPromiseURL）
+//攔截後依 rateLimitRetry.delays 指數退避重試，整個機制跑完才 callback / resolve / reject。
+//判斷回應是否為 rate limit（僅在非 200 的失敗回應上呼叫）
+//優先序：1. HTTP status 429  2. header 可識別項目（remaining=0）  3. response message
+
+function isRateLimitedXHR(target) {
+  if (target.status === 429) return true;
+
+  try {
+    if (typeof target.getResponseHeader == 'function') {
+      var remain = target.getResponseHeader('x-ratelimit-remaining-minute');
+      if (remain === null || remain === undefined) remain = target.getResponseHeader('ratelimit-remaining');
+      if (remain !== null && remain !== undefined && parseInt(remain, 10) === 0) return true;
+    }
+  } catch (e) {
+    /* 瀏覽器 CORS 未曝露 header 時可能拋錯，忽略改用下一層判斷 */
+  }
+
+  if (typeof target.response == 'string' && /API rate limit exceeded/i.test(target.response)) return true;
+  return false;
+} //取得本次重試前的等待毫秒數：以退避序列為基準，若 Retry-After header 更長則採用 header 值
+
+
+function getRateLimitDelay(target, attemptIdx) {
+  var delay = ptx.rateLimitRetry.delays[attemptIdx];
+
+  try {
+    if (ptx.rateLimitRetry.useRetryAfterHeader && typeof target.getResponseHeader == 'function') {
+      var ra = parseInt(target.getResponseHeader('retry-after'), 10);
+      if (ra > 0 && ra * 1000 > delay) delay = ra * 1000;
+    }
+  } catch (e) {
+    /* header 不可讀時維持退避序列 */
+  }
+
+  return delay;
+} //共用重試迴圈：sendFn(onDone) 負責發出一次請求並以 xhr target 回呼；
+//成功（status 200）或非 rate limit 失敗直接結束；rate limit 失敗依序列重試，
+//序列用完仍失敗才把最後一次的結果交給 finishFn(isSuccess, target, retryCount)
+
+
+function runWithRateLimitRetry(sendFn, finishFn) {
+  var attemptIdx = 0;
+
+  function run() {
+    sendFn(function (target) {
+      var isSuccess = !!(target.readyState == 4 && target.status == 200);
+
+      if (!isSuccess && ptx.rateLimitRetry.enabled && attemptIdx < ptx.rateLimitRetry.delays.length && isRateLimitedXHR(target)) {
+        var delay = getRateLimitDelay(target, attemptIdx);
+        attemptIdx++;
+        setTimeout(run, delay);
+        return;
+      }
+
+      finishFn(isSuccess, target, attemptIdx);
+    });
+  }
+
+  run();
+} //給 rocptx.req 用：若傳入的是字串（例如 CLI 參數、JSON.stringify 過的設定），自動 JSON.parse 成物件；
+//已是物件或未提供（undefined/null）則原樣通過，讓呼叫端可以直接傳 JS 物件或 JSON 字串兩種形式
+
+
+function parseIfJSONString(value, label) {
+  if (typeof value != 'string') return value;
+  var parsed;
+
+  try {
+    parsed = JSON.parse(value);
+  } catch (e) {
+    throw 'rocptx.req: ' + label + ' is a string but not valid JSON: ' + (e && e.message || e);
+  }
+
+  if (!parsed || _typeof(parsed) != 'object' || Array.isArray(parsed)) {
+    throw 'rocptx.req: ' + label + ' JSON string must parse to an object';
+  }
+
+  return parsed;
+} //給 rocptx.req 用：把 doc/tdx_docs 規格文件裡的 path 與 parameters 組成完整請求 URL
+//path 樣板變數（{Xxx}）與剩餘的查詢參數皆對應 TDX 文件 Parameters 表的 Name 欄，
+//查詢參數同時支援不帶 $ 的簡寫：select/filter/orderby/top/skip/format
+
+
+function buildReqURL(path, parameters, options) {
+  if (!path || typeof path != 'string') throw 'rocptx.req: path is required and must be a string';
+  parameters = CM.clone(parseIfJSONString(parameters, 'parameters') || {});
+  options = parseIfJSONString(options, 'options') || {};
+  var baseURL = '';
+
+  if (!/^https?:\/\//i.test(path)) {
+    if (options.baseURL) {
+      baseURL = options.baseURL.replace(/\/$/, '');
+    } else {
+      var level = REQ_LEVEL_MAP[options.level || 'basic'];
+      if (!level) throw 'rocptx.req: unknown options.level "' + options.level + '"';
+      baseURL = CM.CONST_TDX_API_URL + level;
+    }
+
+    if (!/^\//.test(path)) path = '/' + path;
+  } //代入 path 樣板參數（例如 {OriginStationID}），用掉的 key 從 parameters 移除，不會再被當成 query 參數
+
+
+  var usedKeys = [];
+  var finalPath = path.replace(/\{([^}]+)\}/g, function (match, key) {
+    if (parameters[key] === undefined) throw 'rocptx.req: missing path parameter "' + key + '" for ' + path;
+    usedKeys.push(key);
+    return encodeURI(parameters[key]);
+  });
+  usedKeys.forEach(function (k) {
+    delete parameters[k];
+  });
+  var shortMap = {
+    select: '$select',
+    filter: '$filter',
+    orderby: '$orderby',
+    orderBy: '$orderby',
+    top: '$top',
+    skip: '$skip',
+    format: '$format'
+  };
+  var queryAry = [];
+  var hasFormat = false;
+
+  for (var key in parameters) {
+    if (parameters[key] === undefined || parameters[key] === null) continue;
+    var qKey = /^\$/.test(key) ? key : shortMap[key] || key;
+    if (qKey == '$format') hasFormat = true;
+    queryAry.push(encodeURI(qKey + '=' + parameters[key]));
+  }
+
+  if (!hasFormat && (options.method || 'GET') == 'GET') queryAry.push('$format=' + (options.format || 'JSON'));
+  if (options.query) queryAry.push(options.query.replace(/^[?&]/, ''));
+  var url = baseURL + finalPath;
+  if (queryAry.length) url += '?' + queryAry.join('&');
+  return {
+    url: url,
+    options: options
+  };
+}
+
 var TOKEN_DEFAULT_VALUE = 'FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF';
 var cfgToken = {
   _id: TOKEN_DEFAULT_VALUE,
@@ -7074,6 +7223,13 @@ function defineObj() {
 var ptx = {
   statusCode: CM.statusCode,
   timeout: 30000,
+  //TDX rate limit（429）自動重試設定：delays 為每次重試前的等待毫秒（指數退避 1s→32s），
+  //序列用完仍失敗才回傳失敗；useRetryAfterHeader 為 true 時，Retry-After header 秒數大於退避值則採用 header 值
+  rateLimitRetry: {
+    enabled: true,
+    delays: [1000, 2000, 4000, 8000, 16000, 32000],
+    useRetryAfterHeader: true
+  },
   tempTimeTable: {},
   throwError: function throwError(str) {
     throw str;
@@ -7212,35 +7368,45 @@ var ptx = {
     runGet(mrtPTXAry);
   },
   getURL: function getURL(url, cbFn) {
-    function reqListener(xhr) {
+    function sendOnce(onDone) {
+      function reqListener(xhr) {
+        onDone(xhr.target);
+      }
+
+      var fm = new XMLHttpRequest();
+      fm.addEventListener("load", reqListener);
+      fm.addEventListener("error", reqListener);
+      fm.addEventListener("abort", reqListener);
+      fm.addEventListener("timeout", reqListener);
+      fm.open('GET', url);
+      fm.timeout = ptx.timeout;
+      var headerObj = ptx.GetAuthorizationHeaderTDX();
+
+      for (var k in headerObj) {
+        fm.setRequestHeader(k, headerObj[k]);
+      }
+
+      fm.send();
+    } //rate limit（429）自動重試，整個機制跑完才 callback
+
+
+    runWithRateLimitRetry(sendOnce, function (isSuccess, target, retryCount) {
       var event = {
-        xhr: xhr,
-        data: xhr.target.response
+        xhr: {
+          target: target
+        },
+        data: target.response,
+        retryCount: retryCount
       };
 
-      if (xhr.target.readyState == 4 && xhr.target.status == 200) {
+      if (isSuccess) {
         event.status = CM.CONST_PTX_API_SUCCESS;
-        cbFn(JSON.parse(xhr.target.response), event);
+        cbFn(JSON.parse(target.response), event);
       } else {
         event.status = CM.CONST_PTX_API_FAIL;
-        cbFn(xhr.target.response, event);
+        cbFn(target.response, event);
       }
-    }
-
-    var fm = new XMLHttpRequest();
-    fm.addEventListener("load", reqListener);
-    fm.addEventListener("error", reqListener);
-    fm.addEventListener("abort", reqListener);
-    fm.addEventListener("timeout", reqListener);
-    fm.open('GET', url);
-    fm.timeout = ptx.timeout;
-    var headerObj = this.GetAuthorizationHeaderTDX();
-
-    for (var k in headerObj) {
-      fm.setRequestHeader(k, headerObj[k]);
-    }
-
-    fm.send();
+    });
   },
   getPromiseURL: function getPromiseURL(url) {
     var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -7260,19 +7426,50 @@ var ptx = {
     }
 
     return new Promise(function (resolve, reject) {
-      function reqListener(xhr) {
+      function sendOnce(onDone) {
+        function reqListener(xhr) {
+          onDone(xhr.target);
+        }
+
+        var fm = new XMLHttpRequest();
+        fm.addEventListener("load", reqListener);
+        fm.addEventListener("error", reqListener);
+        fm.addEventListener("abort", reqListener);
+        fm.addEventListener("timeout", reqListener);
+        var method = cfg.method || 'GET';
+        fm.open(method, url);
+        fm.timeout = cfg.timeout || ptx.timeout;
+        var headerObj = cfg.head || ptx.GetAuthorizationHeaderTDX();
+
+        for (var k in headerObj) {
+          fm.setRequestHeader(k, headerObj[k]);
+        }
+
+        if (cfg.method == 'GET') {
+          fm.send();
+        } else if (cfg.method == 'POST') {
+          fm.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+          fm.send(paramPostAry.join('&'));
+        }
+      } //rate limit（429）自動重試，整個機制跑完才 resolve / reject
+
+
+      runWithRateLimitRetry(sendOnce, function (isSuccess, target, retryCount) {
         var event = {
-          xhr: xhr,
+          xhr: {
+            target: target
+          },
           url: url,
           config: cfg,
           resolve: resolve,
           reject: reject,
-          response: xhr.target.response
+          response: target.response,
+          retryCount: retryCount
         };
 
-        if (xhr.target.readyState == 4 && xhr.target.status == 200) {
+        if (isSuccess) {
           event.status = CM.CONST_PTX_API_SUCCESS;
-          event.data = JSON.parse(xhr.target.response);
+          event.data = JSON.parse(target.response);
 
           if (typeof cfg.processJSON == 'function') {
             event.data = cfg.processJSON(event.data);
@@ -7283,30 +7480,53 @@ var ptx = {
           event.status = CM.CONST_PTX_API_FAIL;
           reject(event);
         }
-      }
-
-      var fm = new XMLHttpRequest();
-      fm.addEventListener("load", reqListener);
-      fm.addEventListener("error", reqListener);
-      fm.addEventListener("abort", reqListener);
-      fm.addEventListener("timeout", reqListener);
-      var method = cfg.method || 'GET';
-      fm.open(method, url);
-      fm.timeout = cfg.timeout || ptx.timeout;
-      var headerObj = cfg.head || ptx.GetAuthorizationHeaderTDX();
-
-      for (var k in headerObj) {
-        fm.setRequestHeader(k, headerObj[k]);
-      }
-
-      if (cfg.method == 'GET') {
-        fm.send();
-      } else if (cfg.method == 'POST') {
-        fm.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        fm.send(paramPostAry.join('&'));
-      }
+      });
     });
   },
+  //通用 TDX API 呼叫器：直接依 doc/tdx_docs 規格文件的 path 與 Parameters 表打 API，不需等該 endpoint 被包成專屬模組
+  //path：Swagger path，例如 '/v2/Rail/TRA/Station' 或含樣板 '/v2/Rail/TRA/ODFare/{OriginStationID}/to/{DestinationStationID}'；
+  //      也可直接傳完整 http(s) URL（此時忽略 options.level / options.baseURL）
+  //parameters：物件，key 對應文件 Parameters 表的 Name（path 樣板變數，或 $select/$filter/$orderby/$top/$skip/$format，
+  //            也支援不帶 $ 的簡寫 select/filter/orderby/top/skip/format）；可省略；若傳入的是字串會自動 JSON.parse 成物件
+  //options：{ level='basic'|'advanced'|'premium'|'historical'|'maas', baseURL, format='JSON',
+  //          method='GET'|'POST', param（POST body）, timeout, head, processJSON, query（附加原始查詢字串) }
+  //          同樣可省略；若傳入的是字串會自動 JSON.parse 成物件
+  //回傳同 getPromiseURL 的 resolve 值（res.data 為解析後的 JSON）
+  //範例：await rocptx.req('/v2/Rail/TRA/ODFare/{OriginStationID}/to/{DestinationStationID}', {OriginStationID:'1000', DestinationStationID:'1020', top:10})
+  req: function () {
+    var _req = _asyncToGenerator(
+    /*#__PURE__*/
+    regeneratorRuntime.mark(function _callee2(path, parameters, options) {
+      var built;
+      return regeneratorRuntime.wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              built = buildReqURL(path, parameters, options); //parameters / options 若為 JSON 字串會在這裡自動轉成物件
+
+              options = built.options;
+              return _context2.abrupt("return", ptx.getPromiseURL(built.url, {
+                method: options.method || 'GET',
+                timeout: options.timeout,
+                head: options.head,
+                param: options.param,
+                processJSON: options.processJSON
+              }));
+
+            case 3:
+            case "end":
+              return _context2.stop();
+          }
+        }
+      }, _callee2);
+    }));
+
+    function req(_x3, _x4, _x5) {
+      return _req.apply(this, arguments);
+    }
+
+    return req;
+  }(),
   getStationLiveInfo: function getStationLiveInfo(stid, cbFn) {
     stid = stid ? stid.replace('tra_', '') : '1008';
 
@@ -8398,8 +8618,401 @@ var pData = {
   },
   ntmc: {
     sect_ary: ['newtaipei'],
-    station_ary: [],
-    line: []
+    station_ary: [//Circular Line（環狀線，2023 年由北捷移交新北捷運，TDX 資料歸屬 NTMC）
+    {
+      id: "ntmc_y07",
+      StationID: ["Y07"],
+      name: "大坪林",
+      estring: "dapinglin",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y08",
+      StationID: ["Y08"],
+      name: "十四張",
+      estring: "shisizhang",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y09",
+      StationID: ["Y09"],
+      name: "秀朗橋",
+      estring: "xiulangqiao",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y10",
+      StationID: ["Y10"],
+      name: "景平",
+      estring: "jingping",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y11",
+      StationID: ["Y11"],
+      name: "景安",
+      estring: "jingan",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y12",
+      StationID: ["Y12"],
+      name: "中和",
+      estring: "zhonghe",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y13",
+      StationID: ["Y13"],
+      name: "橋和",
+      estring: "qiaohe",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y14",
+      StationID: ["Y14"],
+      name: "中原",
+      estring: "zhongyuan",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y15",
+      StationID: ["Y15"],
+      name: "板新",
+      estring: "banxin",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y16",
+      StationID: ["Y16"],
+      name: "板橋",
+      estring: "banqiaobanciao",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y17",
+      StationID: ["Y17"],
+      name: "新埔民生",
+      estring: "xinpuminsheng",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y18",
+      StationID: ["Y18"],
+      name: "頭前庄",
+      estring: "touqianzhuang",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y19",
+      StationID: ["Y19"],
+      name: "幸福",
+      estring: "xingfu",
+      sect: 'newtaipei'
+    }, {
+      id: "ntmc_y20",
+      StationID: ["Y20"],
+      name: "新北產業園區",
+      estring: "xinbeichanyeyuanqui",
+      sect: 'newtaipei'
+    }],
+    line: [{
+      id: "ntmc_1",
+      LineID: "Y",
+      route: [{
+        dir: 0,
+        Direction: 0,
+        work: [{
+          RouteID: 'Y-1',
+          from: 'Y07',
+          to: 'Y20'
+        }]
+      }, {
+        dir: 1,
+        Direction: 1,
+        work: [{
+          RouteID: 'Y-1',
+          from: 'Y20',
+          to: 'Y07'
+        }]
+      }],
+      name: "環狀線",
+      trainSect: ["newtaipei"],
+      color: "#fedb00",
+      dir: "0",
+      station: ["Y07", "Y08", "Y09", "Y10", "Y11", "Y12", "Y13", "Y14", "Y15", "Y16", "Y17", "Y18", "Y19", "Y20"]
+    }]
+  },
+  krtc: {
+    sect_ary: ['kaohsiung'],
+    station_ary: [//Red Line
+    {
+      id: "krtc_r03",
+      StationID: ["R3"],
+      name: "小港",
+      estring: "siaogang",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r04",
+      StationID: ["R4"],
+      name: "高雄國際機場",
+      estring: "kaohsiunginternationalairport",
+      sect: 'kaohsiung',
+      big: 'd'
+    }, {
+      id: "krtc_r04a",
+      StationID: ["R4A"],
+      name: "草衙",
+      estring: "caoya",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r05",
+      StationID: ["R5"],
+      name: "前鎮高中",
+      estring: "cianjhenseniorhighschool",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r06",
+      StationID: ["R6"],
+      name: "凱旋",
+      estring: "kaisyuan",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r07",
+      StationID: ["R7"],
+      name: "獅甲",
+      estring: "shihjia",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r08",
+      StationID: ["R8"],
+      name: "三多商圈",
+      estring: "sanduoshoppingdistrict",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r09",
+      StationID: ["R9"],
+      name: "中央公園",
+      estring: "centralpark",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r10",
+      StationID: ["R10", "O5"],
+      name: "美麗島",
+      estring: "meilidaoformosaboulevard",
+      sect: 'kaohsiung',
+      big: 'd'
+    }, {
+      id: "krtc_r11",
+      StationID: ["R11"],
+      name: "高雄車站",
+      estring: "kaohsiungmainstation",
+      sect: 'kaohsiung',
+      big: 'd'
+    }, {
+      id: "krtc_r12",
+      StationID: ["R12"],
+      name: "後驛",
+      estring: "houyi",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r13",
+      StationID: ["R13"],
+      name: "凹子底",
+      estring: "aozihdi",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r14",
+      StationID: ["R14"],
+      name: "巨蛋",
+      estring: "kaohsiungarena",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r15",
+      StationID: ["R15"],
+      name: "生態園區",
+      estring: "ecologicaldistrict",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r16",
+      StationID: ["R16"],
+      name: "左營",
+      estring: "zuoying",
+      sect: 'kaohsiung',
+      big: 'd'
+    }, {
+      id: "krtc_r17",
+      StationID: ["R17"],
+      name: "世運",
+      estring: "worldgames",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r18",
+      StationID: ["R18"],
+      name: "油廠國小",
+      estring: "oilrefineryelementaryschool",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r19",
+      StationID: ["R19"],
+      name: "楠梓加工區",
+      estring: "nanzihexportprocessingzone",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r20",
+      StationID: ["R20"],
+      name: "後勁",
+      estring: "houjing",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r21",
+      StationID: ["R21"],
+      name: "都會公園",
+      estring: "metropolitanpark",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r22",
+      StationID: ["R22"],
+      name: "青埔",
+      estring: "cingpu",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r22a",
+      StationID: ["R22A"],
+      name: "橋頭糖廠",
+      estring: "ciaotousugarrefinery",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r23",
+      StationID: ["R23"],
+      name: "橋頭火車站",
+      estring: "ciaotoustation",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_r24",
+      StationID: ["R24"],
+      name: "南岡山",
+      estring: "gangshansouth",
+      sect: 'kaohsiung'
+    }, //Orange Line (O5 美麗島與 R10 同站，收在 krtc_r10)
+    {
+      id: "krtc_o01",
+      StationID: ["O1"],
+      name: "西子灣",
+      estring: "sizihwan",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o02",
+      StationID: ["O2"],
+      name: "鹽埕埔",
+      estring: "yanchengpu",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o04",
+      StationID: ["O4"],
+      name: "市議會",
+      estring: "citycouncil",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o06",
+      StationID: ["O6"],
+      name: "信義國小",
+      estring: "sinyielementaryschool",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o07",
+      StationID: ["O7"],
+      name: "文化中心",
+      estring: "culturalcenter",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o08",
+      StationID: ["O8"],
+      name: "五塊厝",
+      estring: "wukuaicuo",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o09",
+      StationID: ["O9"],
+      name: "技擊館",
+      estring: "martialartsstadium",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o10",
+      StationID: ["O10"],
+      name: "衛武營",
+      estring: "weiwuying",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o11",
+      StationID: ["O11"],
+      name: "鳳山西站",
+      estring: "fongshanwest",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o12",
+      StationID: ["O12"],
+      name: "鳳山",
+      estring: "fongshan",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o13",
+      StationID: ["O13"],
+      name: "大東",
+      estring: "dadong",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_o14",
+      StationID: ["O14"],
+      name: "鳳山國中",
+      estring: "fongshanjuniorhighschool",
+      sect: 'kaohsiung'
+    }, {
+      id: "krtc_ot1",
+      StationID: ["OT1"],
+      name: "大寮",
+      estring: "daliao",
+      sect: 'kaohsiung'
+    }],
+    line: [{
+      id: 'krtc_r',
+      LineID: 'R',
+      route: [{
+        dir: 0,
+        Direction: 0,
+        work: [{
+          RouteID: 'R',
+          from: 'R3',
+          to: 'R24'
+        }]
+      }, {
+        dir: 1,
+        Direction: 1,
+        work: [{
+          RouteID: 'R',
+          from: 'R24',
+          to: 'R3'
+        }]
+      }],
+      name: "紅線",
+      trainSect: ["kaohsiung"],
+      color: "#d30547",
+      dir: "0",
+      station: ["R3", "R4", "R4A", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13", "R14", "R15", "R16", "R17", "R18", "R19", "R20", "R21", "R22", "R22A", "R23", "R24"]
+    }, {
+      id: 'krtc_o',
+      LineID: 'O',
+      route: [{
+        dir: 0,
+        Direction: 0,
+        work: [{
+          RouteID: 'O',
+          from: 'O1',
+          to: 'OT1'
+        }]
+      }, {
+        dir: 1,
+        Direction: 1,
+        work: [{
+          RouteID: 'O',
+          from: 'OT1',
+          to: 'O1'
+        }]
+      }],
+      name: "橘線",
+      trainSect: ["kaohsiung"],
+      color: "#f77f00",
+      dir: "0",
+      station: ["O1", "O2", "O4", "O5", "O6", "O7", "O8", "O9", "O10", "O11", "O12", "O13", "O14", "OT1"]
+    }]
   },
   tmrt: {
     sect_ary: ['taichung'],
@@ -11200,6 +11813,13 @@ var pData = {
     changeLine: ["tymc_1", "tymc_1"],
     changeStation: ['tymc_a08', 'tymc_a08'],
     walkMinute: 0
+  }, {
+    id: 'meilidao1',
+    name: "美麗島",
+    //高捷紅橘線
+    changeLine: ["krtc_r", "krtc_o"],
+    changeStation: ['krtc_r10', 'krtc_r10'],
+    walkMinute: 2
   }],
   routeMap: [{
     id: 'traInnerTrans_tra_xibu,tra_jygx',
@@ -12468,31 +13088,53 @@ var pData = {
   }]
 };
 
-var trtc_line = [{"LineID":"BR","LineName":{"Zh_tw":"文湖線","En":"Wenhu Line"},"LineColor":"#b57a25","IsBranch":false,"Route":[{"RouteID":"BR-1","Direction":0,"LineID":"BR","Stations":["BR01","BR02","BR03","BR04","BR05","BR06","BR07","BR08","BR09","BR10","BR11","BR12","BR13","BR14","BR15","BR16","BR17","BR18","BR19","BR20","BR21","BR22","BR23","BR24"],"TravelTime":{"RunTime":[67,47,99,106,124,72,122,69,67,86,66,142,172,103,110,65,72,78,71,121,78,85,78,0],"StopTime":[0,25,18,20,18,18,20,25,30,45,35,35,18,25,25,25,25,25,20,18,20,20,18,0]}},{"RouteID":"BR-1","Direction":1,"LineID":"BR","Stations":["BR24","BR23","BR22","BR21","BR20","BR19","BR18","BR17","BR16","BR15","BR14","BR13","BR12","BR11","BR10","BR09","BR08","BR07","BR06","BR05","BR04","BR03","BR02","BR01"],"TravelTime":{"RunTime":[78,85,78,121,71,78,72,65,110,103,172,142,66,86,67,69,122,72,124,106,99,47,67,0],"StopTime":[0,18,20,20,18,20,25,25,25,25,25,18,35,35,45,30,25,20,18,18,20,18,25,0]}}],"Transfer":[{"FromLineID":"BR","FromStationID":"BR09","ToLineID":"R","ToStationID":"R05","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BR","FromStationID":"BR11","ToLineID":"G","ToStationID":"G16","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BR","FromStationID":"BR24","ToLineID":"BL","ToStationID":"BL23","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BR","FromStationID":"BR10","ToLineID":"BL","ToStationID":"BL15","IsOnSiteTransfer":1,"TransferTime":5}],"Frequency":[{"LineID":"BR","RouteID":"BR-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["06:00","07:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":2,"MaxHeadwayMins":4,"Time":["07:00","09:00"],"AveMins":3},{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["09:00","17:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":2,"MaxHeadwayMins":4,"Time":["17:00","19:30"],"AveMins":3},{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["19:30","23:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"BR","RouteID":"BR-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["06:00","23:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]}],"main":["BR-1"]},{"LineID":"R","LineName":{"Zh_tw":"淡水信義線","En":"Tamsui-Xinyi Line"},"LineColor":"#d90023","IsBranch":false,"Route":[{"RouteID":"R-1","Direction":0,"LineID":"R","Stations":["R02","R03","R04","R05","R06","R07","R08","R09","R10","R11","R12","R13","R14","R15","R16","R17","R18","R19","R20","R21","R22","R23","R24","R25","R26","R27","R28"],"TravelTime":{"RunTime":[93,81,81,70,65,165,83,63,65,58,57,90,109,92,91,76,61,100,73,91,145,109,78,145,136,175,0],"StopTime":[0,30,30,30,30,35,35,25,45,30,25,35,25,25,25,25,25,25,25,25,25,25,25,25,25,25,0]}},{"RouteID":"R-1","Direction":1,"LineID":"R","Stations":["R28","R27","R26","R25","R24","R23","R22","R21","R20","R19","R18","R17","R16","R15","R14","R13","R12","R11","R10","R09","R08","R07","R06","R05","R04","R03","R02"],"TravelTime":{"RunTime":[175,136,145,78,109,145,91,73,100,61,76,91,92,109,90,57,58,65,63,83,165,65,70,81,81,93,0],"StopTime":[0,25,25,25,25,25,25,25,25,25,25,25,25,25,25,35,25,30,45,25,35,35,30,30,30,30,0]}},{"RouteID":"R-2","Direction":0,"LineID":"R","Stations":["R05","R06","R07","R08","R09","R10","R11","R12","R13","R14","R15","R16","R17","R18","R19","R20","R21","R22"],"TravelTime":{"RunTime":[70,65,165,83,63,65,58,57,90,109,92,91,76,61,100,73,91,0],"StopTime":[0,30,35,35,25,45,30,25,35,25,25,25,25,25,25,25,25,0]}},{"RouteID":"R-2","Direction":1,"LineID":"R","Stations":["R22","R21","R20","R19","R18","R17","R16","R15","R14","R13","R12","R11","R10","R09","R08","R07","R06","R05"],"TravelTime":{"RunTime":[91,73,100,61,76,91,92,109,90,57,58,65,63,83,165,65,70,0],"StopTime":[0,25,25,25,25,25,25,25,25,35,25,30,45,25,35,35,30,0]}},{"RouteID":"R-3","Direction":0,"LineID":"R","Stations":["R22","R22A"],"TravelTime":{"RunTime":[157,0],"StopTime":[0,0]}},{"RouteID":"R-3","Direction":1,"LineID":"R","Stations":["R22A","R22"],"TravelTime":{"RunTime":[157,0],"StopTime":[0,0]}}],"Transfer":[{"FromLineID":"R","FromStationID":"R22","ToLineID":"R","ToStationID":"R22","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"R","FromStationID":"R13","ToLineID":"O","ToStationID":"O11","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"R","FromStationID":"R11","ToLineID":"G","ToStationID":"G14","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"R","FromStationID":"R10","ToLineID":"BL","ToStationID":"BL12","IsOnSiteTransfer":1,"TransferTime":4},{"FromLineID":"R","FromStationID":"R08","ToLineID":"G","ToStationID":"G10","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"R","FromStationID":"R07","ToLineID":"O","ToStationID":"O06","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"R","FromStationID":"R05","ToLineID":"BR","ToStationID":"BR09","IsOnSiteTransfer":1,"TransferTime":5}],"Frequency":[{"LineID":"R","RouteID":"R-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","09:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"R","RouteID":"R-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"R","RouteID":"R-2","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"R","RouteID":"R-2","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","09:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"R","RouteID":"R-3","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["06:00","06:30"],"AveMins":14},{"PeakFlag":"1","MinHeadwayMins":7,"MaxHeadwayMins":8,"Time":["06:30","09:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":10,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":10},{"PeakFlag":"1","MinHeadwayMins":7,"MaxHeadwayMins":8,"Time":["17:00","19:30"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["23:00","00:00"],"AveMins":14}]},{"LineID":"R","RouteID":"R-3","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":10,"MaxHeadwayMins":12,"Time":["06:00","23:00"],"AveMins":11},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["23:00","00:00"],"AveMins":14}]}],"main":["R-1","R-2"]},{"LineID":"G","LineName":{"Zh_tw":"松山新店線","En":"Songshan-Xindian Line"},"LineColor":"#107547","IsBranch":false,"Route":[{"RouteID":"G-1","Direction":0,"LineID":"G","Stations":["G01","G02","G03","G04","G05","G06","G07","G08","G09","G10","G11","G12","G13","G14","G15","G16","G17","G18","G19"],"TravelTime":{"RunTime":[111,78,75,89,87,119,67,88,83,75,81,75,114,106,92,84,102,138,0],"StopTime":[0,22,25,25,25,25,25,25,25,25,25,35,30,35,35,35,30,30,0]}},{"RouteID":"G-1","Direction":1,"LineID":"G","Stations":["G19","G18","G17","G16","G15","G14","G13","G12","G11","G10","G09","G08","G07","G06","G05","G04","G03","G02","G01"],"TravelTime":{"RunTime":[138,102,84,92,106,114,75,81,75,83,88,67,119,87,89,75,78,111,0],"StopTime":[0,30,30,35,35,35,30,35,25,25,25,25,25,25,25,25,25,22,0]}},{"RouteID":"G-2","Direction":0,"LineID":"G","Stations":["G08","G09","G10","G11","G12","G13","G14","G15","G16","G17","G18","G19"],"TravelTime":{"RunTime":[88,83,75,81,75,114,106,92,84,102,138,0],"StopTime":[0,25,25,25,35,30,35,35,35,30,30,0]}},{"RouteID":"G-2","Direction":1,"LineID":"G","Stations":["G19","G18","G17","G16","G15","G14","G13","G12","G11","G10","G09","G08"],"TravelTime":{"RunTime":[138,102,84,92,106,114,75,81,75,83,88,0],"StopTime":[0,30,30,35,35,35,30,35,25,25,25,0]}},{"RouteID":"G-3","Direction":0,"LineID":"G","Stations":["G03","G03A"],"TravelTime":{"RunTime":[203,0],"StopTime":[0,0]}},{"RouteID":"G-3","Direction":1,"LineID":"G","Stations":["G03A","G03"],"TravelTime":{"RunTime":[203,0],"StopTime":[0,0]}}],"Transfer":[{"FromLineID":"G","FromStationID":"G14","ToLineID":"R","ToStationID":"R11","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"G","FromStationID":"G10","ToLineID":"R","ToStationID":"R08","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G16","ToLineID":"BR","ToStationID":"BR11","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"G","FromStationID":"G15","ToLineID":"O","ToStationID":"O08","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G12","ToLineID":"BL","ToStationID":"BL11","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G09","ToLineID":"O","ToStationID":"O05","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G03","ToLineID":"G","ToStationID":"G03","IsOnSiteTransfer":1,"TransferTime":3}],"Frequency":[{"LineID":"G","RouteID":"G-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","09:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"G","RouteID":"G-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["06:00","07:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":5},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","17:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":5},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["19:30","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"G","RouteID":"G-2","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["06:00","07:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":5},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","17:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":5},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["19:30","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"G","RouteID":"G-2","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","09:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"G","RouteID":"G-3","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":20,"Time":["06:00","00:00"],"AveMins":16}]},{"LineID":"G","RouteID":"G-3","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":20,"Time":["06:00","00:00"],"AveMins":16}]}],"main":["G-1","G-2"]},{"LineID":"O","LineName":{"Zh_tw":"中和新蘆線","En":"Zhonghe-Xinlu Line"},"LineColor":"#f5a818","IsBranch":false,"Route":[{"RouteID":"O-1","Direction":0,"LineID":"O","Stations":["O01","O02","O03","O04","O05","O06","O07","O08","O09","O10","O11","O12","O13","O14","O15","O16","O17","O18","O19","O20","O21"],"TravelTime":{"RunTime":[103,88,100,187,192,118,114,75,89,72,75,115,93,84,142,105,93,130,110,159,0],"StopTime":[0,25,25,25,40,35,35,35,35,35,45,35,25,25,25,25,25,25,25,25,0]}},{"RouteID":"O-1","Direction":1,"LineID":"O","Stations":["O21","O20","O19","O18","O17","O16","O15","O14","O13","O12","O11","O10","O09","O08","O07","O06","O05","O04","O03","O02","O01"],"TravelTime":{"RunTime":[159,110,130,93,105,142,84,93,115,75,72,89,75,114,118,192,187,100,88,103,0],"StopTime":[0,25,25,25,25,25,25,25,25,35,45,35,35,35,35,35,40,25,25,25,0]}},{"RouteID":"O-2","Direction":0,"LineID":"O","Stations":["O01","O02","O03","O04","O05","O06","O07","O08","O09","O10","O11","O12","O50","O51","O52","O53","O54"],"TravelTime":{"RunTime":[103,88,100,187,192,118,114,75,89,72,75,148,104,82,87,110,0],"StopTime":[0,25,25,25,40,35,35,35,35,35,45,35,30,30,30,30,0]}},{"RouteID":"O-2","Direction":1,"LineID":"O","Stations":["O54","O53","O52","O51","O50","O12","O11","O10","O09","O08","O07","O06","O05","O04","O03","O02","O01"],"TravelTime":{"RunTime":[110,87,82,104,148,75,72,89,75,114,118,192,187,100,88,103,0],"StopTime":[0,30,30,30,30,35,45,35,35,35,35,35,40,25,25,25,0]}}],"Transfer":[{"FromLineID":"O","FromStationID":"O11","ToLineID":"R","ToStationID":"R13","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"O","FromStationID":"O06","ToLineID":"R","ToStationID":"R07","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O08","ToLineID":"G","ToStationID":"G15","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O05","ToLineID":"G","ToStationID":"G09","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O12","ToLineID":"O","ToStationID":"O12","IsOnSiteTransfer":1,"TransferTime":1},{"FromLineID":"O","FromStationID":"O07","ToLineID":"BL","ToStationID":"BL14","IsOnSiteTransfer":1,"TransferTime":2}],"Frequency":[{"LineID":"O","RouteID":"O-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["06:00","23:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"O","RouteID":"O-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"O","RouteID":"O-2","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["06:00","23:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]},{"LineID":"O","RouteID":"O-2","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}]}],"main":["O-1","O-2"]},{"LineID":"BL","LineName":{"Zh_tw":"板南線","En":"Bannan Line"},"LineColor":"#0a59ae","IsBranch":false,"Route":[{"RouteID":"BL-1","Direction":0,"LineID":"BL","Stations":["BL01","BL02","BL03","BL04","BL05","BL06","BL07","BL08","BL09","BL10","BL11","BL12","BL13","BL14","BL15","BL16","BL17","BL18","BL19","BL20","BL21","BL22","BL23"],"TravelTime":{"RunTime":[180,95,106,142,92,89,102,74,190,103,132,64,76,84,63,67,72,82,73,99,105,114,0],"StopTime":[0,25,25,25,25,25,25,30,28,28,30,40,30,28,40,28,28,28,25,25,25,25,0]}},{"RouteID":"BL-1","Direction":1,"LineID":"BL","Stations":["BL23","BL22","BL21","BL20","BL19","BL18","BL17","BL16","BL15","BL14","BL13","BL12","BL11","BL10","BL09","BL08","BL07","BL06","BL05","BL04","BL03","BL02","BL01"],"TravelTime":{"RunTime":[114,105,99,73,82,72,67,63,84,76,64,132,103,190,74,102,89,92,142,106,95,180,0],"StopTime":[0,25,25,25,25,28,28,28,40,28,30,40,30,28,28,30,25,25,25,25,25,25,0]}},{"RouteID":"BL-2","Direction":0,"LineID":"BL","Stations":["BL05","BL06","BL07","BL08","BL09","BL10","BL11","BL12","BL13","BL14","BL15","BL16","BL17","BL18","BL19","BL20","BL21","BL22","BL23"],"TravelTime":{"RunTime":[92,89,102,74,190,103,132,64,76,84,63,67,72,82,73,99,105,114,0],"StopTime":[0,25,25,30,28,28,30,40,30,28,40,28,28,28,25,25,25,25,0]}},{"RouteID":"BL-2","Direction":1,"LineID":"BL","Stations":["BL23","BL22","BL21","BL20","BL19","BL18","BL17","BL16","BL15","BL14","BL13","BL12","BL11","BL10","BL09","BL08","BL07","BL06","BL05"],"TravelTime":{"RunTime":[114,105,99,73,82,72,67,63,84,76,64,132,103,190,74,102,89,92,0],"StopTime":[0,25,25,25,25,28,28,28,40,28,30,40,30,28,28,30,25,25,0]}}],"Transfer":[{"FromLineID":"BL","FromStationID":"BL12","ToLineID":"R","ToStationID":"R10","IsOnSiteTransfer":1,"TransferTime":4},{"FromLineID":"BL","FromStationID":"BL11","ToLineID":"G","ToStationID":"G12","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"BL","FromStationID":"BL14","ToLineID":"O","ToStationID":"O07","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"BL","FromStationID":"BL23","ToLineID":"BR","ToStationID":"BR24","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BL","FromStationID":"BL15","ToLineID":"BR","ToStationID":"BR10","IsOnSiteTransfer":1,"TransferTime":5}],"Frequency":[{"LineID":"BL","RouteID":"BL-1","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10}]},{"LineID":"BL","RouteID":"BL-1","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":8,"Time":["06:00","09:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":9,"Time":["09:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10}]},{"LineID":"BL","RouteID":"BL-2","ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":8,"Time":["06:00","09:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":9,"Time":["09:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10}]},{"LineID":"BL","RouteID":"BL-2","ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]},"OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10}]}],"main":["BL-1","BL-2"]}];
+var trtc_line = [{"LineID":"BL","LineName":{"Zh_tw":"板南線","En":"Bannan Line","Ja":"板南線","Ko":"반난선"},"LineColor":"#0a59ae","IsBranch":false,"Route":[{"RouteID":"BL-1","Direction":0,"LineID":"BL","Stations":["BL01","BL02","BL03","BL04","BL05","BL06","BL07","BL08","BL09","BL10","BL11","BL12","BL13","BL14","BL15","BL16","BL17","BL18","BL19","BL20","BL21","BL22","BL23"],"TravelTime":{"RunTime":[180,95,106,142,102,67,107,77,192,110,120,66,81,90,65,71,77,87,76,107,109,112,0],"StopTime":[0,28,26,26,26,28,28,28,28,29,35,42,25,40,40,28,28,28,25,29,25,24,0]}},{"RouteID":"BL-1","Direction":1,"LineID":"BL","Stations":["BL23","BL22","BL21","BL20","BL19","BL18","BL17","BL16","BL15","BL14","BL13","BL12","BL11","BL10","BL09","BL08","BL07","BL06","BL05","BL04","BL03","BL02","BL01"],"TravelTime":{"RunTime":[112,109,107,76,87,77,71,65,90,81,66,120,110,192,77,107,67,102,142,106,95,180,0],"StopTime":[0,24,25,29,25,28,28,28,40,40,25,42,35,29,28,28,28,28,26,26,26,28,0]}},{"RouteID":"BL-2","Direction":0,"LineID":"BL","Stations":["BL05","BL06","BL07","BL08","BL09","BL10","BL11","BL12","BL13","BL14","BL15","BL16","BL17","BL18","BL19","BL20","BL21","BL22","BL23"],"TravelTime":{"RunTime":[102,67,107,77,192,110,120,66,81,90,65,71,77,87,76,107,109,112,0],"StopTime":[0,28,28,28,28,29,35,42,25,40,40,28,28,28,25,29,25,24,0]}},{"RouteID":"BL-2","Direction":1,"LineID":"BL","Stations":["BL23","BL22","BL21","BL20","BL19","BL18","BL17","BL16","BL15","BL14","BL13","BL12","BL11","BL10","BL09","BL08","BL07","BL06","BL05"],"TravelTime":{"RunTime":[112,109,107,76,87,77,71,65,90,81,66,120,110,192,77,107,67,102,0],"StopTime":[0,24,25,29,25,28,28,28,40,40,25,42,35,29,28,28,28,28,0]}}],"Transfer":[{"FromLineID":"BL","FromStationID":"BL07","ToLineID":"Y","ToStationID":"Y16","IsOnSiteTransfer":0,"TransferTime":11},{"FromLineID":"BL","FromStationID":"BL08","ToLineID":"Y","ToStationID":"Y17","IsOnSiteTransfer":0,"TransferTime":9},{"FromLineID":"BL","FromStationID":"BL11","ToLineID":"G","ToStationID":"G12","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"BL","FromStationID":"BL12","ToLineID":"R","ToStationID":"R10","IsOnSiteTransfer":1,"TransferTime":4},{"FromLineID":"BL","FromStationID":"BL14","ToLineID":"O","ToStationID":"O07","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"BL","FromStationID":"BL15","ToLineID":"BR","ToStationID":"BR10","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BL","FromStationID":"BL23","ToLineID":"BR","ToStationID":"BR24","IsOnSiteTransfer":1,"TransferTime":5}],"Frequency":[{"LineID":"BL","RouteID":"BL-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"BL","RouteID":"BL-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","08:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["08:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":10}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}},{"LineID":"BL","RouteID":"BL-2","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["23:00","00:00"],"AveMins":0},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"BL","RouteID":"BL-2","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["06:00","08:00"],"AveMins":0},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["08:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["23:00","00:00"],"AveMins":0}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}}],"main":["BL-1","BL-2"]},{"LineID":"BR","LineName":{"Zh_tw":"文湖線","En":"Wenhu Line","Ja":"文湖線","Ko":"원후선"},"LineColor":"#b57a25","IsBranch":false,"Route":[{"RouteID":"BR-1","Direction":0,"LineID":"BR","Stations":["BR01","BR02","BR03","BR04","BR05","BR06","BR07","BR08","BR09","BR10","BR11","BR12","BR13","BR14","BR15","BR16","BR17","BR18","BR19","BR20","BR21","BR22","BR23","BR24"],"TravelTime":{"RunTime":[67,47,99,106,124,72,122,69,67,86,66,142,172,103,110,65,72,78,71,121,78,85,78,0],"StopTime":[0,25,25,25,25,25,25,25,30,45,30,25,25,25,25,25,25,25,25,25,25,25,25,0]}},{"RouteID":"BR-1","Direction":1,"LineID":"BR","Stations":["BR24","BR23","BR22","BR21","BR20","BR19","BR18","BR17","BR16","BR15","BR14","BR13","BR12","BR11","BR10","BR09","BR08","BR07","BR06","BR05","BR04","BR03","BR02","BR01"],"TravelTime":{"RunTime":[78,85,78,121,71,78,72,65,110,103,172,142,66,86,67,69,122,72,124,106,99,47,67,0],"StopTime":[0,25,25,25,25,25,25,25,25,25,25,25,25,30,45,30,25,25,25,25,25,25,25,0]}}],"Transfer":[{"FromLineID":"BR","FromStationID":"BR09","ToLineID":"R","ToStationID":"R05","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BR","FromStationID":"BR10","ToLineID":"BL","ToStationID":"BL15","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BR","FromStationID":"BR11","ToLineID":"G","ToStationID":"G16","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"BR","FromStationID":"BR24","ToLineID":"BL","ToStationID":"BL23","IsOnSiteTransfer":1,"TransferTime":5}],"Frequency":[{"LineID":"BR","RouteID":"BR-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12},{"PeakFlag":"1","MinHeadwayMins":2,"MaxHeadwayMins":4,"Time":["07:00","09:00"],"AveMins":3},{"PeakFlag":"1","MinHeadwayMins":2,"MaxHeadwayMins":4,"Time":["17:00","19:30"],"AveMins":3}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"BR","RouteID":"BR-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":4,"MaxHeadwayMins":10,"Time":["06:00","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}}],"main":["BR-1"]},{"LineID":"G","LineName":{"Zh_tw":"松山新店線","En":"Songshan-Xindian Line","Ja":"松山新店線","Ko":"숭산신뎬선"},"LineColor":"#107547","IsBranch":false,"Route":[{"RouteID":"G-1","Direction":0,"LineID":"G","Stations":["G01","G02","G03","G04","G05","G06","G07","G08","G09","G10","G11","G12","G13","G14","G15","G16","G17","G18","G19"],"TravelTime":{"RunTime":[111,81,78,92,89,122,79,85,87,76,83,86,116,106,92,84,102,138,0],"StopTime":[0,25,24,27,27,27,29,30,33,38,27,34,28,35,35,33,27,27,0]}},{"RouteID":"G-1","Direction":1,"LineID":"G","Stations":["G19","G18","G17","G16","G15","G14","G13","G12","G11","G10","G09","G08","G07","G06","G05","G04","G03","G02","G01"],"TravelTime":{"RunTime":[138,102,84,92,106,116,86,83,76,87,85,79,122,89,92,78,81,111,0],"StopTime":[0,27,27,33,35,35,28,34,27,38,33,30,29,27,27,27,24,25,0]}},{"RouteID":"G-2","Direction":0,"LineID":"G","Stations":["G08","G09","G10","G11","G12","G13","G14","G15","G16","G17","G18","G19"],"TravelTime":{"RunTime":[85,87,76,83,86,116,106,92,84,102,138,0],"StopTime":[0,33,38,27,34,28,35,35,33,27,27,0]}},{"RouteID":"G-2","Direction":1,"LineID":"G","Stations":["G19","G18","G17","G16","G15","G14","G13","G12","G11","G10","G09","G08"],"TravelTime":{"RunTime":[138,102,84,92,106,116,86,83,76,87,85,0],"StopTime":[0,27,27,33,35,35,28,34,27,38,33,0]}},{"RouteID":"G-3","Direction":0,"LineID":"G","Stations":["G03","G03A"],"TravelTime":{"RunTime":[203,0],"StopTime":[0,0]}},{"RouteID":"G-3","Direction":1,"LineID":"G","Stations":["G03A","G03"],"TravelTime":{"RunTime":[203,0],"StopTime":[0,0]}}],"Transfer":[{"FromLineID":"G","FromStationID":"G03","ToLineID":"G","ToStationID":"G03","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"G","FromStationID":"G04","ToLineID":"Y","ToStationID":"Y07","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"G","FromStationID":"G09","ToLineID":"O","ToStationID":"O05","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G10","ToLineID":"R","ToStationID":"R08","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G12","ToLineID":"BL","ToStationID":"BL11","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G14","ToLineID":"R","ToStationID":"R11","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"G","FromStationID":"G15","ToLineID":"O","ToStationID":"O08","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"G","FromStationID":"G16","ToLineID":"BR","ToStationID":"BR11","IsOnSiteTransfer":1,"TransferTime":5}],"Frequency":[{"LineID":"G","RouteID":"G-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["06:00","07:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","17:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["19:30","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":5},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":5}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"G","RouteID":"G-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","09:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["09:00","23:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}},{"LineID":"G","RouteID":"G-2","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["06:00","07:00"],"AveMins":0},{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["09:00","17:00"],"AveMins":0},{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["19:30","23:00"],"AveMins":0},{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["23:00","00:00"],"AveMins":0},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":5},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":5}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"G","RouteID":"G-2","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["06:00","09:00"],"AveMins":0},{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["09:00","23:00"],"AveMins":0},{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["23:00","00:00"],"AveMins":0}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}},{"LineID":"G","RouteID":"G-3","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":20,"Time":["06:00","00:00"],"AveMins":16}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"G","RouteID":"G-3","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":20,"Time":["06:00","00:00"],"AveMins":16}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}}],"main":["G-1","G-2"]},{"LineID":"O","LineName":{"Zh_tw":"中和新蘆線","En":"Zhonghe-Xinlu Line","Ja":"中和新蘆線","Ko":"중허신루선"},"LineColor":"#f5a818","IsBranch":false,"Route":[{"RouteID":"O-1","Direction":0,"LineID":"O","Stations":["O01","O02","O03","O04","O05","O06","O07","O08","O09","O10","O11","O12","O13","O14","O15","O16","O17","O18","O19","O20","O21"],"TravelTime":{"RunTime":[97,90,103,187,208,136,102,78,96,72,72,127,97,84,142,108,94,137,113,168,0],"StopTime":[0,28,29,29,33,33,38,30,30,30,33,26,25,25,25,25,25,25,25,25,0]}},{"RouteID":"O-1","Direction":1,"LineID":"O","Stations":["O21","O20","O19","O18","O17","O16","O15","O14","O13","O12","O11","O10","O09","O08","O07","O06","O05","O04","O03","O02","O01"],"TravelTime":{"RunTime":[168,113,137,94,108,142,84,97,127,72,72,96,78,102,136,208,187,103,90,97,0],"StopTime":[0,25,25,25,25,25,25,25,25,26,33,30,30,30,38,33,33,29,29,28,0]}},{"RouteID":"O-2","Direction":0,"LineID":"O","Stations":["O01","O02","O03","O04","O05","O06","O07","O08","O09","O10","O11","O12","O50","O51","O52","O53","O54"],"TravelTime":{"RunTime":[97,90,103,187,208,136,102,78,96,72,72,151,107,82,92,111,0],"StopTime":[0,28,29,29,33,33,38,30,30,30,33,26,25,25,25,25,0]}},{"RouteID":"O-2","Direction":1,"LineID":"O","Stations":["O54","O53","O52","O51","O50","O12","O11","O10","O09","O08","O07","O06","O05","O04","O03","O02","O01"],"TravelTime":{"RunTime":[111,92,82,107,151,72,72,96,78,102,136,208,187,103,90,97,0],"StopTime":[0,25,25,25,25,26,33,30,30,30,38,33,33,29,29,28,0]}}],"Transfer":[{"FromLineID":"O","FromStationID":"O02","ToLineID":"Y","ToStationID":"Y11","IsOnSiteTransfer":1,"TransferTime":6},{"FromLineID":"O","FromStationID":"O05","ToLineID":"G","ToStationID":"G09","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O06","ToLineID":"R","ToStationID":"R07","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O07","ToLineID":"BL","ToStationID":"BL14","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O08","ToLineID":"G","ToStationID":"G15","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"O","FromStationID":"O11","ToLineID":"R","ToStationID":"R13","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"O","FromStationID":"O12","ToLineID":"O","ToStationID":"O12","IsOnSiteTransfer":1,"TransferTime":1},{"FromLineID":"O","FromStationID":"O17","ToLineID":"Y","ToStationID":"Y18","IsOnSiteTransfer":1,"TransferTime":6}],"Frequency":[{"LineID":"O","RouteID":"O-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"O","RouteID":"O-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["06:00","23:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}},{"LineID":"O","RouteID":"O-2","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"O","RouteID":"O-2","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":10,"Time":["06:00","23:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}}],"main":["O-1","O-2"]},{"LineID":"R","LineName":{"Zh_tw":"淡水信義線","En":"Tamsui-Xinyi Line","Ja":"淡水信義線","Ko":"단수이신이선"},"LineColor":"#d90023","IsBranch":false,"Route":[{"RouteID":"R-1","Direction":0,"LineID":"R","Stations":["R02","R03","R04","R05","R06","R07","R08","R09","R10","R11","R12","R13","R14","R15","R16","R17","R18","R19","R20","R21","R22","R23","R24","R25","R26","R27","R28"],"TravelTime":{"RunTime":[93,94,90,74,75,175,95,67,68,62,60,88,112,95,94,79,63,103,75,91,135,112,80,148,138,175,0],"StopTime":[0,29,26,37,25,31,30,26,35,28,28,34,26,26,26,26,26,26,24,23,28,25,25,25,25,25,0]}},{"RouteID":"R-1","Direction":1,"LineID":"R","Stations":["R28","R27","R26","R25","R24","R23","R22","R21","R20","R19","R18","R17","R16","R15","R14","R13","R12","R11","R10","R09","R08","R07","R06","R05","R04","R03","R02"],"TravelTime":{"RunTime":[175,138,148,80,112,135,91,75,103,63,79,94,95,112,88,60,62,68,67,95,175,75,74,90,94,93,0],"StopTime":[0,25,25,25,25,25,28,23,24,26,26,26,26,26,26,34,28,28,35,26,30,31,25,37,26,29,0]}},{"RouteID":"R-2","Direction":0,"LineID":"R","Stations":["R05","R06","R07","R08","R09","R10","R11","R12","R13","R14","R15","R16","R17","R18","R19","R20","R21","R22"],"TravelTime":{"RunTime":[74,75,175,95,67,68,62,60,88,112,95,94,79,63,103,75,91,0],"StopTime":[0,25,31,30,26,35,28,28,34,26,26,26,26,26,26,24,23,0]}},{"RouteID":"R-2","Direction":1,"LineID":"R","Stations":["R22","R21","R20","R19","R18","R17","R16","R15","R14","R13","R12","R11","R10","R09","R08","R07","R06","R05"],"TravelTime":{"RunTime":[91,75,103,63,79,94,95,112,88,60,62,68,67,95,175,75,74,0],"StopTime":[0,23,24,26,26,26,26,26,26,34,28,28,35,26,30,31,25,0]}},{"RouteID":"R-3","Direction":0,"LineID":"R","Stations":["R22","R22A"],"TravelTime":{"RunTime":[157,0],"StopTime":[0,0]}},{"RouteID":"R-3","Direction":1,"LineID":"R","Stations":["R22A","R22"],"TravelTime":{"RunTime":[157,0],"StopTime":[0,0]}}],"Transfer":[{"FromLineID":"R","FromStationID":"R05","ToLineID":"BR","ToStationID":"BR09","IsOnSiteTransfer":1,"TransferTime":5},{"FromLineID":"R","FromStationID":"R07","ToLineID":"O","ToStationID":"O06","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"R","FromStationID":"R08","ToLineID":"G","ToStationID":"G10","IsOnSiteTransfer":1,"TransferTime":2},{"FromLineID":"R","FromStationID":"R10","ToLineID":"BL","ToStationID":"BL12","IsOnSiteTransfer":1,"TransferTime":4},{"FromLineID":"R","FromStationID":"R11","ToLineID":"G","ToStationID":"G14","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"R","FromStationID":"R13","ToLineID":"O","ToStationID":"O11","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"R","FromStationID":"R22","ToLineID":"R","ToStationID":"R22","IsOnSiteTransfer":1,"TransferTime":3}],"Frequency":[{"LineID":"R","RouteID":"R-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"R","RouteID":"R-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","08:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["08:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":12,"Time":["23:00","00:00"],"AveMins":12}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}},{"LineID":"R","RouteID":"R-2","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["23:00","00:00"],"AveMins":0},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:30"],"AveMins":6}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"R","RouteID":"R-2","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["06:00","08:00"],"AveMins":0},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["08:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":0,"MaxHeadwayMins":0,"Time":["23:00","00:00"],"AveMins":0}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}},{"LineID":"R","RouteID":"R-3","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["06:00","06:30"],"AveMins":14},{"PeakFlag":"0","MinHeadwayMins":10,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":8,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["23:00","00:00"],"AveMins":14},{"PeakFlag":"1","MinHeadwayMins":7,"MaxHeadwayMins":8,"Time":["06:30","09:00"],"AveMins":8},{"PeakFlag":"1","MinHeadwayMins":7,"MaxHeadwayMins":8,"Time":["17:00","19:30"],"AveMins":8}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"R","RouteID":"R-3","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":10,"MaxHeadwayMins":12,"Time":["06:00","23:00"],"AveMins":11},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["23:00","00:00"],"AveMins":14}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}}],"main":["R-1","R-2"]}];
 
-var krtc_line = [{"LineID":"R","LineName":{"Zh_tw":"紅線","En":"Red Line"},"LineColor":"#d30547","IsBranch":false,"Route":[{"RouteID":"R","Direction":0,"LineID":"R","Stations":["R3","R4","R4A","R5","R6","R7","R8","R9","R10","R11","R12","R13","R14","R15","R16","R17","R18","R19","R20","R21","R22","R22A","R23","R24"],"TravelTime":{"RunTime":[120,180,180,180,180,120,180,120,180,180,120,120,180,180,180,120,180,120,120,180,120,120,240,0],"StopTime":[20,25,25,20,20,30,30,40,40,25,25,35,20,30,20,20,20,20,20,20,20,25,300,0]}},{"RouteID":"R","Direction":1,"LineID":"R","Stations":["R24","R23","R22A","R22","R21","R20","R19","R18","R17","R16","R15","R14","R13","R12","R11","R10","R9","R8","R7","R6","R5","R4A","R4","R3"],"TravelTime":{"RunTime":[240,120,120,180,120,120,180,120,180,180,180,120,120,180,180,120,180,120,180,180,180,180,120,0],"StopTime":[0,300,25,20,20,20,20,20,20,20,30,20,35,25,25,40,40,30,30,20,20,25,25,20]}}],"Transfer":[{"FromLineID":"R","FromStationID":"R10","ToLineID":"O","ToStationID":"O5","TransferTime":3}],"Frequency":[]},{"LineID":"O","LineName":{"Zh_tw":"橘線","En":"Orange Line"},"LineColor":"#f77f00","IsBranch":false,"Route":[{"RouteID":"O","Direction":0,"LineID":"O","Stations":["O1","O2","O4","O5","O6","O7","O8","O9","O10","O11","O12","O13","O14","OT1"],"TravelTime":{"RunTime":[120,120,120,120,120,120,120,120,120,120,240,120,240,0],"StopTime":[20,20,40,20,25,20,20,25,25,20,20,20,300,0]}},{"RouteID":"O","Direction":1,"LineID":"O","Stations":["OT1","O14","O13","O12","O11","O10","O9","O8","O7","O6","O5","O4","O2","O1"],"TravelTime":{"RunTime":[240,120,240,120,120,120,120,120,120,120,120,120,120,0],"StopTime":[0,300,20,20,20,25,25,20,20,25,20,40,20,20]}}],"Transfer":[{"FromLineID":"O","FromStationID":"O5","ToLineID":"R","ToStationID":"R10","TransferTime":3}],"Frequency":[]}];
+var krtc_line = [{"LineID":"O","LineName":{"Zh_tw":"橘線"},"IsBranch":false,"Route":[{"RouteID":"O","Direction":0,"LineID":"O","Stations":["O1","O2","O4","O5","O6","O7","O8","O9","O10","O11","O12","O13","O14","OT1"],"TravelTime":{"RunTime":[120,120,120,120,120,120,120,120,120,120,240,120,240,0],"StopTime":[300,20,20,40,20,25,20,20,25,25,20,20,20,0]}},{"RouteID":"O","Direction":1,"LineID":"O","Stations":["OT1","O14","O13","O12","O11","O10","O9","O8","O7","O6","O5","O4","O2","O1"],"TravelTime":{"RunTime":[240,120,240,120,120,120,120,120,120,120,120,120,120,0],"StopTime":[0,20,20,20,25,25,20,20,25,20,40,20,20,300]}}],"Transfer":[{"FromLineID":"O","FromStationID":"O5","ToLineID":"R","ToStationID":"R10","TransferTime":3}],"Frequency":[{"LineID":"O","RouteID":"O","OperationTime":["06:00","24:25"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["08:30","16:30"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["18:30","23:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["06:30","08:30"],"AveMins":5},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["16:30","18:30"],"AveMins":5}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,false,false]}},{"LineID":"O","RouteID":"O","OperationTime":["06:00","24:25"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["08:30","16:30"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["18:30","23:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["06:30","08:30"],"AveMins":5},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["18:30","23:00"],"AveMins":5}],"ServiceDays":{"ServiceTag":"假日前一日","NationalHolidays":false,"week":[false,false,false,false,false,true,false]}},{"LineID":"O","RouteID":"O","OperationTime":["06:00","24:25"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["06:00","16:30"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["18:30","23:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["16:30","18:30"],"AveMins":5}],"ServiceDays":{"ServiceTag":"星期日","NationalHolidays":false,"week":[true,false,false,false,false,false,false]}},{"LineID":"O","RouteID":"O","OperationTime":["06:00","24:25"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["06:00","16:30"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["18:30","23:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["16:30","18:30"],"AveMins":5}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[false,false,false,false,false,false,true]}}]},{"LineID":"R","LineName":{"Zh_tw":"紅線"},"IsBranch":false,"Route":[{"RouteID":"R","Direction":0,"LineID":"R","Stations":["R3","R4","R4A","R5","R6","R7","R8","R9","R10","R11","R12","R13","R14","R15","R16","R17","R18","R19","R20","R21","R22","R22A","R23","R24","RK1"],"TravelTime":{"RunTime":[120,180,180,180,180,120,180,120,120,180,120,120,180,180,180,120,180,120,120,180,120,120,180,120,0],"StopTime":[300,20,25,25,20,20,30,30,40,35,25,25,35,20,30,20,20,20,20,20,20,20,25,25,0]}},{"RouteID":"R","Direction":1,"LineID":"R","Stations":["RK1","R24","R23","R22A","R22","R21","R20","R19","R18","R17","R16","R15","R14","R13","R12","R11","R10","R9","R8","R7","R6","R5","R4A","R4","R3"],"TravelTime":{"RunTime":[120,180,120,120,180,120,120,180,120,180,180,180,120,120,180,120,120,180,120,180,180,180,180,120,0],"StopTime":[0,25,25,20,20,20,20,20,20,20,30,20,35,25,25,35,40,30,30,20,20,25,25,20,300]}}],"Transfer":[{"FromLineID":"R","FromStationID":"R10","ToLineID":"O","ToStationID":"O5","TransferTime":3}],"Frequency":[{"LineID":"R","RouteID":"R","OperationTime":["05:55","24:57"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["08:30","16:30"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["18:30","23:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["06:30","08:30"],"AveMins":5},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["16:30","18:30"],"AveMins":5}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,false,false]}},{"LineID":"R","RouteID":"R","OperationTime":["05:55","24:57"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["08:30","16:30"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["21:00","23:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["06:30","08:30"],"AveMins":5},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":6,"Time":["16:30","21:00"],"AveMins":5}],"ServiceDays":{"ServiceTag":"假日前一日","NationalHolidays":false,"week":[false,false,false,false,false,true,false]}},{"LineID":"R","RouteID":"R","OperationTime":["05:55","24:57"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["05:55","15:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["18:30","23:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":5,"MaxHeadwayMins":6,"Time":["15:00","18:30"],"AveMins":6}],"ServiceDays":{"ServiceTag":"星期日","NationalHolidays":false,"week":[true,false,false,false,false,false,false]}},{"LineID":"R","RouteID":"R","OperationTime":["05:55","24:57"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["05:55","15:00"],"AveMins":7},{"PeakFlag":"0","MinHeadwayMins":6,"MaxHeadwayMins":8,"Time":["21:00","23:00"],"AveMins":7},{"PeakFlag":"1","MinHeadwayMins":0,"MaxHeadwayMins":6,"Time":["15:00","21:00"],"AveMins":3}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[false,false,false,false,false,false,true]}}]}];
 
-var tymc_line = [{"LineID":"A","LineName":{"Zh_tw":"桃園機場捷運線","En":"Airport MRT Line"},"LineColor":"#8246af","IsBranch":false,"Route":[{"RouteID":"A","Direction":0,"LineID":"A","Stations":["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13","A14a","A15","A16","A17","A18","A19","A20","A21"]},{"RouteID":"A","Direction":1,"LineID":"A","Stations":["A21","A20","A19","A18","A17","A16","A15","A14a","A13","A12","A11","A10","A9","A8","A7","A6","A5","A4","A3","A2","A1"]}],"Transfer":[],"TravelTime":[null,null,null,null],"Frequency":[{"LineID":"A","RouteID":"A","TrainType":0,"LineNo":"A","ServiceDays":{"ServiceTag":"每日","NationalHolidays":true,"week":[true,true,true,true,true,true,true]},"OperationTime":["05:57","00:25"],"Headways":[{"PeakFlag":"1","MinHeadwayMins":15,"MaxHeadwayMins":15,"Time":["05:57","00:25"],"AveMins":15}]}],"TravelTimeBetween":{"TrainType1":{"A1":{"A2":300,"A3":540,"A4":780,"A5":840,"A6":1020,"A7":1380,"A8":1620,"A9":1980,"A10":2580,"A11":2700,"A12":2940,"A13":3120,"A14a":3360,"A15":3540,"A16":3720,"A17":3900,"A18":4200,"A19":4320,"A20":4620,"A21":4920},"A2":{"A3":180,"A4":420,"A5":480,"A6":660,"A7":1020,"A8":1260,"A9":1620,"A10":2220,"A11":2340,"A12":2580,"A13":2760,"A14a":3000,"A15":3180,"A16":3360,"A17":3540,"A18":3840,"A19":3960,"A20":4260,"A21":4560,"A1":300},"A3":{"A4":180,"A5":240,"A6":420,"A7":780,"A8":1020,"A9":1380,"A10":1980,"A11":2100,"A12":2340,"A13":2520,"A14a":2760,"A15":2940,"A16":3120,"A17":3300,"A18":3600,"A19":3720,"A20":4020,"A21":4320,"A1":600,"A2":240},"A4":{"A5":60,"A6":240,"A7":600,"A8":840,"A9":1200,"A10":1800,"A11":1920,"A12":2160,"A13":2340,"A14a":2580,"A15":2760,"A16":2940,"A17":3120,"A18":3420,"A19":3540,"A20":3840,"A21":4140,"A1":780,"A2":420,"A3":120},"A5":{"A6":120,"A7":480,"A8":720,"A9":1080,"A10":1680,"A11":1800,"A12":2040,"A13":2220,"A14a":2460,"A15":2640,"A16":2820,"A17":3000,"A18":3300,"A19":3420,"A20":3720,"A21":4020,"A1":900,"A2":540,"A3":240,"A4":120},"A6":{"A7":300,"A8":540,"A9":900,"A10":1500,"A11":1620,"A12":1860,"A13":2040,"A14a":2280,"A15":2460,"A16":2640,"A17":2820,"A18":3120,"A19":3240,"A20":3540,"A21":3840,"A1":1080,"A2":720,"A3":420,"A4":300,"A5":180},"A7":{"A8":240,"A9":600,"A10":1200,"A11":1320,"A12":1560,"A13":1740,"A14a":1980,"A15":2160,"A16":2340,"A17":2520,"A18":2820,"A19":2940,"A20":3240,"A21":3540,"A1":1500,"A2":1140,"A3":840,"A4":720,"A5":600,"A6":420},"A8":{"A9":120,"A10":720,"A11":840,"A12":1080,"A13":1260,"A14a":1500,"A15":1680,"A16":1860,"A17":2040,"A18":2340,"A19":2460,"A20":2760,"A21":3060,"A1":1260,"A2":1380,"A3":780,"A4":960,"A5":840,"A6":660,"A7":240},"A9":{"A10":540,"A11":660,"A12":900,"A13":1080,"A14a":1320,"A15":1500,"A16":1680,"A17":1860,"A18":2160,"A19":2280,"A20":2580,"A21":2880,"A1":2160,"A2":1800,"A3":1500,"A4":1380,"A5":1260,"A6":1080,"A7":660,"A8":240},"A10":{"A11":120,"A12":360,"A13":540,"A14a":780,"A15":960,"A16":1140,"A17":1320,"A18":1620,"A19":1740,"A20":2040,"A21":2340,"A1":2640,"A2":2280,"A3":1980,"A4":1860,"A5":1740,"A6":1560,"A7":1140,"A8":720,"A9":480},"A11":{"A12":180,"A13":360,"A14a":600,"A15":780,"A16":960,"A17":1140,"A18":1440,"A19":1560,"A20":1860,"A21":2160,"A1":2760,"A2":2400,"A3":2100,"A4":1980,"A5":1860,"A6":1680,"A7":1260,"A8":840,"A9":600,"A10":120},"A12":{"A13":120,"A14a":360,"A15":540,"A16":720,"A17":900,"A18":1200,"A19":1320,"A20":1620,"A21":1920,"A1":3000,"A2":2640,"A3":2340,"A4":2220,"A5":2100,"A6":1920,"A7":1500,"A8":1080,"A9":840,"A10":360,"A11":180},"A13":{"A14a":180,"A15":360,"A16":540,"A17":720,"A18":1020,"A19":1140,"A20":1440,"A21":1740,"A1":3180,"A2":2820,"A3":2520,"A4":2400,"A5":2280,"A6":2100,"A7":1680,"A8":1260,"A9":1020,"A10":540,"A11":360,"A12":120},"A14a":{"A15":180,"A16":360,"A17":540,"A18":840,"A19":960,"A20":1260,"A21":1560,"A1":3420,"A2":3060,"A3":2760,"A4":2640,"A5":2520,"A6":2340,"A7":1920,"A8":1500,"A9":1260,"A10":780,"A11":600,"A12":360,"A13":180},"A15":{"A16":180,"A17":360,"A18":660,"A19":780,"A20":1080,"A21":1380,"A1":3600,"A2":3240,"A3":2940,"A4":2820,"A5":2700,"A6":2520,"A7":2100,"A8":1680,"A9":1440,"A10":960,"A11":780,"A12":540,"A13":360,"A14a":180},"A16":{"A17":180,"A18":480,"A19":600,"A20":900,"A21":1200,"A1":3780,"A2":3420,"A3":3120,"A4":3000,"A5":2880,"A6":2700,"A7":2280,"A8":1860,"A9":1620,"A10":1140,"A11":960,"A12":720,"A13":540,"A14a":360,"A15":180},"A17":{"A18":300,"A19":420,"A20":720,"A21":1020,"A1":3960,"A2":3600,"A3":3300,"A4":3180,"A5":3060,"A6":2880,"A7":2460,"A8":2040,"A9":1800,"A10":1320,"A11":1140,"A12":900,"A13":720,"A14a":540,"A15":360,"A16":180},"A18":{"A19":120,"A20":420,"A21":720,"A1":4200,"A2":3840,"A3":3540,"A4":3420,"A5":3300,"A6":3120,"A7":2700,"A8":2280,"A9":2040,"A10":1560,"A11":1380,"A12":1140,"A13":960,"A14a":780,"A15":600,"A16":420,"A17":240},"A19":{"A20":240,"A21":540,"A1":4440,"A2":4080,"A3":3780,"A4":3660,"A5":3540,"A6":3360,"A7":2940,"A8":2520,"A9":2280,"A10":1800,"A11":1620,"A12":1380,"A13":1200,"A14a":1020,"A15":840,"A16":660,"A17":480,"A18":180},"A20":{"A21":240,"A1":4740,"A2":4380,"A3":4080,"A4":3960,"A5":3840,"A6":3660,"A7":3240,"A8":2820,"A9":2580,"A10":2100,"A11":1920,"A12":1680,"A13":1500,"A14a":1320,"A15":1140,"A16":960,"A17":780,"A18":480,"A19":300},"A21":{"A1":4920,"A2":4560,"A3":4260,"A4":4140,"A5":4020,"A6":3840,"A7":3420,"A8":3000,"A9":2760,"A10":2280,"A11":2100,"A12":1860,"A13":1680,"A14a":1500,"A15":1320,"A16":1140,"A17":960,"A18":660,"A19":480,"A20":180}},"TrainType2":{"A1":{"A3":480,"A8":1260,"A12":2100,"A13":2340,"A18":3240,"A21":3840},"A3":{"A8":720,"A12":1560,"A13":1800,"A18":2700,"A21":3300,"A1":480},"A8":{"A12":840,"A13":1080,"A18":1980,"A21":2580,"A1":1260,"A3":780},"A12":{"A13":120,"A18":1020,"A21":1620,"A1":2160,"A3":1620,"A8":780},"A13":{"A18":780,"A21":1380,"A1":2340,"A3":1800,"A8":960,"A12":120},"A18":{"A21":540,"A1":3180,"A3":2640,"A8":1800,"A12":960,"A13":720},"A21":{"A1":3900,"A3":3360,"A8":2520,"A12":1680,"A13":1440,"A18":660}}}}];
+var tymc_line = [{"LineID":"A","LineName":{"Zh_tw":"桃園機場捷運線","En":"Airport MRT Line","Ja":"桃園空港MRT","Ko":"타오위안 공항 MRT"},"LineColor":"#8246AF","IsBranch":false,"Route":[{"RouteID":"A-1","Direction":0,"LineID":"A","Stations":["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13","A14a","A15","A16","A17","A18","A19","A20","A21","A22"]},{"RouteID":"A-1","Direction":1,"LineID":"A","Stations":["A22","A21","A20","A19","A18","A17","A16","A15","A14a","A13","A12","A11","A10","A9","A8","A7","A6","A5","A4","A3","A2","A1"]},{"RouteID":"A-2","Direction":0,"LineID":"A","Stations":["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13"]},{"RouteID":"A-2","Direction":1,"LineID":"A","Stations":["A13","A12","A11","A10","A9","A8","A7","A6","A5","A4","A3","A2","A1"]},{"RouteID":"A-3","Direction":1,"LineID":"A","Stations":["A22","A21","A20","A19","A18","A17","A16","A15","A14a","A13","A12"]}],"Transfer":[],"TravelTime":[null],"Frequency":[{"LineID":"A","RouteID":"A-1","TrainType":0,"LineNo":"A","OperationTime":["05:30","00:28"],"Headways":[{"PeakFlag":"1","MinHeadwayMins":15,"MaxHeadwayMins":15,"Time":["05:30","00:28"],"AveMins":15}],"ServiceDays":{"ServiceTag":"每日","NationalHolidays":true,"week":[true,true,true,true,true,true,true]}}],"TravelTimeBetween":{"TrainType1":{},"TrainType2":{"A1":{"A2":300,"A3":540,"A8":1560,"A12":2880,"A4":660,"A5":780,"A13":3060,"A6":960,"A18":4080,"A7":1320,"A21":4860,"A9":1980,"A10":2520,"A11":2640,"A14a":3300,"A15":3480,"A16":3660,"A17":3840,"A19":4260,"A20":4560,"A22":4980},"A3":{"A1":540,"A8":960,"A12":2280,"A13":2460,"A18":3480,"A21":4260,"A2":180,"A4":60,"A5":180,"A6":360,"A7":720,"A9":1380,"A10":1920,"A11":2040,"A14a":2700,"A15":2880,"A16":3060,"A17":3240,"A19":3660,"A20":3960,"A22":4380},"A8":{"A1":1680,"A3":1080,"A12":1080,"A13":1260,"A18":2280,"A21":3060,"A2":1320,"A4":960,"A5":840,"A6":600,"A7":240,"A9":180,"A10":720,"A11":840,"A14a":1500,"A15":1680,"A16":1860,"A17":2040,"A19":2460,"A20":2760,"A22":3180},"A12":{"A1":2940,"A3":2340,"A8":1020,"A13":120,"A18":1140,"A21":1920,"A2":2580,"A4":2220,"A5":2100,"A6":1860,"A7":1500,"A9":840,"A10":360,"A11":180,"A14a":360,"A15":540,"A16":720,"A17":900,"A19":1320,"A20":1620,"A22":2040},"A2":{"A1":300,"A3":180,"A4":300,"A5":420,"A6":600,"A7":960,"A8":1200,"A9":1620,"A10":2160,"A11":2280,"A12":2520,"A13":2700,"A14a":2940,"A15":3120,"A16":3300,"A17":3480,"A18":3720,"A19":3900,"A20":4200,"A21":4500,"A22":4620},"A13":{"A1":3120,"A3":2520,"A8":1200,"A12":120,"A18":960,"A21":1740,"A2":2760,"A4":2400,"A5":2280,"A6":2040,"A7":1680,"A9":1020,"A10":540,"A11":360,"A14a":180,"A15":360,"A16":540,"A17":720,"A19":1140,"A20":1440,"A22":1860},"A18":{"A1":4140,"A3":3540,"A8":2220,"A12":1140,"A13":960,"A21":720,"A2":3780,"A4":3420,"A5":3300,"A6":3060,"A7":2700,"A9":2040,"A10":1560,"A11":1380,"A14a":780,"A15":600,"A16":420,"A17":240,"A19":120,"A20":420,"A22":840},"A21":{"A1":4860,"A3":4260,"A8":2940,"A12":1860,"A13":1680,"A18":660,"A2":4500,"A4":4140,"A5":4020,"A6":3780,"A7":3420,"A9":2760,"A10":2280,"A11":2100,"A14a":1500,"A15":1320,"A16":1140,"A17":960,"A19":480,"A20":180,"A22":120},"A4":{"A1":720,"A2":360,"A3":120,"A5":60,"A6":240,"A7":600,"A8":840,"A9":1260,"A10":1800,"A11":1920,"A12":2160,"A13":2340,"A14a":2580,"A15":2760,"A16":2940,"A17":3120,"A18":3360,"A19":3540,"A20":3840,"A21":4140,"A22":4260},"A5":{"A1":840,"A2":480,"A3":240,"A4":120,"A6":120,"A7":480,"A8":720,"A9":1140,"A10":1680,"A11":1800,"A12":2040,"A13":2220,"A14a":2460,"A15":2640,"A16":2820,"A17":3000,"A18":3240,"A19":3420,"A20":3720,"A21":4020,"A22":4140},"A6":{"A1":1020,"A2":660,"A3":420,"A4":300,"A5":180,"A7":300,"A8":540,"A9":960,"A10":1500,"A11":1620,"A12":1860,"A13":2040,"A14a":2280,"A15":2460,"A16":2640,"A17":2820,"A18":3060,"A19":3240,"A20":3540,"A21":3840,"A22":3960},"A7":{"A1":1440,"A2":1080,"A3":840,"A4":720,"A5":600,"A6":360,"A8":240,"A9":660,"A10":1200,"A11":1320,"A12":1560,"A13":1740,"A14a":1980,"A15":2160,"A16":2340,"A17":2520,"A18":2760,"A19":2940,"A20":3240,"A21":3540,"A22":3660},"A9":{"A1":2100,"A2":1740,"A3":1500,"A4":1380,"A5":1260,"A6":1020,"A7":660,"A8":180,"A10":540,"A11":660,"A12":900,"A13":1080,"A14a":1320,"A15":1500,"A16":1680,"A17":1860,"A18":2100,"A19":2280,"A20":2580,"A21":2880,"A22":3000},"A10":{"A1":2580,"A2":2220,"A3":1980,"A4":1860,"A5":1740,"A6":1500,"A7":1140,"A8":660,"A9":480,"A11":120,"A12":360,"A13":540,"A14a":780,"A15":960,"A16":1140,"A17":1320,"A18":1560,"A19":1740,"A20":2040,"A21":2340,"A22":2460},"A11":{"A1":2700,"A2":2340,"A3":2100,"A4":1980,"A5":1860,"A6":1620,"A7":1260,"A8":780,"A9":600,"A10":120,"A12":180,"A13":360,"A14a":600,"A15":780,"A16":960,"A17":1140,"A18":1380,"A19":1560,"A20":1860,"A21":2160,"A22":2280},"A14a":{"A1":3360,"A2":3000,"A3":2760,"A4":2640,"A5":2520,"A6":2280,"A7":1920,"A8":1440,"A9":1260,"A10":780,"A11":600,"A12":360,"A13":180,"A15":180,"A16":360,"A17":540,"A18":780,"A19":960,"A20":1260,"A21":1560,"A22":1680},"A15":{"A1":3540,"A2":3180,"A3":2940,"A4":2820,"A5":2700,"A6":2460,"A7":2100,"A8":1620,"A9":1440,"A10":960,"A11":780,"A12":540,"A13":360,"A14a":180,"A16":180,"A17":360,"A18":600,"A19":780,"A20":1080,"A21":1380,"A22":1500},"A16":{"A1":3720,"A2":3360,"A3":3120,"A4":3000,"A5":2880,"A6":2640,"A7":2280,"A8":1800,"A9":1620,"A10":1140,"A11":960,"A12":720,"A13":540,"A14a":360,"A15":180,"A17":180,"A18":420,"A19":600,"A20":900,"A21":1200,"A22":1320},"A17":{"A1":3900,"A2":3540,"A3":3300,"A4":3180,"A5":3060,"A6":2820,"A7":2460,"A8":1980,"A9":1800,"A10":1320,"A11":1140,"A12":900,"A13":720,"A14a":540,"A15":360,"A16":180,"A18":240,"A19":420,"A20":720,"A21":1020,"A22":1140},"A19":{"A1":4320,"A2":3960,"A3":3720,"A4":3600,"A5":3480,"A6":3240,"A7":2880,"A8":2400,"A9":2220,"A10":1740,"A11":1560,"A12":1320,"A13":1140,"A14a":960,"A15":780,"A16":600,"A17":420,"A18":120,"A20":240,"A21":540,"A22":660},"A20":{"A1":4620,"A2":4260,"A3":4020,"A4":3900,"A5":3780,"A6":3540,"A7":3180,"A8":2700,"A9":2520,"A10":2040,"A11":1860,"A12":1620,"A13":1440,"A14a":1260,"A15":1080,"A16":900,"A17":720,"A18":420,"A19":240,"A21":240,"A22":360},"A22":{"A1":4980,"A2":4620,"A3":4380,"A4":4260,"A5":4140,"A6":3900,"A7":3540,"A8":3060,"A9":2880,"A10":2400,"A11":2220,"A12":1980,"A13":1800,"A14a":1620,"A15":1440,"A16":1260,"A17":1080,"A18":780,"A19":600,"A20":300,"A21":120}}}}];
 
-var trtc_station = [{"StationID":"BR01","lat":24.998205,"lon":24.998205,"name":"動物園","ename":"Taipei Zoo","FirstLast":[{"To":"BR24","Time":["06:00","00:00"]}]},{"StationID":"BR02","lat":24.99824,"lon":24.99824,"name":"木柵","ename":"Muzha","FirstLast":[{"To":"BR24","Time":["06:01","00:01"]},{"To":"BR01","Time":["06:04","00:53"]}]},{"StationID":"BR03","lat":24.99857,"lon":24.99857,"name":"萬芳社區","ename":"Wanfang Community","FirstLast":[{"To":"BR24","Time":["06:02","00:03"]},{"To":"BR01","Time":["06:03","00:52"]}]},{"StationID":"BR04","lat":24.99932,"lon":24.99932,"name":"萬芳醫院","ename":"Wanfang Hospital","FirstLast":[{"To":"BR24","Time":["06:04","00:05"]},{"To":"BR01","Time":["06:01","00:49"]}]},{"StationID":"BR05","lat":25.005455,"lon":25.005455,"name":"辛亥","ename":"Xinhai","FirstLast":[{"To":"BR24","Time":["06:00","00:07"]},{"To":"BR01","Time":["06:00","00:47"]}]},{"StationID":"BR06","lat":25.018495,"lon":25.018495,"name":"麟光","ename":"Linguang","FirstLast":[{"To":"BR24","Time":["06:01","00:10"]},{"To":"BR01","Time":["06:03","00:44"]}]},{"StationID":"BR07","lat":25.02381,"lon":25.02381,"name":"六張犁","ename":"Liuzhangli","FirstLast":[{"To":"BR24","Time":["06:03","00:12"]},{"To":"BR01","Time":["06:01","00:42"]}]},{"StationID":"BR08","lat":25.02612,"lon":25.02612,"name":"科技大樓","ename":"Technology Building","FirstLast":[{"To":"BR24","Time":["06:00","00:15"]},{"To":"BR01","Time":["06:00","00:39"]}]},{"StationID":"BR09","lat":25.033311,"lon":25.033311,"name":"大安","ename":"Daan","FirstLast":[{"To":"BR24","Time":["06:01","00:33"]},{"To":"BR01","Time":["06:05","00:37"]}]},{"StationID":"BR10","lat":25.041749,"lon":25.041749,"name":"忠孝復興","ename":"Zhongxiao Fuxing","FirstLast":[{"To":"BR24","Time":["06:03","00:35"]},{"To":"BR01","Time":["06:03","00:35"]}]},{"StationID":"BR11","lat":25.052044,"lon":25.052044,"name":"南京復興","ename":"Nanjing Fuxing","FirstLast":[{"To":"BR24","Time":["06:05","00:38"]},{"To":"BR01","Time":["06:01","00:33"]}]},{"StationID":"BR12","lat":25.06085,"lon":25.06085,"name":"中山國中","ename":"Zhongshan Junior High School","FirstLast":[{"To":"BR24","Time":["06:00","00:40"]},{"To":"BR01","Time":["06:00","00:29"]}]},{"StationID":"BR13","lat":25.062908,"lon":25.062908,"name":"松山機場","ename":"Songshan Airport","FirstLast":[{"To":"BR24","Time":["06:02","00:43"]},{"To":"BR01","Time":["06:02","00:25"]}]},{"StationID":"BR14","lat":25.07943,"lon":25.07943,"name":"大直","ename":"Dazhi","FirstLast":[{"To":"BR24","Time":["06:00","00:46"]},{"To":"BR01","Time":["06:00","00:22"]}]},{"StationID":"BR15","lat":25.08483,"lon":25.08483,"name":"劍南路","ename":"Jiannan Rd.","FirstLast":[{"To":"BR24","Time":["06:01","00:49"]},{"To":"BR01","Time":["06:03","00:19"]}]},{"StationID":"BR16","lat":25.08216,"lon":25.08216,"name":"西湖","ename":"Xihu","FirstLast":[{"To":"BR24","Time":["06:03","00:52"]},{"To":"BR01","Time":["06:01","00:16"]}]},{"StationID":"BR17","lat":25.08007,"lon":25.08007,"name":"港墘","ename":"Gangqian","FirstLast":[{"To":"BR24","Time":["06:00","00:54"]},{"To":"BR01","Time":["06:00","00:14"]}]},{"StationID":"BR18","lat":25.078455,"lon":25.078455,"name":"文德","ename":"Wende","FirstLast":[{"To":"BR24","Time":["06:01","00:56"]},{"To":"BR01","Time":["06:05","00:12"]}]},{"StationID":"BR19","lat":25.083675,"lon":25.083675,"name":"內湖","ename":"Neihu","FirstLast":[{"To":"BR24","Time":["06:02","00:58"]},{"To":"BR01","Time":["06:03","00:10"]}]},{"StationID":"BR20","lat":25.083805,"lon":25.083805,"name":"大湖公園","ename":"Dahu Park","FirstLast":[{"To":"BR24","Time":["06:04","01:00"]},{"To":"BR01","Time":["06:01","00:08"]}]},{"StationID":"BR21","lat":25.07271,"lon":25.07271,"name":"葫洲","ename":"Huzhou","FirstLast":[{"To":"BR24","Time":["06:00","01:03"]},{"To":"BR01","Time":["06:00","00:05"]}]},{"StationID":"BR22","lat":25.067455,"lon":25.067455,"name":"東湖","ename":"Donghu","FirstLast":[{"To":"BR24","Time":["06:01","01:05"]},{"To":"BR01","Time":["06:03","00:03"]}]},{"StationID":"BR23","lat":25.05992,"lon":25.05992,"name":"南港軟體園區","ename":"Nangang Software Park","FirstLast":[{"To":"BR24","Time":["06:03","01:07"]},{"To":"BR01","Time":["06:01","00:01"]}]},{"StationID":"BR24","lat":25.054919,"lon":25.054919,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center","FirstLast":[{"To":"BR01","Time":["06:00","00:00"]}]},{"StationID":"R02","lat":25.032395,"lon":25.032395,"name":"象山","ename":"Xiangshan","FirstLast":[{"To":"R28","Time":["06:00","00:00"]}]},{"StationID":"R03","lat":25.032865,"lon":25.032865,"name":"台北101/世貿","ename":"Taipei 101/World Trade Center","FirstLast":[{"To":"R28","Time":["06:02","00:02"]},{"To":"R02","Time":["06:04","00:56"]}]},{"StationID":"R04","lat":25.033015,"lon":25.033015,"name":"信義安和","ename":"Xinyi Anhe","FirstLast":[{"To":"R28","Time":["06:04","00:04"]},{"To":"R02","Time":["06:02","00:54"]}]},{"StationID":"R05","lat":25.033311,"lon":25.033311,"name":"大安","ename":"Daan","FirstLast":[{"To":"R28","Time":["06:00","00:25"]},{"To":"R02","Time":["06:00","00:52"]}]},{"StationID":"R06","lat":25.033225,"lon":25.033225,"name":"大安森林公園","ename":"Daan Park","FirstLast":[{"To":"R28","Time":["06:01","00:26"]},{"To":"R02","Time":["06:08","00:50"]}]},{"StationID":"R07","lat":25.033894,"lon":25.033894,"name":"東門","ename":"Dongmen","FirstLast":[{"To":"R28","Time":["06:03","00:28"]},{"To":"R02","Time":["06:06","00:49"]}]},{"StationID":"R08","lat":25.032767,"lon":25.032767,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall","FirstLast":[{"To":"R28","Time":["06:06","00:31"]},{"To":"R02","Time":["06:03","00:45"]}]},{"StationID":"R09","lat":25.041399,"lon":25.041399,"name":"台大醫院","ename":"NTU Hospital","FirstLast":[{"To":"R28","Time":["06:08","00:33"]},{"To":"R02","Time":["06:01","00:43"]}]},{"StationID":"R10","lat":25.04631,"lon":25.04631,"name":"台北車站","ename":"Taipei Main Station","FirstLast":[{"To":"R28","Time":["06:00","00:35"]},{"To":"R02","Time":["06:00","00:41"]}]},{"StationID":"R11","lat":25.052621,"lon":25.052621,"name":"中山","ename":"Zhongshan","FirstLast":[{"To":"R28","Time":["06:02","00:37"]},{"To":"R02","Time":["06:03","00:40"]}]},{"StationID":"R12","lat":25.057575,"lon":25.057575,"name":"雙連","ename":"Shuanglian","FirstLast":[{"To":"R28","Time":["06:03","00:38"]},{"To":"R02","Time":["06:01","00:38"]}]},{"StationID":"R13","lat":25.06235,"lon":25.06235,"name":"民權西路","ename":"Minzuan W. Rd.","FirstLast":[{"To":"R28","Time":["06:05","00:39"]},{"To":"R02","Time":["06:00","00:37"]}]},{"StationID":"R14","lat":25.071409,"lon":25.071409,"name":"圓山","ename":"Yuanshan","FirstLast":[{"To":"R28","Time":["06:07","00:42"]},{"To":"R02","Time":["06:02","00:34"]}]},{"StationID":"R15","lat":25.084201,"lon":25.084201,"name":"劍潭","ename":"Jiantan","FirstLast":[{"To":"R28","Time":["06:00","00:45"]},{"To":"R02","Time":["06:00","00:31"]}]},{"StationID":"R16","lat":25.093492,"lon":25.093492,"name":"士林","ename":"Shilin","FirstLast":[{"To":"R28","Time":["06:02","00:47"]},{"To":"R02","Time":["06:05","00:28"]}]},{"StationID":"R17","lat":25.102718,"lon":25.102718,"name":"芝山","ename":"Zhishan","FirstLast":[{"To":"R28","Time":["06:04","00:50"]},{"To":"R02","Time":["06:03","00:26"]}]},{"StationID":"R18","lat":25.109815,"lon":25.109815,"name":"明德","ename":"Mingde","FirstLast":[{"To":"R28","Time":["06:05","00:52"]},{"To":"R02","Time":["06:01","00:24"]}]},{"StationID":"R19","lat":25.114455,"lon":25.114455,"name":"石牌","ename":"Shipai","FirstLast":[{"To":"R28","Time":["06:07","00:53"]},{"To":"R02","Time":["06:00","00:23"]}]},{"StationID":"R20","lat":25.120852,"lon":25.120852,"name":"唭哩岸","ename":"Qilian","FirstLast":[{"To":"R28","Time":["06:00","00:56"]},{"To":"R02","Time":["06:00","00:19"]}]},{"StationID":"R21","lat":25.12547,"lon":25.12547,"name":"奇岩","ename":"Qiyan","FirstLast":[{"To":"R28","Time":["06:02","00:58"]},{"To":"R02","Time":["06:02","00:18"]}]},{"StationID":"R22","lat":25.131819,"lon":25.131819,"name":"北投","ename":"Beitou","FirstLast":[{"To":"R28","Time":["06:03","01:00"]},{"To":"R02","Time":["06:00","00:16"]},{"To":"R22A","Time":["06:00","00:10"]}]},{"StationID":"R22A","lat":25.136931,"lon":25.136931,"name":"新北投","ename":"Xinbeitou","FirstLast":[{"To":"R22","Time":["06:05","00:02"]}]},{"StationID":"R23","lat":25.137497,"lon":25.137497,"name":"復興崗","ename":"Fuxinggang","FirstLast":[{"To":"R28","Time":["06:06","01:03"]},{"To":"R02","Time":["06:02","00:12"]}]},{"StationID":"R24","lat":25.130923,"lon":25.130923,"name":"忠義","ename":"Zhongyi","FirstLast":[{"To":"R28","Time":["06:02","01:05"]},{"To":"R02","Time":["06:00","00:10"]}]},{"StationID":"R25","lat":25.12551,"lon":25.12551,"name":"關渡","ename":"Guandu","FirstLast":[{"To":"R28","Time":["06:04","01:07"]},{"To":"R02","Time":["06:08","00:08"]}]},{"StationID":"R26","lat":25.1369,"lon":25.1369,"name":"竹圍","ename":"Zhuwei","FirstLast":[{"To":"R28","Time":["06:07","01:10"]},{"To":"R02","Time":["06:05","00:06"]}]},{"StationID":"R27","lat":25.15399,"lon":25.15399,"name":"紅樹林","ename":"Hongshulin","FirstLast":[{"To":"R28","Time":["06:00","01:13"]},{"To":"R02","Time":["06:03","00:03"]}]},{"StationID":"R28","lat":25.167745,"lon":25.167745,"name":"淡水","ename":"Tamsui","FirstLast":[{"To":"R02","Time":["06:00","00:00"]}]},{"StationID":"G01","lat":24.95761,"lon":24.95761,"name":"新店","ename":"Xindian","FirstLast":[{"To":"G19","Time":["06:00","00:00"]}]},{"StationID":"G02","lat":24.96744,"lon":24.96744,"name":"新店區公所","ename":"Xindian District Office","FirstLast":[{"To":"G19","Time":["06:02","00:02"]},{"To":"G01","Time":["06:02","01:05"]}]},{"StationID":"G03","lat":24.97545,"lon":24.97545,"name":"七張","ename":"Qizhang","FirstLast":[{"To":"G19","Time":["06:03","00:03"]},{"To":"G01","Time":["06:00","01:03"]},{"To":"G03","Time":["06:03","23:57"]}]},{"StationID":"G03A","lat":24.97188,"lon":24.97188,"name":"小碧潭","ename":"Xiaobitan","FirstLast":[{"To":"G03A","Time":["06:11","00:09"]}]},{"StationID":"G04","lat":24.98272,"lon":24.98272,"name":"大坪林","ename":"Dapinglin","FirstLast":[{"To":"G19","Time":["06:00","00:05"]},{"To":"G01","Time":["06:08","01:02"]}]},{"StationID":"G05","lat":24.992824,"lon":24.992824,"name":"景美","ename":"Jingmei","FirstLast":[{"To":"G19","Time":["06:02","00:07"]},{"To":"G01","Time":["06:06","01:00"]}]},{"StationID":"G06","lat":25.001978,"lon":25.001978,"name":"萬隆","ename":"Wanlong","FirstLast":[{"To":"G19","Time":["06:04","00:08"]},{"To":"G01","Time":["06:04","00:58"]}]},{"StationID":"G07","lat":25.014781,"lon":25.014781,"name":"公館","ename":"Gongguan","FirstLast":[{"To":"G19","Time":["06:00","00:11"]},{"To":"G01","Time":["06:02","00:55"]}]},{"StationID":"G08","lat":25.020733,"lon":25.020733,"name":"台電大樓","ename":"Taipower Building","FirstLast":[{"To":"G19","Time":["06:02","00:12"]},{"To":"G01","Time":["06:00","00:54"]}]},{"StationID":"G09","lat":25.026373,"lon":25.026373,"name":"古亭","ename":"Guting","FirstLast":[{"To":"G19","Time":["06:04","00:14"]},{"To":"G01","Time":["06:05","00:52"]}]},{"StationID":"G10","lat":25.032767,"lon":25.032767,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall","FirstLast":[{"To":"G19","Time":["06:00","00:16"]},{"To":"G01","Time":["06:03","00:50"]}]},{"StationID":"G11","lat":25.035585,"lon":25.035585,"name":"小南門","ename":"Xiaonanmen","FirstLast":[{"To":"G19","Time":["06:02","00:18"]},{"To":"G01","Time":["06:02","00:48"]}]},{"StationID":"G12","lat":25.042025,"lon":25.042025,"name":"西門","ename":"Ximen","FirstLast":[{"To":"G19","Time":["06:04","00:27"]},{"To":"G01","Time":["06:00","00:46"]}]},{"StationID":"G13","lat":25.049554,"lon":25.049554,"name":"北門","ename":"Beimen","FirstLast":[{"To":"G19","Time":["06:00","00:41"]},{"To":"G01","Time":["06:02","00:44"]}]},{"StationID":"G14","lat":25.052621,"lon":25.052621,"name":"中山","ename":"Zhongshan","FirstLast":[{"To":"G19","Time":["06:02","00:43"]},{"To":"G01","Time":["06:00","00:42"]}]},{"StationID":"G15","lat":25.052693,"lon":25.052693,"name":"松江南京","ename":"Songliang Nanjing","FirstLast":[{"To":"G19","Time":["06:05","00:45"]},{"To":"G01","Time":["06:02","00:40"]}]},{"StationID":"G16","lat":25.052044,"lon":25.052044,"name":"南京復興","ename":"Nanjing Fuxing","FirstLast":[{"To":"G19","Time":["06:00","00:47"]},{"To":"G01","Time":["06:00","00:38"]}]},{"StationID":"G17","lat":25.05152,"lon":25.05152,"name":"台北小巨蛋","ename":"Taipei Arena","FirstLast":[{"To":"G19","Time":["06:02","00:49"]},{"To":"G01","Time":["06:05","00:05"]}]},{"StationID":"G18","lat":25.051588,"lon":25.051588,"name":"南京三民","ename":"Nanjing Sanmin","FirstLast":[{"To":"G19","Time":["06:05","00:51"]},{"To":"G01","Time":["06:03","00:03"]}]},{"StationID":"G19","lat":25.050118,"lon":25.050118,"name":"松山","ename":"Songshan","FirstLast":[{"To":"G01","Time":["06:00","00:00"]}]},{"StationID":"O01","lat":24.990065,"lon":24.990065,"name":"南勢角","ename":"Nanshijiao","FirstLast":[{"To":"O21","Time":["06:00","00:00"]},{"To":"O54","Time":["06:04","00:03"]}]},{"StationID":"O02","lat":24.99392,"lon":24.99392,"name":"景安","ename":"Jingan","FirstLast":[{"To":"O21","Time":["06:01","00:02"]},{"To":"O01","Time":["06:01","01:01"]},{"To":"O54","Time":["06:05","00:05"]}]},{"StationID":"O03","lat":25.002895,"lon":25.002895,"name":"永安市場","ename":"Yongan Market","FirstLast":[{"To":"O21","Time":["06:03","00:04"]},{"To":"O01","Time":["06:00","01:00"]},{"To":"O54","Time":["06:00","00:07"]}]},{"StationID":"O04","lat":25.013858,"lon":25.013858,"name":"頂溪","ename":"Dingxi","FirstLast":[{"To":"O21","Time":["06:05","00:06"]},{"To":"O01","Time":["06:03","00:58"]},{"To":"O54","Time":["06:02","00:09"]}]},{"StationID":"O05","lat":25.026373,"lon":25.026373,"name":"古亭","ename":"Guting","FirstLast":[{"To":"O21","Time":["06:00","00:17"]},{"To":"O01","Time":["06:00","00:54"]},{"To":"O54","Time":["06:06","00:27"]}]},{"StationID":"O06","lat":25.033894,"lon":25.033894,"name":"東門","ename":"Dongmen","FirstLast":[{"To":"O21","Time":["06:03","00:33"]},{"To":"O01","Time":["06:03","00:50"]},{"To":"O54","Time":["06:08","00:30"]}]},{"StationID":"O07","lat":25.042498,"lon":25.042498,"name":"忠孝新生","ename":"Zhongxiao Xinsheng","FirstLast":[{"To":"O21","Time":["06:06","00:36"]},{"To":"O01","Time":["06:00","00:48"]},{"To":"O54","Time":["06:00","00:33"]}]},{"StationID":"O08","lat":25.052693,"lon":25.052693,"name":"松江南京","ename":"Songliang Nanjing","FirstLast":[{"To":"O21","Time":["06:08","00:38"]},{"To":"O01","Time":["06:03","00:46"]},{"To":"O54","Time":["06:02","00:35"]}]},{"StationID":"O09","lat":25.05924,"lon":25.05924,"name":"行天宮","ename":"Xingtian Temple","FirstLast":[{"To":"O21","Time":["06:00","00:40"]},{"To":"O01","Time":["06:01","00:44"]},{"To":"O54","Time":["06:04","00:37"]}]},{"StationID":"O10","lat":25.062665,"lon":25.062665,"name":"中山國小","ename":"Zhongshan Elementary School","FirstLast":[{"To":"O21","Time":["06:02","00:41"]},{"To":"O01","Time":["06:00","00:42"]},{"To":"O54","Time":["06:06","00:39"]}]},{"StationID":"O11","lat":25.06235,"lon":25.06235,"name":"民權西路","ename":"Minzuan W. Rd.","FirstLast":[{"To":"O21","Time":["06:04","00:43"]},{"To":"O01","Time":["06:01","00:40"]},{"To":"O54","Time":["06:00","00:41"]}]},{"StationID":"O12","lat":25.06322,"lon":25.06322,"name":"大橋頭","ename":"Daqiaotou","FirstLast":[{"To":"O21","Time":["06:06","00:45"]},{"To":"O01","Time":["06:00","00:29"]},{"To":"O54","Time":["06:02","00:42"]}]},{"StationID":"O13","lat":25.063075,"lon":25.063075,"name":"台北橋","ename":"Taipei Bridge","FirstLast":[{"To":"O21","Time":["06:08","00:47"]},{"To":"O01","Time":["06:06","00:27"]}]},{"StationID":"O14","lat":25.059451,"lon":25.059451,"name":"菜寮","ename":"Cailiao","FirstLast":[{"To":"O21","Time":["06:00","00:49"]},{"To":"O01","Time":["06:04","00:25"]}]},{"StationID":"O15","lat":25.05571,"lon":25.05571,"name":"三重","ename":"Sanchong","FirstLast":[{"To":"O21","Time":["06:02","00:51"]},{"To":"O01","Time":["06:02","00:23"]}]},{"StationID":"O16","lat":25.04632,"lon":25.04632,"name":"先嗇宮","ename":"Xianse Temple","FirstLast":[{"To":"O21","Time":["06:04","00:53"]},{"To":"O01","Time":["06:00","00:12"]}]},{"StationID":"O17","lat":25.039735,"lon":25.039735,"name":"頭前庄","ename":"Touqianzhuang","FirstLast":[{"To":"O21","Time":["06:07","00:56"]},{"To":"O01","Time":["06:04","00:10"]}]},{"StationID":"O18","lat":25.03608,"lon":25.03608,"name":"新莊","ename":"Xinzhuang","FirstLast":[{"To":"O21","Time":["06:00","00:58"]},{"To":"O01","Time":["06:03","00:08"]}]},{"StationID":"O19","lat":25.03279,"lon":25.03279,"name":"輔大","ename":"Fu Jen University","FirstLast":[{"To":"O21","Time":["06:03","01:01"]},{"To":"O01","Time":["06:00","00:05"]}]},{"StationID":"O20","lat":25.029073,"lon":25.029073,"name":"丹鳳","ename":"Danfeng","FirstLast":[{"To":"O21","Time":["06:00","01:03"]},{"To":"O01","Time":["06:03","00:03"]}]},{"StationID":"O21","lat":25.022107,"lon":25.022107,"name":"迴龍","ename":"Huilong","FirstLast":[{"To":"O01","Time":["06:00","00:00"]}]},{"StationID":"O50","lat":25.070275,"lon":25.070275,"name":"三重國小","ename":"Sanchong Elementary School","FirstLast":[{"To":"O54","Time":["06:05","00:45"]},{"To":"O01","Time":["06:02","00:09"]}]},{"StationID":"O51","lat":25.07646,"lon":25.07646,"name":"三和國中","ename":"Sanhe Junior High School","FirstLast":[{"To":"O54","Time":["06:07","00:47"]},{"To":"O01","Time":["06:00","00:07"]}]},{"StationID":"O52","lat":25.080485,"lon":25.080485,"name":"徐匯中學","ename":"St.lgnatius High School","FirstLast":[{"To":"O54","Time":["06:00","00:49"]},{"To":"O01","Time":["06:04","00:05"]}]},{"StationID":"O53","lat":25.085425,"lon":25.085425,"name":"三民高中","ename":"Sanmin Senior High School","FirstLast":[{"To":"O54","Time":["06:02","00:51"]},{"To":"O01","Time":["06:02","00:03"]}]},{"StationID":"O54","lat":25.09152,"lon":25.09152,"name":"蘆洲","ename":"Luzhou","FirstLast":[{"To":"O01","Time":["06:00","00:00"]}]},{"StationID":"BL01","lat":24.96012,"lon":24.96012,"name":"頂埔","ename":"Dingpu","FirstLast":[{"To":"BL23","Time":["06:00","00:00"]}]},{"StationID":"BL02","lat":24.96682,"lon":24.96682,"name":"永寧","ename":"Yongning","FirstLast":[{"To":"BL23","Time":["06:03","00:03"]},{"To":"BL01","Time":["06:00","01:08"]}]},{"StationID":"BL03","lat":24.97313,"lon":24.97313,"name":"土城","ename":"Tucheng","FirstLast":[{"To":"BL23","Time":["06:05","00:05"]},{"To":"BL01","Time":["06:05","01:06"]}]},{"StationID":"BL04","lat":24.985305,"lon":24.985305,"name":"海山","ename":"Haishan","FirstLast":[{"To":"BL23","Time":["06:07","00:07"]},{"To":"BL01","Time":["06:03","01:04"]}]},{"StationID":"BL05","lat":24.99828,"lon":24.99828,"name":"亞東醫院","ename":"Far Eastern Hospital","FirstLast":[{"To":"BL23","Time":["06:00","00:10"]},{"To":"BL01","Time":["06:00","01:01"]}]},{"StationID":"BL06","lat":25.008465,"lon":25.008465,"name":"府中","ename":"Fuzhong","FirstLast":[{"To":"BL23","Time":["06:02","00:12"]},{"To":"BL01","Time":["06:05","00:59"]}]},{"StationID":"BL07","lat":25.013825,"lon":25.013825,"name":"板橋","ename":"Banqiao","FirstLast":[{"To":"BL23","Time":["06:03","00:13"]},{"To":"BL01","Time":["06:04","00:57"]}]},{"StationID":"BL08","lat":25.02327,"lon":25.02327,"name":"新埔","ename":"Xinpu","FirstLast":[{"To":"BL23","Time":["06:00","00:16"]},{"To":"BL01","Time":["06:02","00:55"]}]},{"StationID":"BL09","lat":25.030265,"lon":25.030265,"name":"江子翠","ename":"Jiangzicui","FirstLast":[{"To":"BL23","Time":["06:02","00:17"]},{"To":"BL01","Time":["06:00","00:54"]}]},{"StationID":"BL10","lat":25.03528,"lon":25.03528,"name":"龍山寺","ename":"Longshan Temple","FirstLast":[{"To":"BL23","Time":["06:05","00:21"]},{"To":"BL01","Time":["06:05","00:50"]}]},{"StationID":"BL11","lat":25.042025,"lon":25.042025,"name":"西門","ename":"Ximen","FirstLast":[{"To":"BL23","Time":["06:08","00:23"]},{"To":"BL01","Time":["06:03","00:48"]}]},{"StationID":"BL12","lat":25.04631,"lon":25.04631,"name":"台北車站","ename":"Taipei Main Station","FirstLast":[{"To":"BL23","Time":["06:00","00:45"]},{"To":"BL01","Time":["06:00","00:45"]}]},{"StationID":"BL13","lat":25.04468,"lon":25.04468,"name":"善導寺","ename":"Shandao Temple","FirstLast":[{"To":"BL23","Time":["06:02","00:46"]},{"To":"BL01","Time":["06:07","00:44"]}]},{"StationID":"BL14","lat":25.042498,"lon":25.042498,"name":"忠孝新生","ename":"Zhongxiao Xinsheng","FirstLast":[{"To":"BL23","Time":["06:04","00:48"]},{"To":"BL01","Time":["06:05","00:42"]}]},{"StationID":"BL15","lat":25.041749,"lon":25.041749,"name":"忠孝復興","ename":"Zhongxiao Fuxing","FirstLast":[{"To":"BL23","Time":["06:00","00:50"]},{"To":"BL01","Time":["06:03","00:40"]}]},{"StationID":"BL16","lat":25.041505,"lon":25.041505,"name":"忠孝敦化","ename":"Xhongxiao Dunhua","FirstLast":[{"To":"BL23","Time":["06:01","00:52"]},{"To":"BL01","Time":["06:02","00:24"]}]},{"StationID":"BL17","lat":25.04137,"lon":25.04137,"name":"國父紀念館","ename":"Sun Yat-Sen Memorial Hall","FirstLast":[{"To":"BL23","Time":["06:03","00:53"]},{"To":"BL01","Time":["06:00","00:22"]}]},{"StationID":"BL18","lat":25.041135,"lon":25.041135,"name":"市政府","ename":"Taipei City Hall","FirstLast":[{"To":"BL23","Time":["06:00","00:55"]},{"To":"BL01","Time":["06:03","00:21"]}]},{"StationID":"BL19","lat":25.040855,"lon":25.040855,"name":"永春","ename":"Yongchun","FirstLast":[{"To":"BL23","Time":["06:02","00:57"]},{"To":"BL01","Time":["06:02","00:19"]}]},{"StationID":"BL20","lat":25.044715,"lon":25.044715,"name":"後山埤","ename":"Houshanpi","FirstLast":[{"To":"BL23","Time":["06:04","00:59"]},{"To":"BL01","Time":["06:00","00:17"]}]},{"StationID":"BL21","lat":25.050459,"lon":25.050459,"name":"昆陽","ename":"Kunyang","FirstLast":[{"To":"BL23","Time":["06:06","01:01"]},{"To":"BL01","Time":["06:04","00:15"]}]},{"StationID":"BL22","lat":25.052035,"lon":25.052035,"name":"南港","ename":"Nangang","FirstLast":[{"To":"BL23","Time":["06:00","01:03"]},{"To":"BL01","Time":["06:02","00:12"]}]},{"StationID":"BL23","lat":25.054919,"lon":25.054919,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center","FirstLast":[{"To":"BL01","Time":["06:00","00:00"]}]}];
+var ntmc_line = [{"LineID":"Y","LineName":{"Zh_tw":"環狀線","En":"Circular Line","Ja":"環状線","Ko":"환좡선"},"LineColor":"#fedb00","IsBranch":false,"Route":[{"RouteID":"Y-1","Direction":0,"LineID":"Y","Stations":["Y07","Y08","Y09","Y10","Y11","Y12","Y13","Y14","Y15","Y16","Y17","Y18","Y19","Y20"],"TravelTime":{"RunTime":[145,111,79,84,194,104,72,111,153,191,143,95,135,0],"StopTime":[0,23,23,25,35,25,25,25,25,40,25,35,23,0]}},{"RouteID":"Y-1","Direction":1,"LineID":"Y","Stations":["Y20","Y19","Y18","Y17","Y16","Y15","Y14","Y13","Y12","Y11","Y10","Y09","Y08","Y07"],"TravelTime":{"RunTime":[135,95,143,191,153,111,72,104,194,84,79,111,145,0],"StopTime":[0,23,35,25,40,25,25,25,25,35,25,23,23,0]}}],"Transfer":[{"FromLineID":"Y","FromStationID":"Y07","ToLineID":"G","ToStationID":"G04","IsOnSiteTransfer":1,"TransferTime":3},{"FromLineID":"Y","FromStationID":"Y11","ToLineID":"O","ToStationID":"O02","IsOnSiteTransfer":1,"TransferTime":6},{"FromLineID":"Y","FromStationID":"Y16","ToLineID":"BL","ToStationID":"BL07","IsOnSiteTransfer":0,"TransferTime":11},{"FromLineID":"Y","FromStationID":"Y17","ToLineID":"BL","ToStationID":"BL08","IsOnSiteTransfer":0,"TransferTime":9},{"FromLineID":"Y","FromStationID":"Y18","ToLineID":"O","ToStationID":"O17","IsOnSiteTransfer":1,"TransferTime":6}],"Frequency":[{"LineID":"Y","RouteID":"Y-1","TrainType":1,"LineNo":"Y","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":5,"MaxHeadwayMins":10,"Time":["06:00","07:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":5,"MaxHeadwayMins":10,"Time":["09:00","17:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":5,"MaxHeadwayMins":10,"Time":["19:30","23:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["23:00","00:00"],"AveMins":14},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":4,"MaxHeadwayMins":7,"Time":["17:00","19:30"],"AveMins":6}],"ServiceDays":{"ServiceTag":"平日。板橋至新北產業園區班距約23分、中和至大坪林班距約10分","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"Y","RouteID":"Y-1","TrainType":1,"LineNo":"Y","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":5,"MaxHeadwayMins":10,"Time":["06:00","23:00"],"AveMins":8},{"PeakFlag":"0","MinHeadwayMins":12,"MaxHeadwayMins":15,"Time":["23:00","00:00"],"AveMins":14}],"ServiceDays":{"ServiceTag":"假日。板橋至新北產業園區班距約23分、中和至大坪林班距約10分","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}}],"main":["Y-1"]}];
 
-var krtc_station = [{"StationID":"R3","lat":22.564822,"lon":22.564822,"name":"小港","ename":"Siaogang","FirstLast":[{"To":"R24","Time":["05:55","00:00"]},{"To":"R3","Time":["",""]}]},{"StationID":"R4","lat":22.570199,"lon":22.570199,"name":"高雄國際機場","ename":"Kaohsiung International Airport","FirstLast":[{"To":"R24","Time":["05:56","00:02"]},{"To":"R3","Time":["06:26","00:44"]}]},{"StationID":"R4A","lat":22.580363,"lon":22.580363,"name":"草衙","ename":"Caoya","FirstLast":[{"To":"R24","Time":["05:58","00:05"]},{"To":"R3","Time":["06:24","00:42"]}]},{"StationID":"R5","lat":22.588356,"lon":22.588356,"name":"前鎮高中","ename":"Cianjhen Senior High School","FirstLast":[{"To":"R24","Time":["06:00","00:08"]},{"To":"R3","Time":["06:22","00:40"]}]},{"StationID":"R6","lat":22.596856,"lon":22.596856,"name":"凱旋","ename":"Kaisyuan","FirstLast":[{"To":"R24","Time":["06:02","00:10"]},{"To":"R3","Time":["06:20","00:38"]}]},{"StationID":"R7","lat":22.60587,"lon":22.60587,"name":"獅甲","ename":"Shihjia","FirstLast":[{"To":"R24","Time":["06:04","00:13"]},{"To":"R3","Time":["06:18","00:35"]}]},{"StationID":"R8","lat":22.614011,"lon":22.614011,"name":"三多商圈","ename":"Sanduo Shopping District","FirstLast":[{"To":"R24","Time":["05:55","00:16"]},{"To":"R3","Time":["06:16","00:33"]}]},{"StationID":"R9","lat":22.624628,"lon":22.624628,"name":"中央公園","ename":"Central Park","FirstLast":[{"To":"R24","Time":["05:56","00:18"]},{"To":"R3","Time":["06:14","00:31"]}]},{"StationID":"R10","lat":22.631387,"lon":22.631387,"name":"美麗島","ename":"Formosa Boulevard","FirstLast":[{"To":"R24","Time":["05:58","00:21"]},{"To":"R3","Time":["06:12","00:29"]}]},{"StationID":"R11","lat":22.639769,"lon":22.639769,"name":"高雄車站","ename":"Kaohsiung Main Station","FirstLast":[{"To":"R24","Time":["06:00","00:23"]},{"To":"R3","Time":["06:10","00:28"]}]},{"StationID":"R12","lat":22.648314,"lon":22.648314,"name":"後驛","ename":"Houyi","FirstLast":[{"To":"R24","Time":["06:02","00:25"]},{"To":"R3","Time":["06:08","00:25"]}]},{"StationID":"R13","lat":22.657126,"lon":22.657126,"name":"凹子底","ename":"Aozihdi","FirstLast":[{"To":"R24","Time":["06:04","00:27"]},{"To":"R3","Time":["06:06","00:24"]}]},{"StationID":"R14","lat":22.666135,"lon":22.666135,"name":"巨蛋","ename":"Kaohsiung Arena","FirstLast":[{"To":"R24","Time":["06:06","00:29"]},{"To":"R3","Time":["06:04","00:22"]}]},{"StationID":"R15","lat":22.676738,"lon":22.676738,"name":"生態園區","ename":"Ecological District","FirstLast":[{"To":"R24","Time":["06:08","00:31"]},{"To":"R3","Time":["06:02","00:20"]}]},{"StationID":"R16","lat":22.688073,"lon":22.688073,"name":"左營","ename":"Zuoying","FirstLast":[{"To":"R24","Time":["06:10","00:33"]},{"To":"R3","Time":["06:00","00:17"]}]},{"StationID":"R17","lat":22.701622,"lon":22.701622,"name":"世運","ename":"World Game","FirstLast":[{"To":"R24","Time":["06:12","00:35"]},{"To":"R3","Time":["05:58","00:15"]}]},{"StationID":"R18","lat":22.708479,"lon":22.708479,"name":"油廠國小","ename":"Oil Refinery Elementary School","FirstLast":[{"To":"R24","Time":["06:14","00:37"]},{"To":"R3","Time":["05:56","00:14"]}]},{"StationID":"R19","lat":22.718671,"lon":22.718671,"name":"楠梓加工區","ename":"Nanzih Export Processing Zone","FirstLast":[{"To":"R24","Time":["06:16","00:39"]},{"To":"R3","Time":["05:55","00:11"]}]},{"StationID":"R20","lat":22.7223,"lon":22.7223,"name":"後勁","ename":"Houjing","FirstLast":[{"To":"R24","Time":["06:18","00:41"]},{"To":"R3","Time":["06:10","00:10"]}]},{"StationID":"R21","lat":22.729403,"lon":22.729403,"name":"都會公園","ename":"Metropolitan Park","FirstLast":[{"To":"R24","Time":["06:20","00:42"]},{"To":"R3","Time":["06:08","00:08"]}]},{"StationID":"R22","lat":22.744399,"lon":22.744399,"name":"青埔","ename":"Cingpu","FirstLast":[{"To":"R24","Time":["06:22","00:45"]},{"To":"R3","Time":["06:06","00:06"]}]},{"StationID":"R22A","lat":22.753398,"lon":22.753398,"name":"橋頭糖廠","ename":"Ciaotou Sugar Refinery","FirstLast":[{"To":"R24","Time":["06:24","00:46"]},{"To":"R3","Time":["06:04","00:04"]}]},{"StationID":"R23","lat":22.760452,"lon":22.760452,"name":"橋頭火車站","ename":"Ciaotou Station","FirstLast":[{"To":"R24","Time":["06:25","00:48"]},{"To":"R3","Time":["06:02","00:02"]}]},{"StationID":"R24","lat":22.780544,"lon":22.780544,"name":"南岡山","ename":"Gangshan South","FirstLast":[{"To":"R24","Time":["",""]},{"To":"R3","Time":["06:00","00:00"]}]},{"StationID":"O1","lat":22.621544,"lon":22.621544,"name":"西子灣","ename":"Sizihwan","FirstLast":[{"To":"OT1","Time":["06:00","00:00"]},{"To":"O1","Time":["",""]}]},{"StationID":"O2","lat":22.623538,"lon":22.623538,"name":"鹽埕埔","ename":"Yanchengpu","FirstLast":[{"To":"OT1","Time":["06:01","00:01"]},{"To":"O1","Time":["06:03","00:21"]}]},{"StationID":"O4","lat":22.629002,"lon":22.629002,"name":"市議會","ename":"City Council","FirstLast":[{"To":"OT1","Time":["06:03","00:03"]},{"To":"O1","Time":["06:01","00:19"]}]},{"StationID":"O5","lat":22.631387,"lon":22.631387,"name":"美麗島","ename":"Formosa Boulevard","FirstLast":[{"To":"OT1","Time":["06:05","00:05"]},{"To":"O1","Time":["06:00","00:16"]}]},{"StationID":"O6","lat":22.630745,"lon":22.630745,"name":"信義國小","ename":"Sinyi Elementary School","FirstLast":[{"To":"OT1","Time":["06:07","00:07"]},{"To":"O1","Time":["06:05","00:15"]}]},{"StationID":"O7","lat":22.630292,"lon":22.630292,"name":"文化中心","ename":"Cultural Center","FirstLast":[{"To":"OT1","Time":["06:08","00:08"]},{"To":"O1","Time":["06:04","00:13"]}]},{"StationID":"O8","lat":22.629331,"lon":22.629331,"name":"五塊厝","ename":"Wukuaicuo","FirstLast":[{"To":"OT1","Time":["06:00","00:10"]},{"To":"O1","Time":["06:02","00:12"]}]},{"StationID":"O9","lat":22.627291,"lon":22.627291,"name":"技擊館","ename":"Martial Arts Stadium","FirstLast":[{"To":"OT1","Time":["06:01","00:12"]},{"To":"O1","Time":["06:01","00:10"]}]},{"StationID":"O10","lat":22.625162,"lon":22.625162,"name":"衛武營","ename":"Weiwuying","FirstLast":[{"To":"OT1","Time":["06:02","00:13"]},{"To":"O1","Time":["06:00","00:09"]}]},{"StationID":"O11","lat":22.625331,"lon":22.625331,"name":"鳳山西站","ename":"Fongshan West","FirstLast":[{"To":"OT1","Time":["06:04","00:15"]},{"To":"O1","Time":["06:06","00:07"]}]},{"StationID":"O12","lat":22.625994,"lon":22.625994,"name":"鳳山","ename":"Fongshan","FirstLast":[{"To":"OT1","Time":["06:05","00:16"]},{"To":"O1","Time":["06:05","00:06"]}]},{"StationID":"O13","lat":22.625197,"lon":22.625197,"name":"大東","ename":"Dadong","FirstLast":[{"To":"OT1","Time":["06:07","00:18"]},{"To":"O1","Time":["06:03","00:04"]}]},{"StationID":"O14","lat":22.624915,"lon":22.624915,"name":"鳳山國中","ename":"Fongshan Junior High School","FirstLast":[{"To":"OT1","Time":["06:09","00:20"]},{"To":"O1","Time":["06:02","00:02"]}]},{"StationID":"OT1","lat":22.622423,"lon":22.622423,"name":"大寮","ename":"Daliao","FirstLast":[{"To":"OT1","Time":["",""]},{"To":"O1","Time":["06:00","00:00"]}]}];
+var tmrt_line = [{"LineID":"G","LineName":{"Zh_tw":"烏日文心北屯線","En":"Wuriwenxin  Beitun Line"},"LineColor":"#84BD00","IsBranch":false,"Route":[{"RouteID":"G-1","Direction":0,"LineID":"G","Stations":["G0","G3","G4","G5","G6","G7","G8","G8a","G9","G10","G10a","G11","G12","G13","G14","G15","G16","G17"],"TravelTime":{"RunTime":[132,80,153,81,111,92,78,78,108,80,63,82,155,85,71,90,109,0],"StopTime":[0,25,30,25,30,30,25,25,40,30,30,25,30,30,20,25,25,0]}},{"RouteID":"G-1","Direction":1,"LineID":"G","Stations":["G17","G16","G15","G14","G13","G12","G11","G10a","G10","G9","G8a","G8","G7","G6","G5","G4","G3","G0"],"TravelTime":{"RunTime":[109,90,71,85,155,82,63,80,108,78,78,92,111,81,153,80,132,0],"StopTime":[0,25,25,20,30,30,25,30,30,40,25,25,30,30,25,30,25,0]}}],"Transfer":[],"Frequency":[{"LineID":"G","RouteID":"G-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":9,"Time":["06:00","07:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":9,"Time":["09:00","17:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":9,"MaxHeadwayMins":9,"Time":["19:00","23:00"],"AveMins":9},{"PeakFlag":"0","MinHeadwayMins":20,"MaxHeadwayMins":20,"Time":["23:00","24:00"],"AveMins":20},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["07:00","09:00"],"AveMins":6},{"PeakFlag":"1","MinHeadwayMins":6,"MaxHeadwayMins":6,"Time":["17:00","19:00"],"AveMins":6}],"ServiceDays":{"ServiceTag":"平日","NationalHolidays":false,"week":[false,true,true,true,true,true,false]}},{"LineID":"G","RouteID":"G-1","OperationTime":["06:00","24:00"],"Headways":[{"PeakFlag":"0","MinHeadwayMins":10,"MaxHeadwayMins":10,"Time":["06:00","10:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":10,"MaxHeadwayMins":10,"Time":["20:00","23:00"],"AveMins":10},{"PeakFlag":"0","MinHeadwayMins":20,"MaxHeadwayMins":20,"Time":["23:00","24:00"],"AveMins":20},{"PeakFlag":"1","MinHeadwayMins":8,"MaxHeadwayMins":8,"Time":["10:00","20:00"],"AveMins":8}],"ServiceDays":{"ServiceTag":"假日","NationalHolidays":true,"week":[true,false,false,false,false,false,true]}}]}];
 
-var tymc_station = [{"StationID":"A1","lat":25.048,"lon":25.048,"name":"台北車站","ename":"Taipei Main Station","FirstLast":[{"To":"A21","Time":["06:07","23:07"],"TrainType":1},{"To":"A13","Time":["06:00","23:00"],"TrainType":2}]},{"StationID":"A2","lat":25.054,"lon":25.054,"name":"三重站","ename":"Sanchong Station","FirstLast":[{"To":"A21","Time":["05:58","23:15"],"TrainType":1},{"To":"A1","Time":["06:08","00:17"],"TrainType":1}]},{"StationID":"A3","lat":25.061,"lon":25.061,"name":"新北產業園區站","ename":"New Taipei Industrial Park Station","FirstLast":[{"To":"A21","Time":["06:02","23:19"],"TrainType":1},{"To":"A1","Time":["06:03","00:12"],"TrainType":1},{"To":"A13","Time":["06:09","23:09"],"TrainType":2},{"To":"A1","Time":["06:11","23:26"],"TrainType":2}]},{"StationID":"A4","lat":25.059,"lon":25.059,"name":"新莊副都心站","ename":"Xinzhuang Fuduxin Station","FirstLast":[{"To":"A21","Time":["06:05","23:22"],"TrainType":1},{"To":"A1","Time":["06:00","00:09"],"TrainType":1}]},{"StationID":"A5","lat":25.052,"lon":25.052,"name":"泰山站","ename":"Taishan Station","FirstLast":[{"To":"A21","Time":["06:07","23:24"],"TrainType":1},{"To":"A1","Time":["05:58","00:07"],"TrainType":1}]},{"StationID":"A6","lat":25.033,"lon":25.033,"name":"泰山貴和站","ename":"Taishan Guihe Station","FirstLast":[{"To":"A21","Time":["06:10","23:27"],"TrainType":1},{"To":"A1","Time":["06:10","00:04"],"TrainType":1}]},{"StationID":"A7","lat":25.041,"lon":25.041,"name":"體育大學站","ename":"National Taiwan Sport University Station","FirstLast":[{"To":"A21","Time":["06:00","23:32"],"TrainType":1},{"To":"A1","Time":["06:03","23:57"],"TrainType":1}]},{"StationID":"A8","lat":25.061,"lon":25.061,"name":"長庚醫院站","ename":"Chang Gung Memorial Hospital Station","FirstLast":[{"To":"A21","Time":["06:08","23:36"],"TrainType":1},{"To":"A1","Time":["05:59","23:53"],"TrainType":1},{"To":"A13","Time":["06:06","23:21"],"TrainType":2},{"To":"A1","Time":["05:58","23:11"],"TrainType":2}]},{"StationID":"A9","lat":25.066,"lon":25.066,"name":"林口站","ename":"Linkou Station","FirstLast":[{"To":"A21","Time":["06:11","23:39"],"TrainType":1},{"To":"A1","Time":["06:07","23:50"],"TrainType":1}]},{"StationID":"A10","lat":25.081,"lon":25.081,"name":"山鼻站","ename":"Shanbi Station","FirstLast":[{"To":"A21","Time":["06:05","23:48"],"TrainType":1},{"To":"A1","Time":["05:59","23:42"],"TrainType":1}]},{"StationID":"A11","lat":25.086,"lon":25.086,"name":"坑口站","ename":"Kengkou Station","FirstLast":[{"To":"A21","Time":["06:08","23:51"],"TrainType":1},{"To":"A1","Time":["06:11","23:40"],"TrainType":1}]},{"StationID":"A12","lat":25.082,"lon":25.082,"name":"機場第一航廈站","ename":"Airport Terminal 1 Station","FirstLast":[{"To":"A21","Time":["05:57","23:55"],"TrainType":1},{"To":"A1","Time":["06:07","23:36"],"TrainType":1},{"To":"A13","Time":["06:07","23:37"],"TrainType":2},{"To":"A1","Time":["05:59","22:58"],"TrainType":2}]},{"StationID":"A13","lat":25.077,"lon":25.077,"name":"機場第二航廈站","ename":"Airport Terminal 2 Station","FirstLast":[{"To":"A21","Time":["06:00","23:57"],"TrainType":1},{"To":"A1","Time":["06:04","23:33"],"TrainType":1},{"To":"A1","Time":["05:57","22:55"],"TrainType":2}]},{"StationID":"A14a","lat":25.069,"lon":25.069,"name":"機場旅館站","ename":"Airport Hotel Station","FirstLast":[{"To":"A21","Time":["06:03","00:00"],"TrainType":1},{"To":"A1","Time":["06:00","23:29"],"TrainType":1}]},{"StationID":"A15","lat":25.056,"lon":25.056,"name":"大園站","ename":"Dayuan Station","FirstLast":[{"To":"A21","Time":["06:06","00:03"],"TrainType":1},{"To":"A1","Time":["06:12","23:26"],"TrainType":1}]},{"StationID":"A16","lat":25.037,"lon":25.037,"name":"橫山站","ename":"Hengshan Station","FirstLast":[{"To":"A21","Time":["06:09","00:06"],"TrainType":1},{"To":"A1","Time":["06:09","23:23"],"TrainType":1}]},{"StationID":"A17","lat":25.024,"lon":25.024,"name":"領航站","ename":"Linghang Station","FirstLast":[{"To":"A21","Time":["06:12","00:09"],"TrainType":1},{"To":"A1","Time":["06:06","23:20"],"TrainType":1}]},{"StationID":"A18","lat":25.014,"lon":25.014,"name":"高鐵桃園站","ename":"Taoyuan HSR Station","FirstLast":[{"To":"A21","Time":["06:02","00:13"],"TrainType":1},{"To":"A1","Time":["06:02","23:16"],"TrainType":1}]},{"StationID":"A19","lat":25.002,"lon":25.002,"name":"桃園體育園區站","ename":"Taoyuan Sports Park Station","FirstLast":[{"To":"A21","Time":["06:05","00:16"],"TrainType":1},{"To":"A1","Time":["06:13","23:13"],"TrainType":1}]},{"StationID":"A20","lat":24.98,"lon":24.98,"name":"興南站","ename":"Xingnan Station","FirstLast":[{"To":"A21","Time":["06:10","00:21"],"TrainType":1},{"To":"A1","Time":["06:08","23:08"],"TrainType":1}]},{"StationID":"A21","lat":24.967,"lon":24.967,"name":"環北站","ename":"Huanbei Station","FirstLast":[{"To":"A1","Time":["06:05","23:05"],"TrainType":1}]}];
+var klrt_line = [{"LineID":"C","LineName":{"Zh_tw":"環狀輕軌"},"IsBranch":false,"Route":[{"RouteID":"C","Direction":0,"LineID":"C","Stations":["C1","C2","C3","C4","C5","C6","C7","C8","C9","C10","C11","C12","C13","C14","C15","C16","C17","C18","C19","C20","C21A","C21","C22","C23","C24","C25","C26","C27","C28","C29","C30","C31","C32","C33","C34","C35","C36","C37","C1"],"TravelTime":{"RunTime":[180,300,480,600,720,900,1020,1200,1320,1440,1560,1740,1860,1920,2100,2220,2400,2520,2640,2700,2880,3000,3180,3300,3480,3600,3780,3960,4140,4320,4440,4560,4680,4800,4920,5100,5280,120,300],"StopTime":[25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25]}},{"RouteID":"C","Direction":1,"LineID":"C","Stations":["C1","C37","C36","C35","C34","C33","C32","C31","C30","C29","C28","C27","C26","C25","C24","C23","C22","C21","C21A","C20","C19","C18","C17","C16","C15","C14","C13","C12","C11","C10","C9","C8","C7","C6","C5","C4","C3","C2","C1"],"TravelTime":{"RunTime":[180,300,480,600,720,900,1020,1200,1320,1440,1560,1740,1860,1920,2100,2220,2400,2520,2640,2700,2880,3000,3180,3300,3480,3600,3780,3960,4140,4320,4440,4560,4680,4800,4920,5100,5280,120,300],"StopTime":[25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25]}}],"Transfer":[],"Frequency":[]}];
 
-var tmrt_station = [{"StationID":"103","lat":24.18228,"lon":24.18228,"name":"舊社","ename":"Jiushe","FirstLast":[{"To":"103a","Time":["06:07","00:29"]},{"To":"119","Time":["06:02","00:02"]}]},{"StationID":"103a","lat":24.18913,"lon":24.18913,"name":"北屯總站","ename":"Beitun Main Station","FirstLast":[{"To":"119","Time":["06:00","00:00"]}]},{"StationID":"104","lat":24.1808,"lon":24.1808,"name":"松竹","ename":"Songzhu","FirstLast":[{"To":"103a","Time":["06:04","00:27"]},{"To":"119","Time":["06:04","00:03"]}]},{"StationID":"105","lat":24.17124,"lon":24.17124,"name":"四維國小","ename":"Sihwei Elementary School","FirstLast":[{"To":"103a","Time":["06:00","00:25"]},{"To":"119","Time":["06:00","00:06"]}]},{"StationID":"106","lat":24.17219,"lon":24.17219,"name":"文心崇德","ename":"Wenxin Chongde","FirstLast":[{"To":"103a","Time":["06:09","00:23"]},{"To":"119","Time":["06:01","00:08"]}]},{"StationID":"107","lat":24.17368,"lon":24.17368,"name":"文心中清","ename":"Wenxin Zhongqing","FirstLast":[{"To":"103a","Time":["06:06","00:21"]},{"To":"119","Time":["06:03","00:10"]}]},{"StationID":"108","lat":24.17141,"lon":24.17141,"name":"文華高中","ename":"Wenhua Senior High School","FirstLast":[{"To":"103a","Time":["06:04","00:19"]},{"To":"119","Time":["06:05","00:12"]}]},{"StationID":"109","lat":24.16763,"lon":24.16763,"name":"文心櫻花","ename":"Wenxin Yinghua","FirstLast":[{"To":"103a","Time":["06:02","00:17"]},{"To":"119","Time":["06:07","00:13"]}]},{"StationID":"110","lat":24.16199,"lon":24.16199,"name":"市政府","ename":"Taichung City Hall","FirstLast":[{"To":"103a","Time":["06:00","00:16"]},{"To":"119","Time":["06:00","00:15"]}]},{"StationID":"111","lat":24.15311,"lon":24.15311,"name":"水安宮","ename":"Shui-an Temple","FirstLast":[{"To":"103a","Time":["06:07","00:14"]},{"To":"119","Time":["06:02","00:17"]}]},{"StationID":"112","lat":24.1454,"lon":24.1454,"name":"文心森林公園","ename":"Wenxin Forest Park","FirstLast":[{"To":"103a","Time":["06:06","00:12"]},{"To":"119","Time":["06:04","00:19"]}]},{"StationID":"113","lat":24.1405,"lon":24.1405,"name":"南屯","ename":"Nantun","FirstLast":[{"To":"103a","Time":["06:04","00:11"]},{"To":"119","Time":["06:05","00:20"]}]},{"StationID":"114","lat":24.1326,"lon":24.1326,"name":"豐樂公園","ename":"Feng-le Park","FirstLast":[{"To":"103a","Time":["06:02","00:09"]},{"To":"119","Time":["06:07","00:22"]}]},{"StationID":"115","lat":24.1191,"lon":24.1191,"name":"大慶","ename":"Daqing","FirstLast":[{"To":"103a","Time":["06:00","00:06"]},{"To":"119","Time":["06:00","00:25"]}]},{"StationID":"116","lat":24.1145,"lon":24.1145,"name":"九張犁","ename":"Jiuzhangli","FirstLast":[{"To":"103a","Time":["06:05","00:05"]},{"To":"119","Time":["06:02","00:26"]}]},{"StationID":"117","lat":24.11104,"lon":24.11104,"name":"九德","ename":"Jiude","FirstLast":[{"To":"103a","Time":["06:04","00:03"]},{"To":"119","Time":["06:05","00:28"]}]},{"StationID":"118","lat":24.1089,"lon":24.1089,"name":"烏日","ename":"Wuri","FirstLast":[{"To":"103a","Time":["06:02","00:02"]},{"To":"119","Time":["06:08","00:29"]}]},{"StationID":"119","lat":24.11011,"lon":24.11011,"name":"高鐵臺中站","ename":"HSR Taichung Station","FirstLast":[{"To":"103a","Time":["06:00","00:00"]}]}];
+var trtc_station = [{"StationID":"BL01","lat":24.959351,"lon":24.959351,"name":"頂埔","ename":"Dingpu","FirstLast":[{"To":"BL23","Time":["06:00","00:00"]}]},{"StationID":"BL02","lat":24.96682,"lon":24.96682,"name":"永寧","ename":"Yongning","FirstLast":[{"To":"BL01","Time":["06:00","01:08"]},{"To":"BL23","Time":["06:03","00:03"]}]},{"StationID":"BL03","lat":24.97313,"lon":24.97313,"name":"土城","ename":"Tucheng","FirstLast":[{"To":"BL01","Time":["06:05","01:06"]},{"To":"BL23","Time":["06:05","00:05"]}]},{"StationID":"BL04","lat":24.985348,"lon":24.985348,"name":"海山","ename":"Haishan","FirstLast":[{"To":"BL01","Time":["06:03","01:04"]},{"To":"BL23","Time":["06:07","00:07"]}]},{"StationID":"BL05","lat":24.99828,"lon":24.99828,"name":"亞東醫院","ename":"Far Eastern Hospital","FirstLast":[{"To":"BL01","Time":["06:00","01:01"]},{"To":"BL23","Time":["06:00","00:10"]}]},{"StationID":"BL06","lat":25.008465,"lon":25.008465,"name":"府中","ename":"Fuzhong","FirstLast":[{"To":"BL01","Time":["06:05","00:59"]},{"To":"BL23","Time":["06:02","00:12"]}]},{"StationID":"BL07","lat":25.014098,"lon":25.014098,"name":"板橋","ename":"Banqiao","FirstLast":[{"To":"BL01","Time":["06:04","00:57"]},{"To":"BL23","Time":["06:03","00:32"]}]},{"StationID":"BL08","lat":25.023736,"lon":25.023736,"name":"新埔","ename":"Xinpu","FirstLast":[{"To":"BL01","Time":["06:02","00:55"]},{"To":"BL23","Time":["06:00","00:35"]}]},{"StationID":"BL09","lat":25.030265,"lon":25.030265,"name":"江子翠","ename":"Jiangzicui","FirstLast":[{"To":"BL01","Time":["06:00","00:54"]},{"To":"BL23","Time":["06:02","00:36"]}]},{"StationID":"BL10","lat":25.03528,"lon":25.03528,"name":"龍山寺","ename":"Longshan Temple","FirstLast":[{"To":"BL01","Time":["06:05","00:50"]},{"To":"BL23","Time":["06:05","00:40"]}]},{"StationID":"BL11","lat":25.042274,"lon":25.042274,"name":"西門","ename":"Ximen","FirstLast":[{"To":"BL01","Time":["06:03","00:48"]},{"To":"BL23","Time":["06:08","00:42"]}]},{"StationID":"BL12","lat":25.04631,"lon":25.04631,"name":"台北車站","ename":"Taipei Main Station","FirstLast":[{"To":"BL01","Time":["06:00","00:45"]},{"To":"BL23","Time":["06:00","00:45"]}]},{"StationID":"BL13","lat":25.04468,"lon":25.04468,"name":"善導寺","ename":"Shandao Temple","FirstLast":[{"To":"BL01","Time":["06:07","00:44"]},{"To":"BL23","Time":["06:02","00:46"]}]},{"StationID":"BL14","lat":25.0423,"lon":25.0423,"name":"忠孝新生","ename":"Zhongxiao Xinsheng","FirstLast":[{"To":"BL01","Time":["06:05","00:42"]},{"To":"BL23","Time":["06:04","00:48"]}]},{"StationID":"BL15","lat":25.041633,"lon":25.041633,"name":"忠孝復興","ename":"Zhongxiao Fuxing","FirstLast":[{"To":"BL01","Time":["06:03","00:40"]},{"To":"BL23","Time":["06:00","00:50"]}]},{"StationID":"BL16","lat":25.041505,"lon":25.041505,"name":"忠孝敦化","ename":"Zhongxiao Dunhua","FirstLast":[{"To":"BL01","Time":["06:02","00:24"]},{"To":"BL23","Time":["06:01","00:52"]}]},{"StationID":"BL17","lat":25.04137,"lon":25.04137,"name":"國父紀念館","ename":"Sun Yat-Sen Memorial Hall","FirstLast":[{"To":"BL01","Time":["06:00","00:22"]},{"To":"BL23","Time":["06:03","00:53"]}]},{"StationID":"BL18","lat":25.041135,"lon":25.041135,"name":"市政府","ename":"Taipei City Hall","FirstLast":[{"To":"BL01","Time":["06:03","00:21"]},{"To":"BL23","Time":["06:00","00:55"]}]},{"StationID":"BL19","lat":25.040855,"lon":25.040855,"name":"永春","ename":"Yongchun","FirstLast":[{"To":"BL01","Time":["06:02","00:19"]},{"To":"BL23","Time":["06:02","00:57"]}]},{"StationID":"BL20","lat":25.044715,"lon":25.044715,"name":"後山埤","ename":"Houshanpi","FirstLast":[{"To":"BL01","Time":["06:00","00:17"]},{"To":"BL23","Time":["06:04","00:59"]}]},{"StationID":"BL21","lat":25.050459,"lon":25.050459,"name":"昆陽","ename":"Kunyang","FirstLast":[{"To":"BL01","Time":["06:04","00:15"]},{"To":"BL23","Time":["06:06","01:01"]}]},{"StationID":"BL22","lat":25.052035,"lon":25.052035,"name":"南港","ename":"Nangang","FirstLast":[{"To":"BL01","Time":["06:02","00:12"]},{"To":"BL23","Time":["06:00","01:03"]}]},{"StationID":"BL23","lat":25.054919,"lon":25.054919,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center","FirstLast":[{"To":"BL01","Time":["06:00","00:00"]}]},{"StationID":"BR01","lat":24.998205,"lon":24.998205,"name":"動物園","ename":"Taipei Zoo","FirstLast":[{"To":"BR24","Time":["06:00","00:00"]}]},{"StationID":"BR02","lat":24.99824,"lon":24.99824,"name":"木柵","ename":"Muzha","FirstLast":[{"To":"BR01","Time":["06:04","00:53"]},{"To":"BR24","Time":["06:01","00:01"]}]},{"StationID":"BR03","lat":24.99857,"lon":24.99857,"name":"萬芳社區","ename":"Wanfang Community","FirstLast":[{"To":"BR01","Time":["06:03","00:52"]},{"To":"BR24","Time":["06:02","00:02"]}]},{"StationID":"BR04","lat":24.99932,"lon":24.99932,"name":"萬芳醫院","ename":"Wanfang Hospital","FirstLast":[{"To":"BR01","Time":["06:01","00:49"]},{"To":"BR24","Time":["06:04","00:05"]}]},{"StationID":"BR05","lat":25.005455,"lon":25.005455,"name":"辛亥","ename":"Xinhai","FirstLast":[{"To":"BR01","Time":["06:00","00:47"]},{"To":"BR24","Time":["06:00","00:07"]}]},{"StationID":"BR06","lat":25.018495,"lon":25.018495,"name":"麟光","ename":"Linguang","FirstLast":[{"To":"BR01","Time":["06:03","00:44"]},{"To":"BR24","Time":["06:01","00:10"]}]},{"StationID":"BR07","lat":25.02381,"lon":25.02381,"name":"六張犁","ename":"Liuzhangli","FirstLast":[{"To":"BR01","Time":["06:01","00:42"]},{"To":"BR24","Time":["06:03","00:12"]}]},{"StationID":"BR08","lat":25.02612,"lon":25.02612,"name":"科技大樓","ename":"Technology Building","FirstLast":[{"To":"BR01","Time":["06:00","00:39"]},{"To":"BR24","Time":["06:00","00:15"]}]},{"StationID":"BR09","lat":25.033311,"lon":25.033311,"name":"大安","ename":"Daan","FirstLast":[{"To":"BR01","Time":["06:05","00:37"]},{"To":"BR24","Time":["06:01","00:33"]}]},{"StationID":"BR10","lat":25.041104,"lon":25.041104,"name":"忠孝復興","ename":"Zhongxiao Fuxing","FirstLast":[{"To":"BR01","Time":["06:03","00:35"]},{"To":"BR24","Time":["06:03","00:35"]}]},{"StationID":"BR11","lat":25.052044,"lon":25.052044,"name":"南京復興","ename":"Nanjing Fuxing","FirstLast":[{"To":"BR01","Time":["06:01","00:32"]},{"To":"BR24","Time":["06:05","00:38"]}]},{"StationID":"BR12","lat":25.06085,"lon":25.06085,"name":"中山國中","ename":"Zhongshan Junior High School","FirstLast":[{"To":"BR01","Time":["06:00","00:30"]},{"To":"BR24","Time":["06:00","00:40"]}]},{"StationID":"BR13","lat":25.063111,"lon":25.063111,"name":"松山機場","ename":"Songshan Airport","FirstLast":[{"To":"BR01","Time":["06:02","00:27"]},{"To":"BR24","Time":["06:02","00:43"]}]},{"StationID":"BR14","lat":25.07943,"lon":25.07943,"name":"大直","ename":"Dazhi","FirstLast":[{"To":"BR01","Time":["06:00","00:23"]},{"To":"BR24","Time":["06:00","00:46"]}]},{"StationID":"BR15","lat":25.08483,"lon":25.08483,"name":"劍南路","ename":"Jiannan Rd.","FirstLast":[{"To":"BR01","Time":["06:03","00:20"]},{"To":"BR24","Time":["06:01","00:49"]}]},{"StationID":"BR16","lat":25.08216,"lon":25.08216,"name":"西湖","ename":"Xihu","FirstLast":[{"To":"BR01","Time":["06:01","00:18"]},{"To":"BR24","Time":["06:03","00:52"]}]},{"StationID":"BR17","lat":25.08007,"lon":25.08007,"name":"港墘","ename":"Gangqian","FirstLast":[{"To":"BR01","Time":["06:00","00:15"]},{"To":"BR24","Time":["06:00","00:54"]}]},{"StationID":"BR18","lat":25.078567,"lon":25.078567,"name":"文德","ename":"Wende","FirstLast":[{"To":"BR01","Time":["06:05","00:13"]},{"To":"BR24","Time":["06:01","00:56"]}]},{"StationID":"BR19","lat":25.083675,"lon":25.083675,"name":"內湖","ename":"Neihu","FirstLast":[{"To":"BR01","Time":["06:03","00:11"]},{"To":"BR24","Time":["06:02","00:58"]}]},{"StationID":"BR20","lat":25.083805,"lon":25.083805,"name":"大湖公園","ename":"Dahu Park","FirstLast":[{"To":"BR01","Time":["06:01","00:09"]},{"To":"BR24","Time":["06:04","01:00"]}]},{"StationID":"BR21","lat":25.07271,"lon":25.07271,"name":"葫洲","ename":"Huzhou","FirstLast":[{"To":"BR01","Time":["06:00","00:05"]},{"To":"BR24","Time":["06:00","01:03"]}]},{"StationID":"BR22","lat":25.067455,"lon":25.067455,"name":"東湖","ename":"Donghu","FirstLast":[{"To":"BR01","Time":["06:03","00:03"]},{"To":"BR24","Time":["06:01","01:05"]}]},{"StationID":"BR23","lat":25.059911,"lon":25.059911,"name":"南港軟體園區","ename":"Nangang Software Park","FirstLast":[{"To":"BR01","Time":["06:01","00:01"]},{"To":"BR24","Time":["06:03","01:07"]}]},{"StationID":"BR24","lat":25.054919,"lon":25.054919,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center","FirstLast":[{"To":"BR01","Time":["06:00","00:00"]}]},{"StationID":"G01","lat":24.958181,"lon":24.958181,"name":"新店","ename":"Xindian","FirstLast":[{"To":"G19","Time":["06:00","00:00"]}]},{"StationID":"G02","lat":24.96744,"lon":24.96744,"name":"新店區公所","ename":"Xindian District Office","FirstLast":[{"To":"G01","Time":["06:02","01:05"]},{"To":"G19","Time":["06:02","00:02"]}]},{"StationID":"G03","lat":24.975036,"lon":24.975036,"name":"七張","ename":"Qizhang","FirstLast":[{"To":"G01","Time":["06:00","01:03"]},{"To":"G03","Time":["06:03","23:57"]},{"To":"G19","Time":["06:03","00:03"]}]},{"StationID":"G04","lat":24.98272,"lon":24.98272,"name":"大坪林","ename":"Dapinglin","FirstLast":[{"To":"G01","Time":["06:08","01:02"]},{"To":"G19","Time":["06:00","00:11"]}]},{"StationID":"G05","lat":24.992824,"lon":24.992824,"name":"景美","ename":"Jingmei","FirstLast":[{"To":"G01","Time":["06:06","01:00"]},{"To":"G19","Time":["06:02","00:13"]}]},{"StationID":"G06","lat":25.001978,"lon":25.001978,"name":"萬隆","ename":"Wanlong","FirstLast":[{"To":"G01","Time":["06:04","00:58"]},{"To":"G19","Time":["06:04","00:15"]}]},{"StationID":"G07","lat":25.014781,"lon":25.014781,"name":"公館","ename":"Gongguan","FirstLast":[{"To":"G01","Time":["06:02","00:55"]},{"To":"G19","Time":["06:00","00:18"]}]},{"StationID":"G08","lat":25.020733,"lon":25.020733,"name":"台電大樓","ename":"Taipower Building","FirstLast":[{"To":"G01","Time":["06:00","00:54"]},{"To":"G19","Time":["06:02","00:20"]}]},{"StationID":"G09","lat":25.026373,"lon":25.026373,"name":"古亭","ename":"Guting","FirstLast":[{"To":"G01","Time":["06:05","00:52"]},{"To":"G19","Time":["06:04","00:21"]}]},{"StationID":"G10","lat":25.032767,"lon":25.032767,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall","FirstLast":[{"To":"G01","Time":["06:03","00:50"]},{"To":"G19","Time":["06:00","00:23"]}]},{"StationID":"G11","lat":25.035619,"lon":25.035619,"name":"小南門","ename":"Xiaonanmen","FirstLast":[{"To":"G01","Time":["06:02","00:48"]},{"To":"G19","Time":["06:02","00:25"]}]},{"StationID":"G12","lat":25.042274,"lon":25.042274,"name":"西門","ename":"Ximen","FirstLast":[{"To":"G01","Time":["06:00","00:46"]},{"To":"G19","Time":["06:04","00:27"]}]},{"StationID":"G13","lat":25.049554,"lon":25.049554,"name":"北門","ename":"Beimen","FirstLast":[{"To":"G01","Time":["06:02","00:44"]},{"To":"G19","Time":["06:00","00:41"]}]},{"StationID":"G14","lat":25.052621,"lon":25.052621,"name":"中山","ename":"Zhongshan","FirstLast":[{"To":"G01","Time":["06:00","00:42"]},{"To":"G19","Time":["06:02","00:43"]}]},{"StationID":"G15","lat":25.052693,"lon":25.052693,"name":"松江南京","ename":"Songjiang Nanjing","FirstLast":[{"To":"G01","Time":["06:02","00:40"]},{"To":"G19","Time":["06:05","00:45"]}]},{"StationID":"G16","lat":25.052044,"lon":25.052044,"name":"南京復興","ename":"Nanjing Fuxing","FirstLast":[{"To":"G01","Time":["06:00","00:38"]},{"To":"G19","Time":["06:00","00:47"]}]},{"StationID":"G17","lat":25.05152,"lon":25.05152,"name":"台北小巨蛋","ename":"Taipei Arena","FirstLast":[{"To":"G01","Time":["06:05","00:05"]},{"To":"G19","Time":["06:02","00:49"]}]},{"StationID":"G18","lat":25.051588,"lon":25.051588,"name":"南京三民","ename":"Nanjing Sanmin","FirstLast":[{"To":"G01","Time":["06:03","00:03"]},{"To":"G19","Time":["06:05","00:51"]}]},{"StationID":"G19","lat":25.050118,"lon":25.050118,"name":"松山","ename":"Songshan","FirstLast":[{"To":"G01","Time":["06:00","00:00"]}]},{"StationID":"G03A","lat":24.97188,"lon":24.97188,"name":"小碧潭","ename":"Xiaobitan","FirstLast":[{"To":"G03A","Time":["06:11","00:09"]}]},{"StationID":"O01","lat":24.990065,"lon":24.990065,"name":"南勢角","ename":"Nanshijiao","FirstLast":[{"To":"O21","Time":["06:00","00:00"]},{"To":"O54","Time":["06:04","00:03"]}]},{"StationID":"O02","lat":24.99392,"lon":24.99392,"name":"景安","ename":"Jingan","FirstLast":[{"To":"O01","Time":["06:01","01:01"]},{"To":"O21","Time":["06:01","00:08"]},{"To":"O54","Time":["06:05","00:05"]}]},{"StationID":"O03","lat":25.002895,"lon":25.002895,"name":"永安市場","ename":"Yongan Market","FirstLast":[{"To":"O01","Time":["06:00","01:00"]},{"To":"O21","Time":["06:03","00:10"]},{"To":"O54","Time":["06:00","00:07"]}]},{"StationID":"O04","lat":25.01308,"lon":25.01308,"name":"頂溪","ename":"Dingxi","FirstLast":[{"To":"O01","Time":["06:03","00:58"]},{"To":"O21","Time":["06:05","00:13"]},{"To":"O54","Time":["06:02","00:09"]}]},{"StationID":"O05","lat":25.026373,"lon":25.026373,"name":"古亭","ename":"Guting","FirstLast":[{"To":"O01","Time":["06:00","00:54"]},{"To":"O21","Time":["06:00","00:33"]},{"To":"O54","Time":["06:06","00:29"]}]},{"StationID":"O06","lat":25.033894,"lon":25.033894,"name":"東門","ename":"Dongmen","FirstLast":[{"To":"O01","Time":["06:03","00:50"]},{"To":"O21","Time":["06:03","00:36"]},{"To":"O54","Time":["06:09","00:32"]}]},{"StationID":"O07","lat":25.041797,"lon":25.041797,"name":"忠孝新生","ename":"Zhongxiao Xinsheng","FirstLast":[{"To":"O01","Time":["06:00","00:48"]},{"To":"O21","Time":["06:06","00:39"]},{"To":"O54","Time":["06:00","00:35"]}]},{"StationID":"O08","lat":25.052693,"lon":25.052693,"name":"松江南京","ename":"Songjiang Nanjing","FirstLast":[{"To":"O01","Time":["06:03","00:46"]},{"To":"O21","Time":["06:08","00:41"]},{"To":"O54","Time":["06:02","00:38"]}]},{"StationID":"O09","lat":25.05924,"lon":25.05924,"name":"行天宮","ename":"Xingtian Temple","FirstLast":[{"To":"O01","Time":["06:01","00:44"]},{"To":"O21","Time":["06:00","00:43"]},{"To":"O54","Time":["06:04","00:40"]}]},{"StationID":"O10","lat":25.062665,"lon":25.062665,"name":"中山國小","ename":"Zhongshan Elementary School","FirstLast":[{"To":"O01","Time":["06:00","00:42"]},{"To":"O21","Time":["06:02","00:45"]},{"To":"O54","Time":["06:06","00:42"]}]},{"StationID":"O11","lat":25.06235,"lon":25.06235,"name":"民權西路","ename":"Minquan W. Rd.","FirstLast":[{"To":"O01","Time":["06:01","00:40"]},{"To":"O21","Time":["06:04","00:47"]},{"To":"O54","Time":["06:00","00:44"]}]},{"StationID":"O12","lat":25.06322,"lon":25.06322,"name":"大橋頭","ename":"Daqiaotou","FirstLast":[{"To":"O01","Time":["06:00","00:29"]},{"To":"O21","Time":["06:06","00:48"]},{"To":"O54","Time":["06:02","00:45"]}]},{"StationID":"O13","lat":25.063075,"lon":25.063075,"name":"台北橋","ename":"Taipei Bridge","FirstLast":[{"To":"O01","Time":["06:06","00:27"]},{"To":"O21","Time":["06:08","00:51"]}]},{"StationID":"O14","lat":25.059808,"lon":25.059808,"name":"菜寮","ename":"Cailiao","FirstLast":[{"To":"O01","Time":["06:04","00:25"]},{"To":"O21","Time":["06:00","00:53"]}]},{"StationID":"O15","lat":25.05571,"lon":25.05571,"name":"三重","ename":"Sanchong","FirstLast":[{"To":"O01","Time":["06:02","00:23"]},{"To":"O21","Time":["06:02","00:55"]}]},{"StationID":"O16","lat":25.04632,"lon":25.04632,"name":"先嗇宮","ename":"Xianse Temple","FirstLast":[{"To":"O01","Time":["06:00","00:20"]},{"To":"O21","Time":["06:04","00:57"]}]},{"StationID":"O17","lat":25.039862,"lon":25.039862,"name":"頭前庄","ename":"Touqianzhuang","FirstLast":[{"To":"O01","Time":["06:04","00:17"]},{"To":"O21","Time":["06:07","00:59"]}]},{"StationID":"O18","lat":25.03608,"lon":25.03608,"name":"新莊","ename":"Xinzhuang","FirstLast":[{"To":"O01","Time":["06:03","00:08"]},{"To":"O21","Time":["06:00","01:01"]}]},{"StationID":"O19","lat":25.03279,"lon":25.03279,"name":"輔大","ename":"Fu Jen University","FirstLast":[{"To":"O01","Time":["06:00","00:05"]},{"To":"O21","Time":["06:03","01:04"]}]},{"StationID":"O20","lat":25.029073,"lon":25.029073,"name":"丹鳳","ename":"Danfeng","FirstLast":[{"To":"O01","Time":["06:03","00:03"]},{"To":"O21","Time":["06:00","01:06"]}]},{"StationID":"O21","lat":25.022107,"lon":25.022107,"name":"迴龍","ename":"Huilong","FirstLast":[{"To":"O01","Time":["06:00","00:00"]}]},{"StationID":"O50","lat":25.070275,"lon":25.070275,"name":"三重國小","ename":"Sanchong Elementary School","FirstLast":[{"To":"O01","Time":["06:02","00:09"]},{"To":"O54","Time":["06:05","00:48"]}]},{"StationID":"O51","lat":25.076794,"lon":25.076794,"name":"三和國中","ename":"Sanhe Junior High School","FirstLast":[{"To":"O01","Time":["06:00","00:07"]},{"To":"O54","Time":["06:07","00:50"]}]},{"StationID":"O52","lat":25.080485,"lon":25.080485,"name":"徐匯中學","ename":"St.lgnatius High School","FirstLast":[{"To":"O01","Time":["06:04","00:05"]},{"To":"O54","Time":["06:00","00:52"]}]},{"StationID":"O53","lat":25.085425,"lon":25.085425,"name":"三民高中","ename":"Sanmin Senior High School","FirstLast":[{"To":"O01","Time":["06:02","00:03"]},{"To":"O54","Time":["06:02","00:54"]}]},{"StationID":"O54","lat":25.09152,"lon":25.09152,"name":"蘆洲","ename":"Luzhou","FirstLast":[{"To":"O01","Time":["06:00","00:00"]}]},{"StationID":"R02","lat":25.032816,"lon":25.032816,"name":"象山","ename":"Xiangshan","FirstLast":[{"To":"R28","Time":["06:00","00:00"]}]},{"StationID":"R03","lat":25.033028,"lon":25.033028,"name":"台北101/世貿","ename":"Taipei 101/World Trade Center","FirstLast":[{"To":"R02","Time":["06:04","00:56"]},{"To":"R28","Time":["06:02","00:02"]}]},{"StationID":"R04","lat":25.03331,"lon":25.03331,"name":"信義安和","ename":"Xinyi Anhe","FirstLast":[{"To":"R02","Time":["06:02","00:54"]},{"To":"R28","Time":["06:04","00:04"]}]},{"StationID":"R05","lat":25.033311,"lon":25.033311,"name":"大安","ename":"Daan","FirstLast":[{"To":"R02","Time":["06:00","00:52"]},{"To":"R28","Time":["06:00","00:25"]}]},{"StationID":"R06","lat":25.033225,"lon":25.033225,"name":"大安森林公園","ename":"Daan Park","FirstLast":[{"To":"R02","Time":["06:08","00:50"]},{"To":"R28","Time":["06:01","00:26"]}]},{"StationID":"R07","lat":25.033894,"lon":25.033894,"name":"東門","ename":"Dongmen","FirstLast":[{"To":"R02","Time":["06:06","00:49"]},{"To":"R28","Time":["06:03","00:28"]}]},{"StationID":"R08","lat":25.032767,"lon":25.032767,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall","FirstLast":[{"To":"R02","Time":["06:03","00:45"]},{"To":"R28","Time":["06:06","00:31"]}]},{"StationID":"R09","lat":25.041399,"lon":25.041399,"name":"台大醫院","ename":"NTU Hospital","FirstLast":[{"To":"R02","Time":["06:01","00:43"]},{"To":"R28","Time":["06:08","00:33"]}]},{"StationID":"R10","lat":25.04631,"lon":25.04631,"name":"台北車站","ename":"Taipei Main Station","FirstLast":[{"To":"R02","Time":["06:00","00:41"]},{"To":"R28","Time":["06:00","00:35"]}]},{"StationID":"R11","lat":25.052621,"lon":25.052621,"name":"中山","ename":"Zhongshan","FirstLast":[{"To":"R02","Time":["06:03","00:40"]},{"To":"R28","Time":["06:02","00:37"]}]},{"StationID":"R12","lat":25.057575,"lon":25.057575,"name":"雙連","ename":"Shuanglian","FirstLast":[{"To":"R02","Time":["06:01","00:38"]},{"To":"R28","Time":["06:03","00:38"]}]},{"StationID":"R13","lat":25.06235,"lon":25.06235,"name":"民權西路","ename":"Minquan W. Rd.","FirstLast":[{"To":"R02","Time":["06:00","00:37"]},{"To":"R28","Time":["06:05","00:39"]}]},{"StationID":"R14","lat":25.071409,"lon":25.071409,"name":"圓山","ename":"Yuanshan","FirstLast":[{"To":"R02","Time":["06:02","00:34"]},{"To":"R28","Time":["06:07","00:42"]}]},{"StationID":"R15","lat":25.084201,"lon":25.084201,"name":"劍潭","ename":"Jiantan","FirstLast":[{"To":"R02","Time":["06:00","00:31"]},{"To":"R28","Time":["06:00","00:45"]}]},{"StationID":"R16","lat":25.093492,"lon":25.093492,"name":"士林","ename":"Shilin","FirstLast":[{"To":"R02","Time":["06:05","00:28"]},{"To":"R28","Time":["06:02","00:47"]}]},{"StationID":"R17","lat":25.102718,"lon":25.102718,"name":"芝山","ename":"Zhishan","FirstLast":[{"To":"R02","Time":["06:03","00:26"]},{"To":"R28","Time":["06:04","00:50"]}]},{"StationID":"R18","lat":25.109815,"lon":25.109815,"name":"明德","ename":"Mingde","FirstLast":[{"To":"R02","Time":["06:01","00:24"]},{"To":"R28","Time":["06:05","00:52"]}]},{"StationID":"R19","lat":25.114455,"lon":25.114455,"name":"石牌","ename":"Shipai","FirstLast":[{"To":"R02","Time":["06:00","00:23"]},{"To":"R28","Time":["06:07","00:53"]}]},{"StationID":"R20","lat":25.120852,"lon":25.120852,"name":"唭哩岸","ename":"Qilian","FirstLast":[{"To":"R02","Time":["06:00","00:19"]},{"To":"R28","Time":["06:00","00:56"]}]},{"StationID":"R21","lat":25.12547,"lon":25.12547,"name":"奇岩","ename":"Qiyan","FirstLast":[{"To":"R02","Time":["06:02","00:18"]},{"To":"R28","Time":["06:02","00:58"]}]},{"StationID":"R22","lat":25.131819,"lon":25.131819,"name":"北投","ename":"Beitou","FirstLast":[{"To":"R02","Time":["06:00","00:16"]},{"To":"R28","Time":["06:03","01:00"]},{"To":"R22A","Time":["06:00","00:10"]}]},{"StationID":"R23","lat":25.137474,"lon":25.137474,"name":"復興崗","ename":"Fuxinggang","FirstLast":[{"To":"R02","Time":["06:02","00:12"]},{"To":"R28","Time":["06:06","01:03"]}]},{"StationID":"R24","lat":25.131041,"lon":25.131041,"name":"忠義","ename":"Zhongyi","FirstLast":[{"To":"R02","Time":["06:00","00:10"]},{"To":"R28","Time":["06:02","01:05"]}]},{"StationID":"R25","lat":25.12563,"lon":25.12563,"name":"關渡","ename":"Guandu","FirstLast":[{"To":"R02","Time":["06:08","00:08"]},{"To":"R28","Time":["06:04","01:07"]}]},{"StationID":"R26","lat":25.1369,"lon":25.1369,"name":"竹圍","ename":"Zhuwei","FirstLast":[{"To":"R02","Time":["06:05","00:06"]},{"To":"R28","Time":["06:07","01:10"]}]},{"StationID":"R27","lat":25.15399,"lon":25.15399,"name":"紅樹林","ename":"Hongshulin","FirstLast":[{"To":"R02","Time":["06:03","00:03"]},{"To":"R28","Time":["06:00","01:13"]}]},{"StationID":"R28","lat":25.167745,"lon":25.167745,"name":"淡水","ename":"Tamsui","FirstLast":[{"To":"R02","Time":["06:00","00:00"]}]},{"StationID":"R22A","lat":25.136931,"lon":25.136931,"name":"新北投","ename":"Xinbeitou","FirstLast":[{"To":"R22","Time":["06:05","00:02"]}]}];
 
-var trtc_transfer = [{"FromLineID":"R","FromStationID":"R22","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R22","TransferTime":3,"name":"北投","ename":"Beitou"},{"FromLineID":"R","FromStationID":"R13","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O11","TransferTime":3,"name":"民權西路","ename":"Minzuan W. Rd."},{"FromLineID":"O","FromStationID":"O11","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R13","TransferTime":3,"name":"民權西路","ename":"Minzuan W. Rd."},{"FromLineID":"R","FromStationID":"R11","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G14","TransferTime":3,"name":"中山","ename":"Zhongshan"},{"FromLineID":"G","FromStationID":"G14","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R11","TransferTime":3,"name":"中山","ename":"Zhongshan"},{"FromLineID":"R","FromStationID":"R10","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL12","TransferTime":4,"name":"台北車站","ename":"Taipei Main Station"},{"FromLineID":"BL","FromStationID":"BL12","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R10","TransferTime":4,"name":"台北車站","ename":"Taipei Main Station"},{"FromLineID":"R","FromStationID":"R08","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G10","TransferTime":2,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall"},{"FromLineID":"G","FromStationID":"G10","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R08","TransferTime":2,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall"},{"FromLineID":"R","FromStationID":"R07","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O06","TransferTime":2,"name":"東門","ename":"Dongmen"},{"FromLineID":"O","FromStationID":"O06","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R07","TransferTime":2,"name":"東門","ename":"Dongmen"},{"FromLineID":"R","FromStationID":"R05","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR09","TransferTime":5,"name":"大安","ename":"Daan"},{"FromLineID":"BR","FromStationID":"BR09","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R05","TransferTime":5,"name":"大安","ename":"Daan"},{"FromLineID":"G","FromStationID":"G16","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR11","TransferTime":5,"name":"南京復興","ename":"Nanjing Fuxing"},{"FromLineID":"BR","FromStationID":"BR11","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G16","TransferTime":5,"name":"南京復興","ename":"Nanjing Fuxing"},{"FromLineID":"G","FromStationID":"G15","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O08","TransferTime":2,"name":"松江南京","ename":"Songliang Nanjing"},{"FromLineID":"O","FromStationID":"O08","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G15","TransferTime":2,"name":"松江南京","ename":"Songliang Nanjing"},{"FromLineID":"G","FromStationID":"G12","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL11","TransferTime":2,"name":"西門","ename":"Ximen"},{"FromLineID":"BL","FromStationID":"BL11","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G12","TransferTime":2,"name":"西門","ename":"Ximen"},{"FromLineID":"G","FromStationID":"G09","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O05","TransferTime":2,"name":"古亭","ename":"Guting"},{"FromLineID":"O","FromStationID":"O05","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G09","TransferTime":2,"name":"古亭","ename":"Guting"},{"FromLineID":"G","FromStationID":"G03","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G03","TransferTime":3,"name":"七張","ename":"Qizhang"},{"FromLineID":"O","FromStationID":"O12","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O12","TransferTime":1,"name":"大橋頭","ename":"Daqiaotou"},{"FromLineID":"O","FromStationID":"O07","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL14","TransferTime":2,"name":"忠孝新生","ename":"Zhongxiao Xinsheng"},{"FromLineID":"BL","FromStationID":"BL14","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O07","TransferTime":2,"name":"忠孝新生","ename":"Zhongxiao Xinsheng"},{"FromLineID":"BL","FromStationID":"BL23","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR24","TransferTime":5,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center"},{"FromLineID":"BR","FromStationID":"BR24","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL23","TransferTime":5,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center"},{"FromLineID":"BL","FromStationID":"BL15","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR10","TransferTime":5,"name":"忠孝復興","ename":"Zhongxiao Fuxing"},{"FromLineID":"BR","FromStationID":"BR10","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL15","TransferTime":5,"name":"忠孝復興","ename":"Zhongxiao Fuxing"}];
+var krtc_station = [{"StationID":"O1","lat":22.621492,"lon":22.621492,"name":"哈瑪星","ename":"Hamasen","FirstLast":[{"To":"O1","Time":["",""]},{"To":"O1","Time":["",""]},{"To":"O1","Time":["",""]},{"To":"O1","Time":["",""]},{"To":"OT1","Time":["06:00","24:00"]},{"To":"OT1","Time":["06:00","24:00"]},{"To":"OT1","Time":["06:00","24:00"]},{"To":"OT1","Time":["06:00","24:00"]}]},{"StationID":"O2","lat":22.623501,"lon":22.623501,"name":"鹽埕埔","ename":"Yanchengpu","FirstLast":[{"To":"O1","Time":["06:03","24:21"]},{"To":"O1","Time":["06:03","24:21"]},{"To":"O1","Time":["06:03","24:21"]},{"To":"O1","Time":["06:03","24:21"]},{"To":"OT1","Time":["06:01","24:01"]},{"To":"OT1","Time":["06:01","24:01"]},{"To":"OT1","Time":["06:01","24:01"]},{"To":"OT1","Time":["06:01","24:01"]}]},{"StationID":"O4","lat":22.628933,"lon":22.628933,"name":"前金","ename":"Cianjin","FirstLast":[{"To":"O1","Time":["06:01","24:19"]},{"To":"O1","Time":["06:01","24:19"]},{"To":"O1","Time":["06:01","24:19"]},{"To":"O1","Time":["06:01","24:19"]},{"To":"OT1","Time":["06:03","24:03"]},{"To":"OT1","Time":["06:03","24:03"]},{"To":"OT1","Time":["06:03","24:03"]},{"To":"OT1","Time":["06:03","24:03"]}]},{"StationID":"O5","lat":22.631278,"lon":22.631278,"name":"美麗島","ename":"Formosa Boulevard","FirstLast":[]},{"StationID":"O6","lat":22.630675,"lon":22.630675,"name":"信義國小","ename":"Sinyi Elementary School","FirstLast":[{"To":"O1","Time":["06:05","24:15"]},{"To":"O1","Time":["06:05","24:15"]},{"To":"O1","Time":["06:05","24:15"]},{"To":"O1","Time":["06:05","24:15"]},{"To":"OT1","Time":["06:07","24:07"]},{"To":"OT1","Time":["06:07","24:07"]},{"To":"OT1","Time":["06:07","24:07"]},{"To":"OT1","Time":["06:07","24:07"]}]},{"StationID":"O7","lat":22.630224,"lon":22.630224,"name":"文化中心","ename":"Cultural Center","FirstLast":[{"To":"O1","Time":["06:04","24:13"]},{"To":"O1","Time":["06:04","24:13"]},{"To":"O1","Time":["06:04","24:13"]},{"To":"O1","Time":["06:04","24:13"]},{"To":"OT1","Time":["06:08","24:08"]},{"To":"OT1","Time":["06:08","24:08"]},{"To":"OT1","Time":["06:08","24:08"]},{"To":"OT1","Time":["06:08","24:08"]}]},{"StationID":"O8","lat":22.629413,"lon":22.629413,"name":"五塊厝","ename":"Wukuaicuo","FirstLast":[{"To":"O1","Time":["06:02","24:12"]},{"To":"O1","Time":["06:02","24:12"]},{"To":"O1","Time":["06:02","24:12"]},{"To":"O1","Time":["06:02","24:12"]},{"To":"OT1","Time":["06:00","24:10"]},{"To":"OT1","Time":["06:00","24:10"]},{"To":"OT1","Time":["06:00","24:10"]},{"To":"OT1","Time":["06:00","24:10"]}]},{"StationID":"O9","lat":22.6272,"lon":22.6272,"name":"苓雅運動園區","ename":"Lingya Sports Park","FirstLast":[{"To":"O1","Time":["06:01","24:10"]},{"To":"O1","Time":["06:01","24:10"]},{"To":"O1","Time":["06:01","24:10"]},{"To":"O1","Time":["06:01","24:10"]},{"To":"OT1","Time":["06:01","24:12"]},{"To":"OT1","Time":["06:01","24:12"]},{"To":"OT1","Time":["06:01","24:12"]},{"To":"OT1","Time":["06:01","24:12"]}]},{"StationID":"O10","lat":22.625055,"lon":22.625055,"name":"衛武營","ename":"Weiwuying","FirstLast":[{"To":"O1","Time":["06:00","24:09"]},{"To":"O1","Time":["06:00","24:09"]},{"To":"O1","Time":["06:00","24:09"]},{"To":"O1","Time":["06:00","24:09"]},{"To":"OT1","Time":["06:02","24:13"]},{"To":"OT1","Time":["06:02","24:13"]},{"To":"OT1","Time":["06:02","24:13"]},{"To":"OT1","Time":["06:02","24:13"]}]},{"StationID":"O11","lat":22.625273,"lon":22.625273,"name":"鳳山西站","ename":"Fongshan West","FirstLast":[{"To":"O1","Time":["06:07","24:07"]},{"To":"O1","Time":["06:07","24:07"]},{"To":"O1","Time":["06:06","24:07"]},{"To":"O1","Time":["06:06","24:07"]},{"To":"OT1","Time":["06:04","24:15"]},{"To":"OT1","Time":["06:04","24:15"]},{"To":"OT1","Time":["06:04","24:15"]},{"To":"OT1","Time":["06:04","24:15"]}]},{"StationID":"O12","lat":22.625953,"lon":22.625953,"name":"鳳山","ename":"Fongshan","FirstLast":[{"To":"O1","Time":["06:06","24:06"]},{"To":"O1","Time":["06:06","24:06"]},{"To":"O1","Time":["06:05","24:06"]},{"To":"O1","Time":["06:05","24:06"]},{"To":"OT1","Time":["06:05","24:16"]},{"To":"OT1","Time":["06:05","24:16"]},{"To":"OT1","Time":["06:05","24:16"]},{"To":"OT1","Time":["06:05","24:16"]}]},{"StationID":"O13","lat":22.625178,"lon":22.625178,"name":"大東","ename":"Dadong","FirstLast":[{"To":"O1","Time":["06:04","24:04"]},{"To":"O1","Time":["06:04","24:04"]},{"To":"O1","Time":["06:03","24:04"]},{"To":"O1","Time":["06:03","24:04"]},{"To":"OT1","Time":["06:07","24:18"]},{"To":"OT1","Time":["06:07","24:18"]},{"To":"OT1","Time":["06:07","24:18"]},{"To":"OT1","Time":["06:07","24:18"]}]},{"StationID":"O14","lat":22.62466,"lon":22.62466,"name":"鳳山國中","ename":"Fongshan Junior High School","FirstLast":[{"To":"O1","Time":["06:02","24:02"]},{"To":"O1","Time":["06:02","24:02"]},{"To":"O1","Time":["06:02","24:02"]},{"To":"O1","Time":["06:02","24:02"]},{"To":"OT1","Time":["06:09","24:20"]},{"To":"OT1","Time":["06:09","24:20"]},{"To":"OT1","Time":["06:09","24:20"]},{"To":"OT1","Time":["06:09","24:20"]}]},{"StationID":"OT1","lat":22.622122,"lon":22.622122,"name":"大寮","ename":"Daliao","FirstLast":[{"To":"O1","Time":["06:00","24:00"]},{"To":"O1","Time":["06:00","24:00"]},{"To":"O1","Time":["06:00","24:00"]},{"To":"O1","Time":["06:00","24:00"]},{"To":"OT1","Time":["",""]},{"To":"OT1","Time":["",""]},{"To":"OT1","Time":["",""]},{"To":"OT1","Time":["",""]}]},{"StationID":"R3","lat":22.56478,"lon":22.56478,"name":"小港","ename":"Siaogang","FirstLast":[{"To":"R3","Time":["",""]},{"To":"R3","Time":["",""]},{"To":"R3","Time":["",""]},{"To":"R3","Time":["",""]},{"To":"RK1","Time":["05:55","24:00"]},{"To":"RK1","Time":["05:55","24:00"]},{"To":"RK1","Time":["05:55","24:00"]},{"To":"RK1","Time":["05:55","24:00"]}]},{"StationID":"R4","lat":22.570166,"lon":22.570166,"name":"高雄國際機場","ename":"Kaohsiung International Airport","FirstLast":[{"To":"R3","Time":["06:27","24:48"]},{"To":"R3","Time":["06:27","24:48"]},{"To":"R3","Time":["06:27","24:48"]},{"To":"R3","Time":["06:27","24:48"]},{"To":"RK1","Time":["05:57","24:02"]},{"To":"RK1","Time":["05:57","24:02"]},{"To":"RK1","Time":["05:57","24:02"]},{"To":"RK1","Time":["05:57","24:02"]}]},{"StationID":"R4A","lat":22.580354,"lon":22.580354,"name":"草衙","ename":"Caoya","FirstLast":[{"To":"R3","Time":["06:25","24:45"]},{"To":"R3","Time":["06:25","24:45"]},{"To":"R3","Time":["06:25","24:45"]},{"To":"R3","Time":["06:25","24:45"]},{"To":"RK1","Time":["05:59","24:05"]},{"To":"RK1","Time":["05:59","24:05"]},{"To":"RK1","Time":["05:59","24:05"]},{"To":"RK1","Time":["05:59","24:05"]}]},{"StationID":"R5","lat":22.588482,"lon":22.588482,"name":"前鎮高中","ename":"Cianjhen Senior High School","FirstLast":[{"To":"R3","Time":["06:23","24:43"]},{"To":"R3","Time":["06:23","24:43"]},{"To":"R3","Time":["06:23","24:43"]},{"To":"R3","Time":["06:23","24:43"]},{"To":"RK1","Time":["06:01","24:08"]},{"To":"RK1","Time":["06:01","24:08"]},{"To":"RK1","Time":["06:01","24:08"]},{"To":"RK1","Time":["06:01","24:08"]}]},{"StationID":"R6","lat":22.596764,"lon":22.596764,"name":"凱旋","ename":"Kaisyuan","FirstLast":[{"To":"R3","Time":["06:20","24:41"]},{"To":"R3","Time":["06:20","24:41"]},{"To":"R3","Time":["06:20","24:41"]},{"To":"R3","Time":["06:20","24:41"]},{"To":"RK1","Time":["06:03","24:10"]},{"To":"RK1","Time":["06:03","24:10"]},{"To":"RK1","Time":["06:03","24:10"]},{"To":"RK1","Time":["06:03","24:10"]}]},{"StationID":"R7","lat":22.606047,"lon":22.606047,"name":"獅甲","ename":"Shihjia","FirstLast":[{"To":"R3","Time":["06:18","24:38"]},{"To":"R3","Time":["06:18","24:38"]},{"To":"R3","Time":["06:18","24:38"]},{"To":"R3","Time":["06:18","24:38"]},{"To":"RK1","Time":["06:05","24:13"]},{"To":"RK1","Time":["06:05","24:13"]},{"To":"RK1","Time":["06:05","24:13"]},{"To":"RK1","Time":["06:05","24:13"]}]},{"StationID":"R8","lat":22.61398,"lon":22.61398,"name":"三多商圈","ename":"Sanduo Shopping District","FirstLast":[{"To":"R3","Time":["06:16","24:36"]},{"To":"R3","Time":["06:16","24:36"]},{"To":"R3","Time":["06:16","24:36"]},{"To":"R3","Time":["06:16","24:36"]},{"To":"RK1","Time":["05:55","24:16"]},{"To":"RK1","Time":["05:55","24:16"]},{"To":"RK1","Time":["05:55","24:16"]},{"To":"RK1","Time":["05:55","24:16"]}]},{"StationID":"R9","lat":22.624839,"lon":22.624839,"name":"中央公園","ename":"Central Park","FirstLast":[{"To":"R3","Time":["06:14","24:34"]},{"To":"R3","Time":["06:14","24:34"]},{"To":"R3","Time":["06:14","24:34"]},{"To":"R3","Time":["06:14","24:34"]},{"To":"RK1","Time":["05:56","24:18"]},{"To":"RK1","Time":["05:56","24:18"]},{"To":"RK1","Time":["05:56","24:18"]},{"To":"RK1","Time":["05:56","24:18"]}]},{"StationID":"R10","lat":22.631393,"lon":22.631393,"name":"美麗島","ename":"Formosa Boulevard","FirstLast":[{"To":"R3","Time":["06:12","24:32"]},{"To":"R3","Time":["06:12","24:32"]},{"To":"R3","Time":["06:12","24:32"]},{"To":"R3","Time":["06:12","24:32"]},{"To":"RK1","Time":["05:58","24:21"]},{"To":"RK1","Time":["05:58","24:21"]},{"To":"RK1","Time":["05:58","24:21"]},{"To":"RK1","Time":["05:58","24:21"]}]},{"StationID":"R11","lat":22.639694,"lon":22.639694,"name":"高雄車站","ename":"Kaohsiung Main Station","FirstLast":[{"To":"R3","Time":["06:10","24:31"]},{"To":"R3","Time":["06:10","24:31"]},{"To":"R3","Time":["06:10","24:31"]},{"To":"R3","Time":["06:10","24:31"]},{"To":"RK1","Time":["06:00","24:23"]},{"To":"RK1","Time":["06:00","24:23"]},{"To":"RK1","Time":["06:00","24:23"]},{"To":"RK1","Time":["06:00","24:23"]}]},{"StationID":"R12","lat":22.648495,"lon":22.648495,"name":"後驛","ename":"Houyi","FirstLast":[{"To":"R3","Time":["06:08","24:28"]},{"To":"R3","Time":["06:08","24:28"]},{"To":"R3","Time":["06:08","24:28"]},{"To":"R3","Time":["06:08","24:28"]},{"To":"RK1","Time":["06:02","24:25"]},{"To":"RK1","Time":["06:02","24:25"]},{"To":"RK1","Time":["06:02","24:25"]},{"To":"RK1","Time":["06:02","24:25"]}]},{"StationID":"R13","lat":22.657268,"lon":22.657268,"name":"凹子底","ename":"Aozihdi","FirstLast":[{"To":"R3","Time":["06:06","24:27"]},{"To":"R3","Time":["06:06","24:27"]},{"To":"R3","Time":["06:06","24:27"]},{"To":"R3","Time":["06:07","24:27"]},{"To":"RK1","Time":["06:04","24:27"]},{"To":"RK1","Time":["06:04","24:27"]},{"To":"RK1","Time":["06:04","24:27"]},{"To":"RK1","Time":["06:04","24:27"]}]},{"StationID":"R14","lat":22.666158,"lon":22.666158,"name":"巨蛋","ename":"Kaohsiung Arena","FirstLast":[{"To":"R3","Time":["06:05","24:25"]},{"To":"R3","Time":["06:05","24:25"]},{"To":"R3","Time":["06:05","24:25"]},{"To":"R3","Time":["06:05","24:25"]},{"To":"RK1","Time":["06:06","24:29"]},{"To":"RK1","Time":["06:06","24:29"]},{"To":"RK1","Time":["06:06","24:29"]},{"To":"RK1","Time":["06:06","24:29"]}]},{"StationID":"R15","lat":22.676686,"lon":22.676686,"name":"生態園區","ename":"Ecological District","FirstLast":[{"To":"R3","Time":["06:03","24:23"]},{"To":"R3","Time":["06:03","24:23"]},{"To":"R3","Time":["06:03","24:23"]},{"To":"R3","Time":["06:03","24:23"]},{"To":"RK1","Time":["06:08","24:31"]},{"To":"RK1","Time":["06:08","24:31"]},{"To":"RK1","Time":["06:08","24:31"]},{"To":"RK1","Time":["06:08","24:31"]}]},{"StationID":"R16","lat":22.688376,"lon":22.688376,"name":"左營","ename":"Zuoying","FirstLast":[{"To":"R3","Time":["06:00","24:20"]},{"To":"R3","Time":["06:00","24:20"]},{"To":"R3","Time":["06:00","24:20"]},{"To":"R3","Time":["06:00","24:20"]},{"To":"RK1","Time":["06:10","24:33"]},{"To":"RK1","Time":["06:10","24:33"]},{"To":"RK1","Time":["06:10","24:33"]},{"To":"RK1","Time":["06:10","24:33"]}]},{"StationID":"R17","lat":22.701841,"lon":22.701841,"name":"世運","ename":"World Game","FirstLast":[{"To":"R3","Time":["05:58","24:18"]},{"To":"R3","Time":["05:58","24:18"]},{"To":"R3","Time":["05:58","24:18"]},{"To":"R3","Time":["05:58","24:18"]},{"To":"RK1","Time":["06:13","24:35"]},{"To":"RK1","Time":["06:13","24:35"]},{"To":"RK1","Time":["06:13","24:35"]},{"To":"RK1","Time":["06:13","24:35"]}]},{"StationID":"R18","lat":22.708872,"lon":22.708872,"name":"油廠國小","ename":"Oil Refinery Elementary School","FirstLast":[{"To":"R3","Time":["05:56","24:16"]},{"To":"R3","Time":["05:56","24:16"]},{"To":"R3","Time":["05:56","24:16"]},{"To":"R3","Time":["05:56","24:16"]},{"To":"RK1","Time":["06:14","24:37"]},{"To":"RK1","Time":["06:14","24:37"]},{"To":"RK1","Time":["06:14","24:37"]},{"To":"RK1","Time":["06:14","24:37"]}]},{"StationID":"R19","lat":22.718651,"lon":22.718651,"name":"楠梓科技園區","ename":"Nanzih Technology Industrial Park","FirstLast":[{"To":"R3","Time":["05:55","24:14"]},{"To":"R3","Time":["05:55","24:14"]},{"To":"R3","Time":["05:55","24:14"]},{"To":"R3","Time":["05:55","24:14"]},{"To":"RK1","Time":["06:16","24:39"]},{"To":"RK1","Time":["06:16","24:39"]},{"To":"RK1","Time":["06:16","24:39"]},{"To":"RK1","Time":["06:16","24:39"]}]},{"StationID":"R20","lat":22.722324,"lon":22.722324,"name":"後勁","ename":"Houjing","FirstLast":[{"To":"R3","Time":["06:07","24:12"]},{"To":"R3","Time":["06:07","24:12"]},{"To":"R3","Time":["06:07","24:12"]},{"To":"R3","Time":["06:07","24:12"]},{"To":"RK1","Time":["06:19","24:41"]},{"To":"RK1","Time":["06:19","24:41"]},{"To":"RK1","Time":["06:19","24:41"]},{"To":"RK1","Time":["06:19","24:41"]}]},{"StationID":"R21","lat":22.729529,"lon":22.729529,"name":"都會公園","ename":"Metropolitan Park","FirstLast":[{"To":"R3","Time":["06:05","24:10"]},{"To":"R3","Time":["06:05","24:10"]},{"To":"R3","Time":["06:05","24:10"]},{"To":"R3","Time":["06:05","24:10"]},{"To":"RK1","Time":["06:20","24:43"]},{"To":"RK1","Time":["06:20","24:43"]},{"To":"RK1","Time":["06:20","24:43"]},{"To":"RK1","Time":["06:20","24:43"]}]},{"StationID":"R22","lat":22.744345,"lon":22.744345,"name":"青埔","ename":"Cingpu","FirstLast":[{"To":"R3","Time":["06:03","24:08"]},{"To":"R3","Time":["06:03","24:08"]},{"To":"R3","Time":["06:03","24:08"]},{"To":"R3","Time":["06:03","24:08"]},{"To":"RK1","Time":["06:23","24:45"]},{"To":"RK1","Time":["06:23","24:45"]},{"To":"RK1","Time":["06:23","24:45"]},{"To":"RK1","Time":["06:23","24:45"]}]},{"StationID":"R22A","lat":22.75316,"lon":22.75316,"name":"橋頭糖廠","ename":"Ciaotou Sugar Refinery","FirstLast":[{"To":"R3","Time":["06:01","24:06"]},{"To":"R3","Time":["06:01","24:06"]},{"To":"R3","Time":["06:01","24:06"]},{"To":"R3","Time":["06:01","24:06"]},{"To":"RK1","Time":["06:24","24:47"]},{"To":"RK1","Time":["06:24","24:47"]},{"To":"RK1","Time":["06:24","24:47"]},{"To":"RK1","Time":["06:24","24:47"]}]},{"StationID":"R23","lat":22.760249,"lon":22.760249,"name":"橋頭火車站","ename":"Ciaotou Station","FirstLast":[{"To":"R3","Time":["06:00","24:05"]},{"To":"R3","Time":["06:00","24:05"]},{"To":"R3","Time":["06:00","24:05"]},{"To":"R3","Time":["06:00","24:05"]},{"To":"RK1","Time":["06:26","24:48"]},{"To":"RK1","Time":["06:26","24:48"]},{"To":"RK1","Time":["06:26","24:48"]},{"To":"RK1","Time":["06:26","24:48"]}]},{"StationID":"R24","lat":22.780642,"lon":22.780642,"name":"岡山高醫","ename":"Kaohsiung Medical University Gangshan Hospital","FirstLast":[{"To":"R3","Time":["05:56","24:01"]},{"To":"R3","Time":["05:56","24:01"]},{"To":"R3","Time":["05:56","24:01"]},{"To":"R3","Time":["05:56","24:01"]},{"To":"RK1","Time":["06:29","24:52"]},{"To":"RK1","Time":["06:29","24:52"]},{"To":"RK1","Time":["06:29","24:52"]},{"To":"RK1","Time":["06:29","24:52"]}]},{"StationID":"RK1","lat":22.79245,"lon":22.79245,"name":"岡山車站","ename":"Gangshan Station","FirstLast":[{"To":"R3","Time":["05:55","24:00"]},{"To":"R3","Time":["05:55","24:00"]},{"To":"R3","Time":["05:55","24:00"]},{"To":"R3","Time":["05:55","24:00"]},{"To":"RK1","Time":["",""]},{"To":"RK1","Time":["",""]},{"To":"RK1","Time":["",""]},{"To":"RK1","Time":["",""]}]}];
 
-var krtc_transfer = [{"FromLineID":"R","FromStationID":"R10","ToLineID":"O","ToStationID":"O5","TransferTime":3,"name":"美麗島","ename":"Formosa Boulevard"},{"FromLineID":"O","FromStationID":"O5","ToLineID":"R","ToStationID":"R10","TransferTime":3,"name":"美麗島","ename":"Formosa Boulevard"}];
+var tymc_station = [{"StationID":"A1","lat":25.04869,"lon":25.04869,"name":"台北車站","ename":"Taipei Main Station","FirstLast":[{"To":"A13","Time":["06:08","23:38"],"TrainType":0},{"To":"A13","Time":["05:30","23:00"],"TrainType":0},{"To":"A21","Time":["13:00","18:00"],"TrainType":0},{"To":"A22","Time":["06:08","23:08"],"TrainType":0}]},{"StationID":"A2","lat":25.0548,"lon":25.0548,"name":"三重站","ename":"Sanchong Station","FirstLast":[{"To":"A1","Time":["06:06","00:18"],"TrainType":0},{"To":"A13","Time":["05:59","23:46"],"TrainType":0},{"To":"A22","Time":["05:59","23:16"],"TrainType":0}]},{"StationID":"A3","lat":25.06171,"lon":25.06171,"name":"新北產業園區站","ename":"New Taipei Industrial Park Station","FirstLast":[{"To":"A1","Time":["06:11","23:27"],"TrainType":0},{"To":"A1","Time":["06:02","00:14"],"TrainType":0},{"To":"A13","Time":["05:40","23:10"],"TrainType":0},{"To":"A13","Time":["06:03","23:50"],"TrainType":0},{"To":"A21","Time":["13:10","18:10"],"TrainType":0},{"To":"A22","Time":["06:03","23:20"],"TrainType":0}]},{"StationID":"A4","lat":25.05924,"lon":25.05924,"name":"新莊副都心站","ename":"Xinzhuang Fuduxin Station","FirstLast":[{"To":"A1","Time":["05:59","00:12"],"TrainType":0},{"To":"A13","Time":["06:05","23:52"],"TrainType":0},{"To":"A22","Time":["06:05","23:22"],"TrainType":0}]},{"StationID":"A5","lat":25.05321,"lon":25.05321,"name":"泰山站","ename":"Taishan Station","FirstLast":[{"To":"A1","Time":["05:57","00:10"],"TrainType":0},{"To":"A13","Time":["06:07","23:54"],"TrainType":0},{"To":"A22","Time":["06:07","23:24"],"TrainType":0}]},{"StationID":"A6","lat":25.03321,"lon":25.03321,"name":"泰山貴和站","ename":"Taishan Guihe Station","FirstLast":[{"To":"A1","Time":["06:09","00:07"],"TrainType":0},{"To":"A13","Time":["06:10","23:57"],"TrainType":0},{"To":"A22","Time":["06:10","23:27"],"TrainType":0}]},{"StationID":"A7","lat":25.04124,"lon":25.04124,"name":"體育大學站","ename":"National Taiwan Sport University Station","FirstLast":[{"To":"A1","Time":["06:02","00:00"],"TrainType":0},{"To":"A13","Time":["06:00","00:02"],"TrainType":0},{"To":"A22","Time":["06:00","23:32"],"TrainType":0}]},{"StationID":"A8","lat":25.06053,"lon":25.06053,"name":"長庚醫院站","ename":"Chang Gung Memorial Hospital Station","FirstLast":[{"To":"A1","Time":["05:56","23:13"],"TrainType":0},{"To":"A1","Time":["05:58","23:56"],"TrainType":0},{"To":"A13","Time":["06:08","00:06"],"TrainType":0},{"To":"A13","Time":["05:52","23:22"],"TrainType":0},{"To":"A21","Time":["13:22","18:22"],"TrainType":0},{"To":"A22","Time":["06:08","23:36"],"TrainType":0}]},{"StationID":"A9","lat":25.0658,"lon":25.0658,"name":"林口站","ename":"Linkou Station","FirstLast":[{"To":"A1","Time":["06:06","23:53"],"TrainType":0},{"To":"A13","Time":["06:11","00:09"],"TrainType":0},{"To":"A22","Time":["06:11","23:39"],"TrainType":0}]},{"StationID":"A10","lat":25.0808,"lon":25.0808,"name":"山鼻站","ename":"Shanbi Station","FirstLast":[{"To":"A1","Time":["05:58","23:44"],"TrainType":0},{"To":"A13","Time":["06:05","00:20"],"TrainType":0},{"To":"A22","Time":["06:05","23:50"],"TrainType":0}]},{"StationID":"A11","lat":25.08646,"lon":25.08646,"name":"坑口站","ename":"Kengkou Station","FirstLast":[{"To":"A1","Time":["06:11","23:41"],"TrainType":0},{"To":"A13","Time":["06:08","00:23"],"TrainType":0},{"To":"A22","Time":["06:08","23:53"],"TrainType":0}]},{"StationID":"A12","lat":25.0814,"lon":25.0814,"name":"機場第一航廈站","ename":"Airport Terminal 1 Station","FirstLast":[{"To":"A1","Time":["05:58","22:58"],"TrainType":0},{"To":"A1","Time":["06:07","23:37"],"TrainType":0},{"To":"A13","Time":["05:57","00:27"],"TrainType":0},{"To":"A13","Time":["06:07","23:39"],"TrainType":0},{"To":"A21","Time":["13:37","18:37"],"TrainType":0},{"To":"A22","Time":["05:57","23:57"],"TrainType":0}]},{"StationID":"A13","lat":25.07735,"lon":25.07735,"name":"機場第二航廈站","ename":"Airport Terminal 2 Station","FirstLast":[{"To":"A1","Time":["05:55","22:55"],"TrainType":0},{"To":"A1","Time":["06:04","23:35"],"TrainType":0},{"To":"A12","Time":["06:04","00:22"],"TrainType":0},{"To":"A21","Time":["13:41","18:41"],"TrainType":0},{"To":"A22","Time":["06:00","23:59"],"TrainType":0}]},{"StationID":"A14a","lat":25.07007,"lon":25.07007,"name":"機場旅館站","ename":"Airport Hotel Station","FirstLast":[{"To":"A1","Time":["06:00","23:31"],"TrainType":0},{"To":"A12","Time":["06:00","00:18"],"TrainType":0},{"To":"A22","Time":["06:03","00:02"],"TrainType":0}]},{"StationID":"A15","lat":25.05595,"lon":25.05595,"name":"大園站","ename":"Dayuan Station","FirstLast":[{"To":"A1","Time":["06:12","23:28"],"TrainType":0},{"To":"A12","Time":["06:12","00:15"],"TrainType":0},{"To":"A22","Time":["06:06","00:05"],"TrainType":0}]},{"StationID":"A16","lat":25.03665,"lon":25.03665,"name":"橫山站","ename":"Hengshan Station","FirstLast":[{"To":"A1","Time":["06:09","23:24"],"TrainType":0},{"To":"A12","Time":["06:09","00:11"],"TrainType":0},{"To":"A22","Time":["06:09","00:08"],"TrainType":0}]},{"StationID":"A17","lat":25.02417,"lon":25.02417,"name":"領航站","ename":"Linghang Station","FirstLast":[{"To":"A1","Time":["06:06","23:21"],"TrainType":0},{"To":"A12","Time":["06:06","00:08"],"TrainType":0},{"To":"A22","Time":["06:12","00:11"],"TrainType":0}]},{"StationID":"A18","lat":25.01374,"lon":25.01374,"name":"高鐵桃園站","ename":"Taoyuan HSR Station","FirstLast":[{"To":"A1","Time":["05:47","23:17"],"TrainType":0},{"To":"A1","Time":["14:26","19:26"],"TrainType":0},{"To":"A12","Time":["05:47","00:04"],"TrainType":0},{"To":"A21","Time":["13:54","18:54"],"TrainType":0},{"To":"A22","Time":["06:02","00:15"],"TrainType":0}]},{"StationID":"A19","lat":25.00199,"lon":25.00199,"name":"桃園體育園區站","ename":"Taoyuan Sports Park Station","FirstLast":[{"To":"A1","Time":["06:14","23:14"],"TrainType":0},{"To":"A12","Time":["06:14","00:01"],"TrainType":0},{"To":"A22","Time":["06:05","00:18"],"TrainType":0}]},{"StationID":"A20","lat":24.98025,"lon":24.98025,"name":"興南站","ename":"Xingnan Station","FirstLast":[{"To":"A1","Time":["06:09","23:09"],"TrainType":0},{"To":"A12","Time":["06:09","23:56"],"TrainType":0},{"To":"A22","Time":["06:10","00:23"],"TrainType":0}]},{"StationID":"A21","lat":24.96722,"lon":24.96722,"name":"環北站","ename":"Huanbei Station","FirstLast":[{"To":"A1","Time":["14:15","19:15"],"TrainType":0},{"To":"A1","Time":["05:35","23:05"],"TrainType":0},{"To":"A12","Time":["05:35","23:52"],"TrainType":0},{"To":"A22","Time":["06:14","00:27"],"TrainType":0}]},{"StationID":"A22","lat":24.95823,"lon":24.95823,"name":"老街溪站","ename":"Laojie River Station","FirstLast":[{"To":"A1","Time":["05:33","23:03"],"TrainType":0},{"To":"A12","Time":["05:33","23:50"],"TrainType":0}]}];
 
-var thsr_station = [{"StationID":"0990","lat":25.05318832397461,"lon":121.60706329345703,"name":"南港","ename":"Nangang"},{"StationID":"1000","lat":25.047670364379883,"lon":121.51698303222656,"name":"台北","ename":"Taipei"},{"StationID":"1010","lat":25.013870239257812,"lon":121.46459197998047,"name":"板橋","ename":"Banciao"},{"StationID":"1020","lat":25.012861251831055,"lon":121.21472930908203,"name":"桃園","ename":"Taoyuan"},{"StationID":"1030","lat":24.808441162109375,"lon":121.0402603149414,"name":"新竹","ename":"Hsinchu"},{"StationID":"1035","lat":24.60544776916504,"lon":120.82527160644531,"name":"苗栗","ename":"Miaoli"},{"StationID":"1040","lat":24.112483978271484,"lon":120.615966796875,"name":"台中","ename":"Taichung"},{"StationID":"1043","lat":23.874326705932617,"lon":120.5746078491211,"name":"彰化","ename":"Changhua"},{"StationID":"1047","lat":23.736230850219727,"lon":120.41651153564453,"name":"雲林","ename":"Yunlin"},{"StationID":"1050","lat":23.45950698852539,"lon":120.32325744628906,"name":"嘉義","ename":"Chiayi"},{"StationID":"1060","lat":22.925077438354492,"lon":120.28620147705078,"name":"台南","ename":"Tainan"},{"StationID":"1070","lat":22.68739128112793,"lon":120.30748748779297,"name":"左營","ename":"Zuoying"}];
+var ntmc_station = [{"StationID":"Y07","lat":24.98272,"lon":24.98272,"name":"大坪林","ename":"Dapinglin","FirstLast":[{"To":"Y20","Time":["06:00","00:00"],"TrainType":0}]},{"StationID":"Y08","lat":24.984333,"lon":24.984333,"name":"十四張","ename":"Shisizhang","FirstLast":[{"To":"Y07","Time":["06:05","00:30"],"TrainType":0},{"To":"Y20","Time":["06:02","00:02"],"TrainType":0}]},{"StationID":"Y09","lat":24.990549,"lon":24.990549,"name":"秀朗橋","ename":"Xiulang Bridge","FirstLast":[{"To":"Y07","Time":["06:03","00:27"],"TrainType":0},{"To":"Y20","Time":["06:04","00:04"],"TrainType":0}]},{"StationID":"Y10","lat":24.992143,"lon":24.992143,"name":"景平","ename":"Jingping","FirstLast":[{"To":"Y07","Time":["06:01","00:26"],"TrainType":0},{"To":"Y20","Time":["06:00","00:06"],"TrainType":0}]},{"StationID":"Y11","lat":24.99392,"lon":24.99392,"name":"景安","ename":"Jingan","FirstLast":[{"To":"Y07","Time":["06:00","00:24"],"TrainType":0},{"To":"Y20","Time":["06:02","00:08"],"TrainType":0}]},{"StationID":"Y12","lat":25.002382,"lon":25.002382,"name":"中和","ename":"Zhonghe","FirstLast":[{"To":"Y07","Time":["06:03","00:20"],"TrainType":0},{"To":"Y20","Time":["06:05","00:12"],"TrainType":0}]},{"StationID":"Y13","lat":25.004413,"lon":25.004413,"name":"橋和","ename":"Qiaohe","FirstLast":[{"To":"Y07","Time":["06:01","00:18"],"TrainType":0},{"To":"Y20","Time":["06:00","00:14"],"TrainType":0}]},{"StationID":"Y14","lat":25.00841,"lon":25.00841,"name":"中原","ename":"Zhongyuan","FirstLast":[{"To":"Y07","Time":["06:00","00:16"],"TrainType":0},{"To":"Y20","Time":["06:01","00:16"],"TrainType":0}]},{"StationID":"Y15","lat":25.014436,"lon":25.014436,"name":"板新","ename":"Banxin","FirstLast":[{"To":"Y07","Time":["06:06","00:14"],"TrainType":0},{"To":"Y20","Time":["06:03","00:18"],"TrainType":0}]},{"StationID":"Y16","lat":25.015156,"lon":25.015156,"name":"板橋","ename":"Banqiao","FirstLast":[{"To":"Y07","Time":["06:03","00:11"],"TrainType":0},{"To":"Y20","Time":["06:00","00:21"],"TrainType":0}]},{"StationID":"Y17","lat":25.026282,"lon":25.026282,"name":"新埔民生","ename":"Xinpu Minsheng","FirstLast":[{"To":"Y07","Time":["06:00","00:07"],"TrainType":0},{"To":"Y20","Time":["06:03","00:25"],"TrainType":0}]},{"StationID":"Y18","lat":25.039862,"lon":25.039862,"name":"頭前庄","ename":"Touqianzhuang","FirstLast":[{"To":"Y07","Time":["06:04","00:04"],"TrainType":0},{"To":"Y20","Time":["06:06","00:28"],"TrainType":0}]},{"StationID":"Y19","lat":25.049984,"lon":25.049984,"name":"幸福","ename":"Xingfu","FirstLast":[{"To":"Y07","Time":["06:02","00:02"],"TrainType":0},{"To":"Y20","Time":["06:00","00:30"],"TrainType":0}]},{"StationID":"Y20","lat":25.061548,"lon":25.061548,"name":"新北產業園區","ename":"New Taipei Industrial Park","FirstLast":[{"To":"Y07","Time":["06:00","00:00"],"TrainType":0}]}];
 
-var tra_line = [{"dir":0,"LineID":"YL","station":[{"name":"八堵","ID":"1002","TD":0},{"name":"暖暖","ID":"1802","TD":1.6},{"name":"四腳亭","ID":"1803","TD":3.9},{"name":"瑞芳","ID":"1804","TD":8.9},{"name":"侯硐","ID":"1805","TD":13.5},{"name":"三貂嶺","ID":"1806","TD":16},{"name":"牡丹","ID":"1807","TD":19.6},{"name":"雙溪","ID":"1808","TD":22.9},{"name":"貢寮","ID":"1809","TD":28.3},{"name":"福隆","ID":"1810","TD":32},{"name":"石城","ID":"1811","TD":37.4},{"name":"大里","ID":"1812","TD":40.1},{"name":"大溪","ID":"1813","TD":44.8},{"name":"龜山","ID":"1814","TD":49.4},{"name":"外澳","ID":"1815","TD":53},{"name":"頭城","ID":"1816","TD":56.6},{"name":"頂埔","ID":"1817","TD":58.8},{"name":"礁溪","ID":"1818","TD":62.9},{"name":"四城","ID":"1819","TD":67.6},{"name":"宜蘭","ID":"1820","TD":71.3},{"name":"二結","ID":"1821","TD":77.1},{"name":"中里","ID":"1822","TD":78.3},{"name":"羅東","ID":"1823","TD":80.1},{"name":"冬山","ID":"1824","TD":85.1},{"name":"新馬","ID":"1825","TD":89.3},{"name":"蘇澳新","ID":"1826","TD":90.2},{"name":"蘇澳","ID":"1827","TD":93.6}]},{"dir":0,"LineID":"NL","station":[{"name":"蘇澳新","ID":"1826","TD":0},{"name":"永樂","ID":"1703","TD":5.2},{"name":"東澳","ID":"1704","TD":11},{"name":"南澳","ID":"1705","TD":19},{"name":"武塔","ID":"1706","TD":22.7},{"name":"漢本","ID":"1708","TD":35.6},{"name":"和平","ID":"1709","TD":39.8},{"name":"和仁","ID":"1710","TD":47.5},{"name":"崇德","ID":"1711","TD":57.6},{"name":"新城","ID":"1712","TD":62.9},{"name":"景美","ID":"1713","TD":68.2},{"name":"北埔","ID":"1714","TD":74.7},{"name":"花蓮","ID":"1715","TD":79.2}]},{"dir":0,"LineID":"TT","station":[{"name":"花蓮","ID":"1715","TD":0},{"name":"吉安","ID":"1602","TD":3.4},{"name":"志學","ID":"1604","TD":12.4},{"name":"平和","ID":"1605","TD":15.3},{"name":"壽豐","ID":"1606","TD":17.2},{"name":"豐田","ID":"1607","TD":19.9},{"name":"南平","ID":"1609","TD":28.4},{"name":"鳳林","ID":"1610","TD":32.5},{"name":"萬榮","ID":"1611","TD":37.3},{"name":"光復","ID":"1612","TD":42.9},{"name":"大富","ID":"1613","TD":50.6},{"name":"富源","ID":"1614","TD":53.6},{"name":"瑞穗","ID":"1616","TD":62.9},{"name":"三民","ID":"1617","TD":72.1},{"name":"玉里","ID":"1619","TD":83.1},{"name":"東里","ID":"1621","TD":89.8},{"name":"東竹","ID":"1622","TD":95.7},{"name":"富里","ID":"1623","TD":101.9},{"name":"池上","ID":"1624","TD":108.8},{"name":"海端","ID":"1625","TD":114.4},{"name":"關山","ID":"1626","TD":120.9},{"name":"瑞和","ID":"1628","TD":128.3},{"name":"瑞源","ID":"1629","TD":131.1},{"name":"鹿野","ID":"1630","TD":136.6},{"name":"山里","ID":"1631","TD":142.6},{"name":"臺東","ID":"1632","TD":150.9}]},{"dir":0,"LineID":"PX","station":[{"name":"三貂嶺","ID":"1806","TD":0},{"name":"大華","ID":"1903","TD":3.5},{"name":"十分","ID":"1904","TD":6.4},{"name":"望古","ID":"1905","TD":8.2},{"name":"嶺腳","ID":"1906","TD":10.2},{"name":"平溪","ID":"1907","TD":11.2},{"name":"菁桐","ID":"1908","TD":12.9}]},{"dir":1,"LineID":"SA","station":[{"name":"瑞芳","ID":"1804","TD":0},{"name":"海科館","ID":"6103","TD":4.2}]},{"dir":0,"LineID":"NW","station":[{"name":"新竹","ID":"1025","TD":0},{"name":"北新竹","ID":"1024","TD":1.4},{"name":"千甲","ID":"2212","TD":3.6},{"name":"新莊","ID":"2213","TD":6.6},{"name":"竹中","ID":"2203","TD":7.9},{"name":"上員","ID":"2204","TD":10.5},{"name":"榮華","ID":"2211","TD":15},{"name":"竹東","ID":"2205","TD":16.6},{"name":"橫山","ID":"2206","TD":20},{"name":"九讚頭","ID":"2207","TD":22.2},{"name":"合興","ID":"2208","TD":24.4},{"name":"富貴","ID":"2209","TD":25.7},{"name":"內灣","ID":"2210","TD":27.9}]},{"dir":1,"LineID":"JJ","station":[{"name":"二水","ID":"1207","TD":0},{"name":"源泉","ID":"2702","TD":2.9},{"name":"濁水","ID":"2703","TD":10.8},{"name":"龍泉","ID":"2704","TD":15.7},{"name":"集集","ID":"2705","TD":20.1},{"name":"水里","ID":"2706","TD":27.4},{"name":"車埕","ID":"2707","TD":29.7}]},{"dir":1,"LineID":"SH","station":[{"name":"中洲","ID":"1230","TD":0},{"name":"長榮大學","ID":"5101","TD":2.6},{"name":"沙崙","ID":"5102","TD":5.3}]},{"dir":0,"LineID":"LJ","station":[{"name":"竹中","ID":"2203","TD":0},{"name":"六家","ID":"2214","TD":3.1}]},{"dir":0,"LineID":"CZ","station":[{"name":"成功","ID":"1321","TD":0},{"name":"追分","ID":"1118","TD":2.2}]},{"dir":1,"LineID":"TL-N","station":[{"name":"基隆","ID":"1001","TD":0},{"name":"三坑","ID":"1029","TD":1.3},{"name":"八堵","ID":"1002","TD":3.7},{"name":"七堵","ID":"1003","TD":6},{"name":"百福","ID":"1030","TD":8.7},{"name":"五堵","ID":"1004","TD":11.7},{"name":"汐止","ID":"1005","TD":13.1},{"name":"汐科","ID":"1031","TD":14.6},{"name":"南港","ID":"1006","TD":19.1},{"name":"松山","ID":"1007","TD":21.9},{"name":"臺北","ID":"1008","TD":28.3},{"name":"萬華","ID":"1009","TD":31.1},{"name":"板橋","ID":"1011","TD":35.5},{"name":"浮洲","ID":"1032","TD":38},{"name":"樹林","ID":"1012","TD":40.9},{"name":"山佳","ID":"1013","TD":44.8},{"name":"鶯歌","ID":"1014","TD":49.2},{"name":"桃園","ID":"1015","TD":57.4},{"name":"內壢","ID":"1016","TD":63.3},{"name":"中壢","ID":"1017","TD":67.3},{"name":"埔心","ID":"1018","TD":73.1},{"name":"楊梅","ID":"1019","TD":77.1},{"name":"富岡","ID":"1020","TD":83.9},{"name":"北湖","ID":"1033","TD":87.1},{"name":"湖口","ID":"1021","TD":89.6},{"name":"新豐","ID":"1022","TD":95.8},{"name":"竹北","ID":"1023","TD":100.6},{"name":"北新竹","ID":"1024","TD":105},{"name":"新竹","ID":"1025","TD":106.4},{"name":"三姓橋","ID":"1035","TD":111.2},{"name":"香山","ID":"1026","TD":114.4},{"name":"崎頂","ID":"1027","TD":120.8},{"name":"竹南","ID":"1028","TD":125.4}]},{"dir":1,"LineID":"TL-M","station":[{"name":"竹南","ID":"1028","TD":0},{"name":"造橋","ID":"1302","TD":5.3},{"name":"豐富","ID":"1304","TD":11.7},{"name":"苗栗","ID":"1305","TD":15.2},{"name":"南勢","ID":"1307","TD":21.8},{"name":"銅鑼","ID":"1308","TD":26},{"name":"三義","ID":"1310","TD":33.4},{"name":"泰安","ID":"1314","TD":44.3},{"name":"后里","ID":"1315","TD":46.9},{"name":"豐原","ID":"1317","TD":53.7},{"name":"潭子","ID":"1318","TD":58.7},{"name":"太原","ID":"1323","TD":63.8},{"name":"臺中","ID":"1319","TD":67.9},{"name":"大慶","ID":"1322","TD":72.1},{"name":"烏日","ID":"1320","TD":75.1},{"name":"新烏日","ID":"1324","TD":75.9},{"name":"成功","ID":"1321","TD":78.4},{"name":"彰化","ID":"1120","TD":85.5}]},{"dir":1,"LineID":"TL-C","station":[{"name":"竹南","ID":"1028","TD":0},{"name":"談文","ID":"1102","TD":4.5},{"name":"大山","ID":"1104","TD":11.2},{"name":"後龍","ID":"1105","TD":15},{"name":"龍港","ID":"1106","TD":18.6},{"name":"白沙屯","ID":"1107","TD":26.7},{"name":"新埔","ID":"1108","TD":29.8},{"name":"通霄","ID":"1109","TD":35.6},{"name":"苑裡","ID":"1110","TD":41.7},{"name":"日南","ID":"1111","TD":49.4},{"name":"大甲","ID":"1112","TD":54},{"name":"臺中港","ID":"1113","TD":59.3},{"name":"清水","ID":"1114","TD":65.3},{"name":"沙鹿","ID":"1115","TD":68.5},{"name":"龍井","ID":"1116","TD":73.1},{"name":"大肚","ID":"1117","TD":78.1},{"name":"追分","ID":"1118","TD":83.1},{"name":"彰化","ID":"1120","TD":90.2}]},{"dir":1,"LineID":"TL-S","station":[{"name":"彰化","ID":"1120","TD":0},{"name":"花壇","ID":"1202","TD":6.6},{"name":"大村","ID":"1240","TD":11.2},{"name":"員林","ID":"1203","TD":14.7},{"name":"永靖","ID":"1204","TD":18.2},{"name":"社頭","ID":"1205","TD":21.9},{"name":"田中","ID":"1206","TD":26.2},{"name":"二水","ID":"1207","TD":32},{"name":"林內","ID":"1208","TD":40.1},{"name":"石榴","ID":"1209","TD":44.9},{"name":"斗六","ID":"1210","TD":49.7},{"name":"斗南","ID":"1211","TD":57.3},{"name":"石龜","ID":"1212","TD":61.2},{"name":"大林","ID":"1213","TD":65.8},{"name":"民雄","ID":"1214","TD":71.6},{"name":"嘉北","ID":"1241","TD":78.3},{"name":"嘉義","ID":"1215","TD":80.9},{"name":"水上","ID":"1217","TD":87.5},{"name":"南靖","ID":"1218","TD":90.1},{"name":"後壁","ID":"1219","TD":96.1},{"name":"新營","ID":"1220","TD":103.8},{"name":"柳營","ID":"1221","TD":107.1},{"name":"林鳳營","ID":"1222","TD":111},{"name":"隆田","ID":"1223","TD":116.5},{"name":"拔林","ID":"1224","TD":118.7},{"name":"善化","ID":"1225","TD":123.3},{"name":"南科","ID":"1244","TD":126.2},{"name":"新市","ID":"1226","TD":130.9},{"name":"永康","ID":"1227","TD":135.9},{"name":"大橋","ID":"1239","TD":139.6},{"name":"臺南","ID":"1228","TD":142.3},{"name":"保安","ID":"1229","TD":149.9},{"name":"仁德","ID":"1243","TD":151.3},{"name":"中洲","ID":"1230","TD":153.9},{"name":"大湖","ID":"1231","TD":156.8},{"name":"路竹","ID":"1232","TD":159.7},{"name":"岡山","ID":"1233","TD":167.5},{"name":"橋頭","ID":"1234","TD":171.1},{"name":"楠梓","ID":"1235","TD":175.3},{"name":"新左營","ID":"1242","TD":180.4},{"name":"左營","ID":"1236","TD":182.3},{"name":"高雄","ID":"1238","TD":188.9}]},{"dir":1,"LineID":"PL","station":[{"name":"高雄","ID":"1238","TD":0},{"name":"鳳山","ID":"1402","TD":5.8},{"name":"後庄","ID":"1403","TD":9.5},{"name":"九曲堂","ID":"1404","TD":13.8},{"name":"六塊厝","ID":"1405","TD":18.8},{"name":"屏東","ID":"1406","TD":21},{"name":"歸來","ID":"1407","TD":23.6},{"name":"麟洛","ID":"1408","TD":25.9},{"name":"西勢","ID":"1409","TD":28.3},{"name":"竹田","ID":"1410","TD":32},{"name":"潮州","ID":"1411","TD":36.1},{"name":"崁頂","ID":"1412","TD":40.9},{"name":"南州","ID":"1413","TD":43.3},{"name":"鎮安","ID":"1414","TD":46.9},{"name":"林邊","ID":"1415","TD":50.1},{"name":"佳冬","ID":"1416","TD":54.1},{"name":"東海","ID":"1417","TD":57.2},{"name":"枋寮","ID":"1418","TD":61.3}]},{"dir":1,"LineID":"SL","station":[{"name":"枋寮","ID":"1418","TD":0},{"name":"加祿","ID":"1502","TD":5.3},{"name":"內獅","ID":"1503","TD":8.7},{"name":"枋山","ID":"1504","TD":13.6},{"name":"古莊","ID":"1507","TD":40.5},{"name":"大武","ID":"1508","TD":43.8},{"name":"瀧溪","ID":"1510","TD":55.5},{"name":"金崙","ID":"1512","TD":63.9},{"name":"太麻里","ID":"1514","TD":74.9},{"name":"知本","ID":"1516","TD":86.6},{"name":"康樂","ID":"1517","TD":93.6},{"name":"臺東","ID":"1632","TD":98.2}]}];
+var tmrt_station = [{"StationID":"G0","lat":24.18913,"lon":24.18913,"name":"北屯總站","ename":"Beitun Main Station","FirstLast":[{"To":"G17","Time":["06:00","00:00"]}]},{"StationID":"G3","lat":24.18228,"lon":24.18228,"name":"舊社","ename":"Jiushe","FirstLast":[{"To":"G0","Time":["06:12","00:47"]},{"To":"G17","Time":["06:02","00:02"]}]},{"StationID":"G4","lat":24.1808,"lon":24.1808,"name":"松竹","ename":"Songzhu","FirstLast":[{"To":"G0","Time":["06:10","00:45"]},{"To":"G17","Time":["06:04","00:04"]}]},{"StationID":"G5","lat":24.17124,"lon":24.17124,"name":"四維國小","ename":"Sihwei Elementary School","FirstLast":[{"To":"G0","Time":["06:07","00:42"]},{"To":"G17","Time":["06:07","00:07"]}]},{"StationID":"G6","lat":24.17219,"lon":24.17219,"name":"文心崇德","ename":"Wenxin Chongde","FirstLast":[{"To":"G0","Time":["06:06","00:40"]},{"To":"G17","Time":["06:09","00:09"]}]},{"StationID":"G7","lat":24.17368,"lon":24.17368,"name":"文心中清","ename":"Wenxin Zhongqing","FirstLast":[{"To":"G0","Time":["06:03","00:38"]},{"To":"G17","Time":["06:11","00:11"]}]},{"StationID":"G8","lat":24.17141,"lon":24.17141,"name":"文華高中","ename":"Wenhua Senior High School","FirstLast":[{"To":"G0","Time":["06:01","00:36"]},{"To":"G17","Time":["06:13","00:13"]}]},{"StationID":"G8a","lat":24.16763,"lon":24.16763,"name":"文心櫻花","ename":"Wenxin Yinghua","FirstLast":[{"To":"G0","Time":["06:00","00:34"]},{"To":"G17","Time":["06:00","00:15"]}]},{"StationID":"G9","lat":24.16199,"lon":24.16199,"name":"市政府","ename":"Taichung City Hall","FirstLast":[{"To":"G0","Time":["06:10","00:33"]},{"To":"G17","Time":["06:01","00:17"]}]},{"StationID":"G10","lat":24.15311,"lon":24.15311,"name":"水安宮","ename":"Shui-an Temple","FirstLast":[{"To":"G0","Time":["06:08","00:30"]},{"To":"G17","Time":["06:04","00:19"]}]},{"StationID":"G10a","lat":24.1454,"lon":24.1454,"name":"文心森林公園","ename":"Wenxin Forest Park","FirstLast":[{"To":"G0","Time":["06:06","00:29"]},{"To":"G17","Time":["06:06","00:21"]}]},{"StationID":"G11","lat":24.1405,"lon":24.1405,"name":"南屯","ename":"Nantun","FirstLast":[{"To":"G0","Time":["06:04","00:27"]},{"To":"G17","Time":["06:07","00:22"]}]},{"StationID":"G12","lat":24.1326,"lon":24.1326,"name":"豐樂公園","ename":"Feng-le Park","FirstLast":[{"To":"G0","Time":["06:03","00:25"]},{"To":"G17","Time":["06:09","00:24"]}]},{"StationID":"G13","lat":24.1191,"lon":24.1191,"name":"大慶","ename":"Daqing","FirstLast":[{"To":"G0","Time":["06:00","00:22"]},{"To":"G17","Time":["06:00","00:27"]}]},{"StationID":"G14","lat":24.1145,"lon":24.1145,"name":"九張犁","ename":"Jiuzhangli","FirstLast":[{"To":"G0","Time":["06:05","00:20"]},{"To":"G17","Time":["06:01","00:29"]}]},{"StationID":"G15","lat":24.11104,"lon":24.11104,"name":"九德","ename":"Jiude","FirstLast":[{"To":"G0","Time":["06:04","00:19"]},{"To":"G17","Time":["06:03","00:30"]}]},{"StationID":"G16","lat":24.1089,"lon":24.1089,"name":"烏日","ename":"Wuri","FirstLast":[{"To":"G0","Time":["06:02","00:17"]},{"To":"G17","Time":["06:05","00:32"]}]},{"StationID":"G17","lat":24.11011,"lon":24.11011,"name":"高鐵臺中站","ename":"HSR Taichung Station","FirstLast":[{"To":"G0","Time":["06:00","00:15"]}]}];
 
-var tra_station = [{"StationID":"4102","name":"樹調","ename":"ShuDiao"},{"StationID":"1632","lat":22.793711,"lon":121.123175,"name":"臺東","ename":"Taitung"},{"StationID":"1631","lat":22.862046,"lon":121.138031,"name":"山里","ename":"Shanli"},{"StationID":"1630","lat":22.912469,"lon":121.137004,"name":"鹿野","ename":"Luye"},{"StationID":"1629","lat":22.955978,"lon":121.159014,"name":"瑞源","ename":"Ruiyuan"},{"StationID":"1628","lat":22.979968,"lon":121.15579,"name":"瑞和","ename":"Ruihe"},{"StationID":"1626","lat":23.045665,"lon":121.164373,"name":"關山","ename":"Guanshan"},{"StationID":"1625","lat":23.102934,"lon":121.176829,"name":"海端","ename":"Haiduan"},{"StationID":"1624","lat":23.126158,"lon":121.21939,"name":"池上","ename":"Chishang"},{"StationID":"1623","lat":23.179132,"lon":121.248692,"name":"富里","ename":"Fuli"},{"StationID":"1622","lat":23.226025,"lon":121.278481,"name":"東竹","ename":"Dongzhu"},{"StationID":"1621","lat":23.272309,"lon":121.304181,"name":"東里","ename":"Dongli"},{"StationID":"1619","lat":23.331518,"lon":121.311726,"name":"玉里","ename":"Yuli"},{"StationID":"1617","lat":23.424766,"lon":121.345344,"name":"三民","ename":"Sanmin"},{"StationID":"1616","lat":23.497376,"lon":121.376841,"name":"瑞穗","ename":"Ruisui"},{"StationID":"1614","lat":23.580268,"lon":121.380122,"name":"富源","ename":"Fuyuan"},{"StationID":"1613","lat":23.605688,"lon":121.389624,"name":"大富","ename":"Dafu"},{"StationID":"1612","lat":23.666293,"lon":121.421168,"name":"光復","ename":"Guangfu"},{"StationID":"1611","lat":23.711978,"lon":121.419067,"name":"萬榮","ename":"Wanrong"},{"StationID":"1610","lat":23.74634,"lon":121.447024,"name":"鳳林","ename":"Fenglin"},{"StationID":"1609","lat":23.782276,"lon":121.45828,"name":"南平","ename":"Nanping"},{"StationID":"1608","lat":23.802587,"lon":121.462015,"name":"林榮新光","ename":"Linrong Shin Kong"},{"StationID":"1607","lat":23.848475,"lon":121.496168,"name":"豐田","ename":"Fengtian"},{"StationID":"1606","lat":23.869016,"lon":121.510633,"name":"壽豐","ename":"Shoufeng"},{"StationID":"1605","lat":23.882774,"lon":121.520485,"name":"平和","ename":"Pinghe"},{"StationID":"1604","lat":23.907494,"lon":121.529437,"name":"志學","ename":"Zhixue"},{"StationID":"1602","lat":23.968179,"lon":121.582699,"name":"吉安","ename":"Jian"},{"StationID":"1715","lat":23.992868,"lon":121.600993,"name":"花蓮","ename":"Hualien"},{"StationID":"1714","lat":24.032533,"lon":121.601671,"name":"北埔","ename":"Beipu"},{"StationID":"1713","lat":24.090317,"lon":121.610786,"name":"景美","ename":"Jingmei"},{"StationID":"1712","lat":24.127524,"lon":121.640866,"name":"新城","ename":"Xincheng"},{"StationID":"1711","lat":24.172116,"lon":121.655498,"name":"崇德","ename":"Chongde"},{"StationID":"1710","lat":24.242199,"lon":121.711749,"name":"和仁","ename":"Heren"},{"StationID":"1709","lat":24.298296,"lon":121.753346,"name":"和平","ename":"Heping"},{"StationID":"1708","lat":24.335428,"lon":121.768355,"name":"漢本","ename":"Hanben"},{"StationID":"1706","lat":24.448674,"lon":121.776037,"name":"武塔","ename":"Wuta"},{"StationID":"1705","lat":24.463396,"lon":121.800926,"name":"南澳","ename":"Nanao"},{"StationID":"1704","lat":24.518221,"lon":121.830683,"name":"東澳","ename":"Dongao"},{"StationID":"1703","lat":24.568417,"lon":121.844564,"name":"永樂","ename":"Yongle"},{"StationID":"1827","lat":24.595181,"lon":121.85144,"name":"蘇澳","ename":"Suao"},{"StationID":"1826","lat":24.609024,"lon":121.82703,"name":"蘇澳新","ename":"Suaoxin"},{"StationID":"1825","lat":24.615395,"lon":121.8229,"name":"新馬","ename":"Xinma"},{"StationID":"1824","lat":24.636726,"lon":121.792246,"name":"冬山","ename":"Dongshan"},{"StationID":"1823","lat":24.677929,"lon":121.774629,"name":"羅東","ename":"Luodong"},{"StationID":"1822","lat":24.694192,"lon":121.775163,"name":"中里","ename":"Zhongli"},{"StationID":"1821","lat":24.705267,"lon":121.774131,"name":"二結","ename":"Erjie"},{"StationID":"1820","lat":24.754512,"lon":121.758253,"name":"宜蘭","ename":"Yilan"},{"StationID":"1819","lat":24.786802,"lon":121.762727,"name":"四城","ename":"Sicheng"},{"StationID":"1818","lat":24.827034,"lon":121.775354,"name":"礁溪","ename":"Jiaoxi"},{"StationID":"1817","lat":24.843998,"lon":121.809207,"name":"頂埔","ename":"Dingpu"},{"StationID":"1816","lat":24.858976,"lon":121.822556,"name":"頭城","ename":"Toucheng"},{"StationID":"1815","lat":24.883703,"lon":121.845758,"name":"外澳","ename":"Waiao"},{"StationID":"1814","lat":24.904818,"lon":121.868878,"name":"龜山","ename":"Guishan"},{"StationID":"1813","lat":24.938423,"lon":121.889873,"name":"大溪","ename":"Daxi"},{"StationID":"1812","lat":24.966799,"lon":121.922496,"name":"大里","ename":"Dali"},{"StationID":"1811","lat":24.978334,"lon":121.945191,"name":"石城","ename":"Shicheng"},{"StationID":"1810","lat":25.015893,"lon":121.944659,"name":"福隆","ename":"Fulong"},{"StationID":"1809","lat":25.022044,"lon":121.908703,"name":"貢寮","ename":"Gongliao"},{"StationID":"1808","lat":25.038544,"lon":121.866548,"name":"雙溪","ename":"Shuangxi"},{"StationID":"1807","lat":25.058738,"lon":121.851977,"name":"牡丹","ename":"Mudan"},{"StationID":"1806","lat":25.065544,"lon":121.822559,"name":"三貂嶺","ename":"Sandiaoling"},{"StationID":"1805","lat":25.087009,"lon":121.827424,"name":"侯硐","ename":"Houtong"},{"StationID":"1804","lat":25.108928,"lon":121.806149,"name":"瑞芳","ename":"Ruifang"},{"StationID":"1803","lat":25.102751,"lon":121.761887,"name":"四腳亭","ename":"Sijiaoting"},{"StationID":"1802","lat":25.102282,"lon":121.740329,"name":"暖暖","ename":"Nuannuan"},{"StationID":"1001","lat":25.131598,"lon":121.738366,"name":"基隆","ename":"Keelung"},{"StationID":"1002","lat":25.108392,"lon":121.729049,"name":"八堵","ename":"Badu"},{"StationID":"1003","lat":25.093359,"lon":121.713868,"name":"七堵","ename":"Qidu"},{"StationID":"1004","lat":25.078,"lon":121.667701,"name":"五堵","ename":"Wudu"},{"StationID":"1005","lat":25.068224,"lon":121.661757,"name":"汐止","ename":"Xizhi"},{"StationID":"1006","lat":25.05314,"lon":121.607019,"name":"南港","ename":"Nangang"},{"StationID":"1007","lat":25.04933,"lon":121.577965,"name":"松山","ename":"Songshan"},{"StationID":"1008","lat":25.047503,"lon":121.517047,"name":"臺北","ename":"Taipei"},{"StationID":"1009","lat":25.03335,"lon":121.500331,"name":"萬華","ename":"Wanhua"},{"StationID":"1011","lat":25.014399,"lon":121.463497,"name":"板橋","ename":"Banqiao"},{"StationID":"1012","lat":24.991348,"lon":121.424564,"name":"樹林","ename":"Shulin"},{"StationID":"1013","lat":24.972482,"lon":121.392657,"name":"山佳","ename":"Shanjia"},{"StationID":"1014","lat":24.954532,"lon":121.355125,"name":"鶯歌","ename":"Yingge"},{"StationID":"1015","lat":24.989209,"lon":121.313499,"name":"桃園","ename":"Taoyuan"},{"StationID":"1016","lat":24.972797,"lon":121.258258,"name":"內壢","ename":"Neili"},{"StationID":"1017","lat":24.953666,"lon":121.225798,"name":"中壢","ename":"Zhongli"},{"StationID":"1018","lat":24.919951,"lon":121.183827,"name":"埔心","ename":"Puxin"},{"StationID":"1019","lat":24.914346,"lon":121.146405,"name":"楊梅","ename":"Yangmei"},{"StationID":"1020","lat":24.934273,"lon":121.083019,"name":"富岡","ename":"Fugang"},{"StationID":"1021","lat":24.903029,"lon":121.044009,"name":"湖口","ename":"Hukou"},{"StationID":"1022","lat":24.869228,"lon":120.99634,"name":"新豐","ename":"Xinfeng"},{"StationID":"1023","lat":24.839283,"lon":121.009376,"name":"竹北","ename":"Zhubei"},{"StationID":"1025","lat":24.801637,"lon":120.971627,"name":"新竹","ename":"Hsinchu"},{"StationID":"1026","lat":24.763121,"lon":120.91389,"name":"香山","ename":"Xiangshan"},{"StationID":"1027","lat":24.722782,"lon":120.87179,"name":"崎頂","ename":"Qiding"},{"StationID":"1028","lat":24.686562,"lon":120.880888,"name":"竹南","ename":"Zhunan"},{"StationID":"1102","lat":24.656414,"lon":120.858241,"name":"談文","ename":"Tanwen"},{"StationID":"1104","lat":24.645645,"lon":120.803778,"name":"大山","ename":"Dashan"},{"StationID":"1105","lat":24.616212,"lon":120.787307,"name":"後龍","ename":"Houlong"},{"StationID":"1106","lat":24.611683,"lon":120.758142,"name":"龍港","ename":"Longgang"},{"StationID":"1107","lat":24.564797,"lon":120.708198,"name":"白沙屯","ename":"Baishatun"},{"StationID":"1108","lat":24.54018,"lon":120.695179,"name":"新埔","ename":"Xinpu"},{"StationID":"1109","lat":24.491403,"lon":120.678425,"name":"通霄","ename":"Tongxiao"},{"StationID":"1110","lat":24.443426,"lon":120.651494,"name":"苑裡","ename":"Yuanli"},{"StationID":"1111","lat":24.378066,"lon":120.654119,"name":"日南","ename":"Rinan"},{"StationID":"1112","lat":24.34443,"lon":120.627017,"name":"大甲","ename":"Dajia"},{"StationID":"1113","lat":24.304366,"lon":120.602297,"name":"臺中港","ename":"Taichung Port"},{"StationID":"1114","lat":24.263624,"lon":120.569178,"name":"清水","ename":"Qingshui"},{"StationID":"1115","lat":24.237044,"lon":120.557627,"name":"沙鹿","ename":"Shalu"},{"StationID":"1116","lat":24.197444,"lon":120.543371,"name":"龍井","ename":"Longjing"},{"StationID":"1117","lat":24.154024,"lon":120.542536,"name":"大肚","ename":"Dadu"},{"StationID":"1118","lat":24.120613,"lon":120.570158,"name":"追分","ename":"Zhuifen"},{"StationID":"1302","lat":24.641439,"lon":120.867051,"name":"造橋","ename":"Zaoqiao"},{"StationID":"1305","lat":24.570036,"lon":120.822319,"name":"苗栗","ename":"Miaoli"},{"StationID":"1307","lat":24.522509,"lon":120.791571,"name":"南勢","ename":"Nanshi"},{"StationID":"1308","lat":24.48634,"lon":120.786173,"name":"銅鑼","ename":"Tongluo"},{"StationID":"1310","lat":24.42062,"lon":120.773931,"name":"三義","ename":"Sanyi"},{"StationID":"1314","lat":24.331292,"lon":120.741816,"name":"泰安","ename":"Taian"},{"StationID":"1315","lat":24.309312,"lon":120.732893,"name":"后里","ename":"Houli"},{"StationID":"1317","lat":24.254111,"lon":120.723447,"name":"豐原","ename":"Fengyuan"},{"StationID":"1318","lat":24.212802,"lon":120.705947,"name":"潭子","ename":"Tanzi"},{"StationID":"1319","lat":24.136955,"lon":120.686827,"name":"臺中","ename":"Taichung"},{"StationID":"1320","lat":24.108692,"lon":120.622472,"name":"烏日","ename":"Wuri"},{"StationID":"1321","lat":24.114232,"lon":120.590164,"name":"成功","ename":"Chenggong"},{"StationID":"1120","lat":24.081666,"lon":120.538539,"name":"彰化","ename":"Changhua"},{"StationID":"1202","lat":24.024997,"lon":120.5374,"name":"花壇","ename":"Huatan"},{"StationID":"1203","lat":23.959258,"lon":120.56965,"name":"員林","ename":"Yuanlin"},{"StationID":"1204","lat":23.928148,"lon":120.571672,"name":"永靖","ename":"Yongjing"},{"StationID":"1205","lat":23.89571,"lon":120.5808,"name":"社頭","ename":"Shetou"},{"StationID":"1206","lat":23.858503,"lon":120.591396,"name":"田中","ename":"Tianzhong"},{"StationID":"1207","lat":23.81315,"lon":120.618115,"name":"二水","ename":"Ershui"},{"StationID":"1208","lat":23.759681,"lon":120.614987,"name":"林內","ename":"Linnei"},{"StationID":"1209","lat":23.731643,"lon":120.579973,"name":"石榴","ename":"Shiliu"},{"StationID":"1210","lat":23.711813,"lon":120.541146,"name":"斗六","ename":"Douliu"},{"StationID":"1211","lat":23.672972,"lon":120.480841,"name":"斗南","ename":"Dounan"},{"StationID":"1212","lat":23.639568,"lon":120.471007,"name":"石龜","ename":"Shigui"},{"StationID":"1213","lat":23.601076,"lon":120.455839,"name":"大林","ename":"Dalin"},{"StationID":"1214","lat":23.555039,"lon":120.431651,"name":"民雄","ename":"Minxiong"},{"StationID":"1215","lat":23.479139,"lon":120.441026,"name":"嘉義","ename":"Chiayi"},{"StationID":"1217","lat":23.433995,"lon":120.399665,"name":"水上","ename":"Shuishang"},{"StationID":"1218","lat":23.41345,"lon":120.386544,"name":"南靖","ename":"Nanjing"},{"StationID":"1219","lat":23.36629,"lon":120.360517,"name":"後壁","ename":"Houbi"},{"StationID":"1220","lat":23.306732,"lon":120.323055,"name":"新營","ename":"Xinying"},{"StationID":"1221","lat":23.277737,"lon":120.322304,"name":"柳營","ename":"Liuying"},{"StationID":"1222","lat":23.24259,"lon":120.32093,"name":"林鳳營","ename":"Linfengying"},{"StationID":"1223","lat":23.192699,"lon":120.31929,"name":"隆田","ename":"Longtian"},{"StationID":"1224","lat":23.172622,"lon":120.32133,"name":"拔林","ename":"Balin"},{"StationID":"1225","lat":23.133323,"lon":120.306551,"name":"善化","ename":"Shanhua"},{"StationID":"1226","lat":23.06823,"lon":120.290035,"name":"新市","ename":"Xinshi"},{"StationID":"1227","lat":23.038338,"lon":120.253524,"name":"永康","ename":"Yongkang"},{"StationID":"1228","lat":22.997144,"lon":120.212966,"name":"臺南","ename":"Tainan"},{"StationID":"1229","lat":22.93294,"lon":120.231594,"name":"保安","ename":"Baoan"},{"StationID":"1230","lat":22.904544,"lon":120.2527,"name":"中洲","ename":"Zhongzhou"},{"StationID":"1231","lat":22.878228,"lon":120.253934,"name":"大湖","ename":"Dahu"},{"StationID":"1232","lat":22.853948,"lon":120.266275,"name":"路竹","ename":"Luzhu"},{"StationID":"1233","lat":22.792355,"lon":120.299933,"name":"岡山","ename":"Gangshan"},{"StationID":"1234","lat":22.760994,"lon":120.310334,"name":"橋頭","ename":"Qiaotou"},{"StationID":"1235","lat":22.727035,"lon":120.324371,"name":"楠梓","ename":"Nanzi"},{"StationID":"1236","lat":22.675204,"lon":120.294793,"name":"左營","ename":"Zuoying"},{"StationID":"1238","lat":22.63962,"lon":120.302111,"name":"高雄","ename":"Kaohsiung"},{"StationID":"1402","lat":22.631284,"lon":120.357683,"name":"鳳山","ename":"Fengshan"},{"StationID":"1403","lat":22.640067,"lon":120.391125,"name":"後庄","ename":"Houzhuang"},{"StationID":"1404","lat":22.656423,"lon":120.420879,"name":"九曲堂","ename":"Jiuqutang"},{"StationID":"1405","lat":22.666252,"lon":120.464873,"name":"六塊厝","ename":"Liukuaicuo"},{"StationID":"1406","lat":22.669306,"lon":120.486203,"name":"屏東","ename":"Pingtung"},{"StationID":"1407","lat":22.65238,"lon":120.502941,"name":"歸來","ename":"Guilai"},{"StationID":"1408","lat":22.634849,"lon":120.514378,"name":"麟洛","ename":"Linluo"},{"StationID":"1409","lat":22.616433,"lon":120.526697,"name":"西勢","ename":"Xishi"},{"StationID":"1410","lat":22.586491,"lon":120.540002,"name":"竹田","ename":"Zhutian"},{"StationID":"1411","lat":22.550086,"lon":120.53642,"name":"潮州","ename":"Chaozhou"},{"StationID":"1412","lat":22.51306,"lon":120.514765,"name":"崁頂","ename":"Kanding"},{"StationID":"1413","lat":22.492058,"lon":120.511738,"name":"南州","ename":"Nanzhou"},{"StationID":"1414","lat":22.457984,"lon":120.511356,"name":"鎮安","ename":"Zhenan"},{"StationID":"1415","lat":22.431406,"lon":120.515376,"name":"林邊","ename":"Linbian"},{"StationID":"1416","lat":22.414087,"lon":120.547742,"name":"佳冬","ename":"Jiadong"},{"StationID":"1417","lat":22.399005,"lon":120.572381,"name":"東海","ename":"Donghai"},{"StationID":"1418","lat":22.368019,"lon":120.595098,"name":"枋寮","ename":"Fangliao"},{"StationID":"1502","lat":22.330971,"lon":120.624621,"name":"加祿","ename":"Jialu"},{"StationID":"1503","lat":22.306184,"lon":120.643492,"name":"內獅","ename":"Neishi"},{"StationID":"1504","lat":22.267067,"lon":120.659647,"name":"枋山","ename":"Fangshan"},{"StationID":"1505","lat":22.280818,"lon":120.717243,"name":"枋野","ename":"Fangye"},{"StationID":"1507","lat":22.345509,"lon":120.878079,"name":"古莊","ename":"Guzhuang"},{"StationID":"1508","lat":22.365206,"lon":120.900713,"name":"大武","ename":"Dawu"},{"StationID":"1510","lat":22.46104,"lon":120.941771,"name":"瀧溪","ename":"Longxi"},{"StationID":"1512","lat":22.531488,"lon":120.967239,"name":"金崙","ename":"Jinlun"},{"StationID":"1514","lat":22.614936,"lon":120.993368,"name":"太麻里","ename":"Taimali"},{"StationID":"1516","lat":22.710182,"lon":121.060744,"name":"知本","ename":"Zhiben"},{"StationID":"1517","lat":22.764277,"lon":121.09356,"name":"康樂","ename":"Kangle"},{"StationID":"1322","lat":24.119304,"lon":120.648571,"name":"大慶","ename":"Daqing"},{"StationID":"1029","lat":25.123081,"lon":121.742009,"name":"三坑","ename":"Sankeng"},{"StationID":"1323","lat":24.163634,"lon":120.699717,"name":"太原","ename":"Taiyuan"},{"StationID":"1239","lat":23.019399,"lon":120.22442,"name":"大橋","ename":"Daqiao"},{"StationID":"1240","lat":23.990053,"lon":120.560645,"name":"大村","ename":"Dacun"},{"StationID":"1241","lat":23.499897,"lon":120.448503,"name":"嘉北","ename":"Jiabei"},{"StationID":"1903","lat":25.049758,"lon":121.797929,"name":"大華","ename":"Dahua"},{"StationID":"1904","lat":25.040991,"lon":121.775229,"name":"十分","ename":"Shifen"},{"StationID":"1905","lat":25.03454,"lon":121.763782,"name":"望古","ename":"Wanggu"},{"StationID":"1906","lat":25.030138,"lon":121.748102,"name":"嶺腳","ename":"Lingjiao"},{"StationID":"1907","lat":25.025633,"lon":121.739984,"name":"平溪","ename":"Pingxi"},{"StationID":"1908","lat":25.023918,"lon":121.723649,"name":"菁桐","ename":"Jingtong"},{"StationID":"1024","lat":24.808746,"lon":120.98367,"name":"北新竹","ename":"North Hsinchu"},{"StationID":"2212","lat":24.806662,"lon":121.003273,"name":"千甲","ename":"Qianjia"},{"StationID":"2213","lat":24.788176,"lon":121.022122,"name":"新莊","ename":"Xinzhuang"},{"StationID":"2214","lat":24.807655,"lon":121.039417,"name":"六家","ename":"Liujia"},{"StationID":"2203","lat":24.781358,"lon":121.031306,"name":"竹中","ename":"Zhuzhong"},{"StationID":"2204","lat":24.77789,"lon":121.055725,"name":"上員","ename":"Shangyuan"},{"StationID":"2205","lat":24.738257,"lon":121.0949,"name":"竹東","ename":"Zhudong"},{"StationID":"2206","lat":24.72056,"lon":121.11645,"name":"橫山","ename":"Hengshan"},{"StationID":"2207","lat":24.720599,"lon":121.13602,"name":"九讚頭","ename":"Jiuzantou"},{"StationID":"2208","lat":24.716746,"lon":121.154403,"name":"合興","ename":"Hexing"},{"StationID":"2209","lat":24.715559,"lon":121.167377,"name":"富貴","ename":"Fugui"},{"StationID":"2210","lat":24.705317,"lon":121.182325,"name":"內灣","ename":"Neiwan"},{"StationID":"2211","lat":24.74839,"lon":121.083399,"name":"榮華","ename":"Ronghua"},{"StationID":"2702","lat":23.798445,"lon":120.642034,"name":"源泉","ename":"Yuanquan"},{"StationID":"2703","lat":23.834666,"lon":120.70472,"name":"濁水","ename":"Zhuoshui"},{"StationID":"2704","lat":23.835188,"lon":120.750404,"name":"龍泉","ename":"Longquan"},{"StationID":"2705","lat":23.826451,"lon":120.784891,"name":"集集","ename":"Jiji"},{"StationID":"2706","lat":23.818456,"lon":120.853323,"name":"水里","ename":"Shuili"},{"StationID":"2707","lat":23.832637,"lon":120.865745,"name":"車埕","ename":"Checheng"},{"StationID":"3202","lat":23.994013,"lon":121.636083,"name":"花蓮港","ename":"hualien Port"},{"StationID":"1030","lat":25.077927,"lon":121.693869,"name":"百福","ename":"Baifu"},{"StationID":"1031","lat":25.062626,"lon":121.646584,"name":"汐科","ename":"Xike"},{"StationID":"1032","lat":25.004184,"lon":121.444649,"name":"浮洲","ename":"Fuzhou"},{"StationID":"1034","lat":24.980485,"lon":121.408796,"name":"南樹林","ename":"South Shulin"},{"StationID":"1036","lat":24.931239,"lon":121.066512,"name":"新富","ename":"Xinfu Station"},{"StationID":"1033","lat":24.922207,"lon":121.055671,"name":"北湖","ename":"BeihuChina University of Technology"},{"StationID":"1035","lat":24.78755,"lon":120.928937,"name":"三姓橋","ename":"Sanxingqiao"},{"StationID":"1304","lat":24.604417,"lon":120.826115,"name":"豐富","ename":"Fengfu"},{"StationID":"1325","name":"栗林","ename":"Lilin"},{"StationID":"1326","name":"頭家厝","ename":"Toujiacuo"},{"StationID":"1327","name":"松竹","ename":"Songzhu"},{"StationID":"1328","name":"精武","ename":"Jingwu"},{"StationID":"1329","lat":24.129105,"lon":120.666833,"name":"五權","ename":"Wuquan"},{"StationID":"1324","lat":24.109851,"lon":120.614309,"name":"新烏日","ename":"Xinwuri"},{"StationID":"1243","lat":22.923682,"lon":120.240609,"name":"仁德","ename":"Rende"},{"StationID":"1244","lat":23.107602,"lon":120.301996,"name":"南科","ename":"Nanke"},{"StationID":"5101","lat":22.907187,"lon":120.272176,"name":"長榮大學","ename":"CJCU"},{"StationID":"5102","lat":22.923953,"lon":120.286371,"name":"沙崙","ename":"Shalun"},{"StationID":"1242","lat":22.687544,"lon":120.306788,"name":"新左營","ename":"Xinzuoying"},{"StationID":"6103","lat":25.137706,"lon":121.800023,"name":"海科館","ename":"NMMST"},{"StationID":"2003","lat":25.135392,"lon":121.803199,"name":"八斗子","ename":"Badouzi"},{"StationID":"1245","lat":22.665959,"lon":120.287059,"name":"內惟","ename":"Neiwei"},{"StationID":"1246","lat":22.652737,"lon":120.281489,"name":"美術館","ename":"Museum of Fine Arts"},{"StationID":"1237","lat":22.639895,"lon":120.281328,"name":"鼓山","ename":"Gushan"},{"StationID":"1247","name":"三塊厝","ename":"Sankuaicuo"},{"StationID":"1419","name":"民族","ename":"Minzu"},{"StationID":"1420","lat":22.639693,"lon":120.323515,"name":"科工館","ename":"Science and Technology Museum"},{"StationID":"1421","name":"正義","ename":"Zhengyi"}];
+var klrt_station = [{"StationID":"C1","lat":22.604625,"lon":22.604625,"name":"籬仔內","ename":"Lizihnei","FirstLast":[{"To":"C1","Time":["06:30","22:35"]},{"To":"C1","Time":["06:30","22:35"]},{"To":"C1","Time":["06:40","22:30"]},{"To":"C1","Time":["06:30","22:35"]}]},{"StationID":"C2","lat":22.599533,"lon":22.599533,"name":"凱旋瑞田","ename":"Kaisyuan Rueitian","FirstLast":[{"To":"C1","Time":["06:32","22:37"]},{"To":"C1","Time":["06:46","24:01"]},{"To":"C1","Time":["06:36","23:57"]},{"To":"C1","Time":["06:32","22:37"]}]},{"StationID":"C3","lat":22.595503,"lon":22.595503,"name":"前鎮之星","ename":"Cianjhen Star","FirstLast":[{"To":"C1","Time":["06:35","22:40"]},{"To":"C1","Time":["06:44","23:59"]},{"To":"C1","Time":["06:34","23:55"]},{"To":"C1","Time":["06:35","22:40"]}]},{"StationID":"C4","lat":22.593656,"lon":22.593656,"name":"凱旋中華","ename":"Kaisyuan Jhonghua","FirstLast":[{"To":"C1","Time":["06:42","23:57"]},{"To":"C1","Time":["06:37","22:42"]},{"To":"C1","Time":["06:37","22:42"]},{"To":"C1","Time":["06:32","23:53"]}]},{"StationID":"C5","lat":22.594886,"lon":22.594886,"name":"夢時代","ename":"Dream Mall","FirstLast":[{"To":"C1","Time":["06:30","22:45"]},{"To":"C1","Time":["06:40","23:55"]},{"To":"C1","Time":["06:40","22:45"]},{"To":"C1","Time":["06:30","23:51"]}]},{"StationID":"C6","lat":22.600961,"lon":22.600961,"name":"經貿園區","ename":"Commerce and Trade Park","FirstLast":[{"To":"C1","Time":["06:32","22:47"]},{"To":"C1","Time":["06:37","23:53"]},{"To":"C1","Time":["06:42","23:48"]},{"To":"C1","Time":["06:42","22:47"]}]},{"StationID":"C7","lat":22.605684,"lon":22.605684,"name":"軟體園區","ename":"Software Technology Park","FirstLast":[{"To":"C1","Time":["06:34","22:49"]},{"To":"C1","Time":["06:35","23:50"]},{"To":"C1","Time":["06:30","22:49"]},{"To":"C1","Time":["06:40","23:46"]}]},{"StationID":"C8","lat":22.610133,"lon":22.610133,"name":"高雄展覽館","ename":"Kaohsiung Exhibition Center","FirstLast":[{"To":"C1","Time":["06:32","23:47"]},{"To":"C1","Time":["06:37","22:52"]},{"To":"C1","Time":["06:33","22:52"]},{"To":"C1","Time":["06:37","23:43"]}]},{"StationID":"C9","lat":22.611587,"lon":22.611587,"name":"旅運中心","ename":"Cruise Terminal","FirstLast":[{"To":"C1","Time":["06:30","23:45"]},{"To":"C1","Time":["06:39","22:54"]},{"To":"C1","Time":["06:35","23:41"]},{"To":"C1","Time":["06:35","22:54"]}]},{"StationID":"C10","lat":22.616805,"lon":22.616805,"name":"光榮碼頭","ename":"Glory Pier","FirstLast":[{"To":"C1","Time":["06:30","22:57"]},{"To":"C1","Time":["06:39","23:43"]},{"To":"C1","Time":["06:38","22:57"]},{"To":"C1","Time":["06:32","23:38"]}]},{"StationID":"C11","lat":22.619315,"lon":22.619315,"name":"真愛碼頭","ename":"Love Pier","FirstLast":[{"To":"C1","Time":["06:32","22:59"]},{"To":"C1","Time":["06:37","23:41"]},{"To":"C1","Time":["06:30","23:36"]},{"To":"C1","Time":["06:40","22:59"]}]},{"StationID":"C12","lat":22.618562,"lon":22.618562,"name":"駁二大義","ename":"Dayi Pier-2","FirstLast":[{"To":"C1","Time":["06:34","23:01"]},{"To":"C1","Time":["06:35","23:39"]},{"To":"C1","Time":["06:42","23:01"]},{"To":"C1","Time":["06:44","23:34"]}]},{"StationID":"C13","lat":22.6205,"lon":22.6205,"name":"駁二蓬萊","ename":"Penglai Pier-2","FirstLast":[{"To":"C1","Time":["06:33","23:37"]},{"To":"C1","Time":["06:36","23:03"]},{"To":"C1","Time":["06:30","23:03"]},{"To":"C1","Time":["06:42","23:32"]}]},{"StationID":"C14","lat":22.621617,"lon":22.621617,"name":"哈瑪星","ename":"Hamasen","FirstLast":[{"To":"C1","Time":["06:30","23:34"]},{"To":"C1","Time":["06:30","23:06"]},{"To":"C1","Time":["06:39","23:29"]},{"To":"C1","Time":["06:33","23:06"]}]},{"StationID":"C15","lat":22.626541,"lon":22.626541,"name":"壽山公園站","ename":"Shoushan Park","FirstLast":[{"To":"C1","Time":["06:32","23:08"]},{"To":"C1","Time":["06:37","23:32"]},{"To":"C1","Time":["06:37","23:27"]},{"To":"C1","Time":["06:35","23:08"]}]},{"StationID":"C16","lat":22.62959,"lon":22.62959,"name":"文武聖殿站","ename":"Wenwu Temple","FirstLast":[{"To":"C1","Time":["06:35","23:30"]},{"To":"C1","Time":["06:33","23:09"]},{"To":"C1","Time":["06:35","23:26"]},{"To":"C1","Time":["06:36","23:09"]}]},{"StationID":"C17","lat":22.635988,"lon":22.635988,"name":"鼓山區公所站","ename":"Gushan District Office","FirstLast":[{"To":"C1","Time":["06:36","23:12"]},{"To":"C1","Time":["06:33","23:28"]},{"To":"C1","Time":["06:39","23:12"]},{"To":"C1","Time":["06:33","23:23"]}]},{"StationID":"C18","lat":22.642037,"lon":22.642037,"name":"鼓山","ename":"Gushan","FirstLast":[{"To":"C1","Time":["06:30","23:25"]},{"To":"C1","Time":["06:38","23:14"]},{"To":"C1","Time":["06:30","23:21"]},{"To":"C1","Time":["06:41","23:14"]}]},{"StationID":"C19","lat":22.647089,"lon":22.647089,"name":"馬卡道","ename":"Makadao","FirstLast":[{"To":"C1","Time":["06:30","23:17"]},{"To":"C1","Time":["06:38","23:23"]},{"To":"C1","Time":["06:43","23:18"]},{"To":"C1","Time":["06:42","23:17"]}]},{"StationID":"C20","lat":22.652074,"lon":22.652074,"name":"臺鐵美術館","ename":"TRA Museum of Fine Arts","FirstLast":[{"To":"C1","Time":["06:35","23:21"]},{"To":"C1","Time":["06:32","23:19"]},{"To":"C1","Time":["06:44","23:19"]},{"To":"C1","Time":["06:41","23:16"]}]},{"StationID":"C21A","lat":22.65497,"lon":22.65497,"name":"內惟藝術中心","ename":"Neiwei Arts Center","FirstLast":[{"To":"C1","Time":["06:34","23:21"]},{"To":"C1","Time":["06:33","23:19"]},{"To":"C1","Time":["06:39","23:14"]},{"To":"C1","Time":["06:30","23:21"]}]},{"StationID":"C21","lat":22.655026,"lon":22.655026,"name":"美術館","ename":"Kaohsiung Museum of Fine Arts","FirstLast":[{"To":"C1","Time":["06:35","23:22"]},{"To":"C1","Time":["06:32","23:18"]},{"To":"C1","Time":["06:38","23:13"]},{"To":"C1","Time":["06:31","23:22"]}]},{"StationID":"C22","lat":22.654827,"lon":22.654827,"name":"聯合醫院","ename":"Kaohsiung Municipal United Hospital","FirstLast":[{"To":"C1","Time":["06:38","23:25"]},{"To":"C1","Time":["06:30","23:16"]},{"To":"C1","Time":["06:36","23:11"]},{"To":"C1","Time":["06:34","23:25"]}]},{"StationID":"C23","lat":22.654493,"lon":22.654493,"name":"龍華國小","ename":"Longhua Elementary School","FirstLast":[{"To":"C1","Time":["06:36","23:13"]},{"To":"C1","Time":["06:30","23:27"]},{"To":"C1","Time":["06:36","23:27"]},{"To":"C1","Time":["06:33","23:08"]}]},{"StationID":"C24","lat":22.65604,"lon":22.65604,"name":"愛河之心","ename":"Heart of Love River","FirstLast":[{"To":"C1","Time":["06:33","23:30"]},{"To":"C1","Time":["06:33","23:10"]},{"To":"C1","Time":["06:30","23:05"]},{"To":"C1","Time":["06:39","23:30"]}]},{"StationID":"C25","lat":22.6567,"lon":22.6567,"name":"新上國小","ename":"Sinshang Elementary School","FirstLast":[{"To":"C1","Time":["06:30","23:07"]},{"To":"C1","Time":["06:35","23:32"]},{"To":"C1","Time":["06:41","23:32"]},{"To":"C1","Time":["06:40","23:02"]}]},{"StationID":"C26","lat":22.6556,"lon":22.6556,"name":"大順民族","ename":"Dashun Minzu","FirstLast":[{"To":"C1","Time":["06:37","23:04"]},{"To":"C1","Time":["06:38","23:35"]},{"To":"C1","Time":["06:30","23:35"]},{"To":"C1","Time":["06:37","22:59"]}]},{"StationID":"C27","lat":22.6538,"lon":22.6538,"name":"灣仔內(大順鼎山)","ename":"Wanzihnei(Dashun Dingshan)","FirstLast":[{"To":"C1","Time":["06:30","23:37"]},{"To":"C1","Time":["06:35","23:02"]},{"To":"C1","Time":["06:32","23:37"]},{"To":"C1","Time":["06:35","22:57"]}]},{"StationID":"C28","lat":22.64996,"lon":22.64996,"name":"高雄高工","ename":"Kaohsiung Industrial High School","FirstLast":[{"To":"C1","Time":["06:33","22:59"]},{"To":"C1","Time":["06:33","23:40"]},{"To":"C1","Time":["06:33","22:54"]},{"To":"C1","Time":["06:35","23:40"]}]},{"StationID":"C29","lat":22.6442,"lon":22.6442,"name":"樹德家商","ename":"Shu-Te Home-Economics & Commercial High School","FirstLast":[{"To":"C1","Time":["06:30","22:56"]},{"To":"C1","Time":["06:36","23:43"]},{"To":"C1","Time":["06:30","22:51"]},{"To":"C1","Time":["06:38","23:43"]}]},{"StationID":"C30","lat":22.6375,"lon":22.6375,"name":"科工館","ename":"Science and Technology Museum","FirstLast":[{"To":"C1","Time":["06:38","22:53"]},{"To":"C1","Time":["06:39","23:46"]},{"To":"C1","Time":["06:41","23:46"]},{"To":"C1","Time":["06:43","22:48"]}]},{"StationID":"C31","lat":22.633278,"lon":22.633278,"name":"聖功醫院","ename":"St.Joseph Hospital","FirstLast":[{"To":"C1","Time":["06:42","23:49"]},{"To":"C1","Time":["06:36","22:51"]},{"To":"C1","Time":["06:44","23:49"]},{"To":"C1","Time":["06:41","22:46"]}]},{"StationID":"C32","lat":22.629433,"lon":22.629433,"name":"凱旋公園站","ename":"Kaisyuan Park","FirstLast":[{"To":"C1","Time":["06:45","23:51"]},{"To":"C1","Time":["06:33","22:48"]},{"To":"C1","Time":["06:30","23:51"]},{"To":"C1","Time":["06:38","22:43"]}]},{"StationID":"C33","lat":22.6252,"lon":22.6252,"name":"衛生局站","ename":"Department of Health","FirstLast":[{"To":"C1","Time":["06:30","22:45"]},{"To":"C1","Time":["06:47","23:53"]},{"To":"C1","Time":["06:32","23:53"]},{"To":"C1","Time":["06:35","22:40"]}]},{"StationID":"C34","lat":22.62121,"lon":22.62121,"name":"五權國小站","ename":"Wucyuan Elementary School","FirstLast":[{"To":"C1","Time":["06:38","22:43"]},{"To":"C1","Time":["06:30","23:55"]},{"To":"C1","Time":["06:33","22:38"]},{"To":"C1","Time":["06:34","23:55"]}]},{"StationID":"C35","lat":22.61693,"lon":22.61693,"name":"凱旋武昌站","ename":"Kaisyuan Wuchang","FirstLast":[{"To":"C1","Time":["06:32","23:57"]},{"To":"C1","Time":["06:36","22:41"]},{"To":"C1","Time":["06:31","22:36"]},{"To":"C1","Time":["06:36","23:57"]}]},{"StationID":"C36","lat":22.61253,"lon":22.61253,"name":"凱旋二聖站","ename":"Kaisyuan Ersheng","FirstLast":[{"To":"C1","Time":["06:35","22:40"]},{"To":"C1","Time":["06:34","23:59"]},{"To":"C1","Time":["06:38","23:59"]},{"To":"C1","Time":["06:30","22:35"]}]},{"StationID":"C37","lat":22.6085,"lon":22.6085,"name":"輕軌機廠站","ename":"LRT Depot","FirstLast":[{"To":"C1","Time":["06:37","24:02"]},{"To":"C1","Time":["06:33","22:38"]},{"To":"C1","Time":["06:43","22:33"]},{"To":"C1","Time":["06:41","24:02"]}]}];
 
-var tra_train = [{"TrainTypeID":"1107","TrainTypeCode":"2","note":"普悠瑪","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1115","TrainTypeCode":"4","note":"有身障座位 ,有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"110F","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1110","TrainTypeCode":"4","note":"無身障座位","name":"莒光","ename":"Chu Kuang"},{"TrainTypeID":"110A","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1111","TrainTypeCode":"4","note":"有身障座位","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1120","TrainTypeCode":"5","note":"","name":"復興","ename":"Fu Hsing"},{"TrainTypeID":"110E","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1106","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"110B","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1100","TrainTypeCode":"3","note":"DMU2800、2900、3000型柴聯及 EMU型電車自強號","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"1103","TrainTypeCode":"3","note":"DMU3100型柴聯自強號","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"110C","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1131","TrainTypeCode":"6","note":"","name":"區間車","ename":"Local Train"},{"TrainTypeID":"1114","TrainTypeCode":"4","note":"無身障座位 ,有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1109","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1108","TrainTypeCode":"3","note":"推拉式自強號且無自行車車廂","name":"自強","ename":"Tze-Chiang Limited Express"},{"TrainTypeID":"1140","TrainTypeCode":"7","note":"","name":"普快車","ename":"Ordinary Express train"},{"TrainTypeID":"1101","TrainTypeCode":"3","note":"推拉式自強號","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"1132","TrainTypeCode":"6","note":"","name":"區間快","ename":"Fast Local Train"},{"TrainTypeID":"1102","TrainTypeCode":"1","note":"太魯閣","name":"自強","ename":"Tze Chiang"},{"TrainTypeID":"110D","TrainTypeCode":"3","note":"","name":"自強","ename":"Tze-Chiang Limited Express"}];
+var trtc_transfer = [{"FromLineID":"BL","FromStationID":"BL07","IsOnSiteTransfer":0,"ToLineID":"Y","ToStationID":"Y16","TransferTime":11,"name":"板橋","ename":"Banqiao"},{"FromLineID":"BL","FromStationID":"BL08","IsOnSiteTransfer":0,"ToLineID":"Y","ToStationID":"Y17","TransferTime":9,"name":"新埔","ename":"Xinpu"},{"FromLineID":"BL","FromStationID":"BL11","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G12","TransferTime":2,"name":"西門","ename":"Ximen"},{"FromLineID":"BL","FromStationID":"BL12","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R10","TransferTime":4,"name":"台北車站","ename":"Taipei Main Station"},{"FromLineID":"BL","FromStationID":"BL14","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O07","TransferTime":2,"name":"忠孝新生","ename":"Zhongxiao Xinsheng"},{"FromLineID":"BL","FromStationID":"BL15","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR10","TransferTime":5,"name":"忠孝復興","ename":"Zhongxiao Fuxing"},{"FromLineID":"BL","FromStationID":"BL23","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR24","TransferTime":5,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center"},{"FromLineID":"BR","FromStationID":"BR09","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R05","TransferTime":5,"name":"大安","ename":"Daan"},{"FromLineID":"BR","FromStationID":"BR10","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL15","TransferTime":5,"name":"忠孝復興","ename":"Zhongxiao Fuxing"},{"FromLineID":"BR","FromStationID":"BR11","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G16","TransferTime":5,"name":"南京復興","ename":"Nanjing Fuxing"},{"FromLineID":"BR","FromStationID":"BR24","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL23","TransferTime":5,"name":"南港展覽館","ename":"Taipei Nangang Exhibition Center"},{"FromLineID":"G","FromStationID":"G03","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G03","TransferTime":3,"name":"七張","ename":"Qizhang"},{"FromLineID":"G","FromStationID":"G04","IsOnSiteTransfer":1,"ToLineID":"Y","ToStationID":"Y07","TransferTime":3,"name":"大坪林","ename":"Dapinglin"},{"FromLineID":"G","FromStationID":"G09","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O05","TransferTime":2,"name":"古亭","ename":"Guting"},{"FromLineID":"G","FromStationID":"G10","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R08","TransferTime":2,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall"},{"FromLineID":"G","FromStationID":"G12","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL11","TransferTime":2,"name":"西門","ename":"Ximen"},{"FromLineID":"G","FromStationID":"G14","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R11","TransferTime":3,"name":"中山","ename":"Zhongshan"},{"FromLineID":"G","FromStationID":"G15","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O08","TransferTime":2,"name":"松江南京","ename":"Songjiang Nanjing"},{"FromLineID":"G","FromStationID":"G16","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR11","TransferTime":5,"name":"南京復興","ename":"Nanjing Fuxing"},{"FromLineID":"O","FromStationID":"O02","IsOnSiteTransfer":1,"ToLineID":"Y","ToStationID":"Y11","TransferTime":6,"name":"景安","ename":"Jingan"},{"FromLineID":"O","FromStationID":"O05","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G09","TransferTime":2,"name":"古亭","ename":"Guting"},{"FromLineID":"O","FromStationID":"O06","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R07","TransferTime":2,"name":"東門","ename":"Dongmen"},{"FromLineID":"O","FromStationID":"O07","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL14","TransferTime":2,"name":"忠孝新生","ename":"Zhongxiao Xinsheng"},{"FromLineID":"O","FromStationID":"O08","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G15","TransferTime":2,"name":"松江南京","ename":"Songjiang Nanjing"},{"FromLineID":"O","FromStationID":"O11","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R13","TransferTime":3,"name":"民權西路","ename":"Minquan W. Rd."},{"FromLineID":"O","FromStationID":"O12","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O12","TransferTime":1,"name":"大橋頭","ename":"Daqiaotou"},{"FromLineID":"O","FromStationID":"O17","IsOnSiteTransfer":1,"ToLineID":"Y","ToStationID":"Y18","TransferTime":6,"name":"頭前庄","ename":"Touqianzhuang"},{"FromLineID":"R","FromStationID":"R05","IsOnSiteTransfer":1,"ToLineID":"BR","ToStationID":"BR09","TransferTime":5,"name":"大安","ename":"Daan"},{"FromLineID":"R","FromStationID":"R07","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O06","TransferTime":2,"name":"東門","ename":"Dongmen"},{"FromLineID":"R","FromStationID":"R08","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G10","TransferTime":2,"name":"中正紀念堂","ename":"Chiang Kai-Shek Memorial Hall"},{"FromLineID":"R","FromStationID":"R10","IsOnSiteTransfer":1,"ToLineID":"BL","ToStationID":"BL12","TransferTime":4,"name":"台北車站","ename":"Taipei Main Station"},{"FromLineID":"R","FromStationID":"R11","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G14","TransferTime":3,"name":"中山","ename":"Zhongshan"},{"FromLineID":"R","FromStationID":"R13","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O11","TransferTime":3,"name":"民權西路","ename":"Minquan W. Rd."},{"FromLineID":"R","FromStationID":"R22","IsOnSiteTransfer":1,"ToLineID":"R","ToStationID":"R22","TransferTime":3,"name":"北投","ename":"Beitou"}];
+
+var krtc_transfer = [{"FromLineID":"O","FromStationID":"O5","ToLineID":"R","ToStationID":"R10","TransferTime":3,"name":"美麗島","ename":"Formosa Boulevard"},{"FromLineID":"R","FromStationID":"R10","ToLineID":"O","ToStationID":"O5","TransferTime":3,"name":"美麗島","ename":"Formosa Boulevard"}];
+
+var ntmc_transfer = [{"FromLineID":"Y","FromStationID":"Y07","IsOnSiteTransfer":1,"ToLineID":"G","ToStationID":"G04","TransferTime":3,"name":"大坪林","ename":"Dapinglin"},{"FromLineID":"Y","FromStationID":"Y11","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O02","TransferTime":6,"name":"景安","ename":"Jingan"},{"FromLineID":"Y","FromStationID":"Y16","IsOnSiteTransfer":0,"ToLineID":"BL","ToStationID":"BL07","TransferTime":11,"name":"板橋","ename":"Banqiao"},{"FromLineID":"Y","FromStationID":"Y17","IsOnSiteTransfer":0,"ToLineID":"BL","ToStationID":"BL08","TransferTime":9,"name":"新埔民生","ename":"Xinpu Minsheng"},{"FromLineID":"Y","FromStationID":"Y18","IsOnSiteTransfer":1,"ToLineID":"O","ToStationID":"O17","TransferTime":6,"name":"頭前庄","ename":"Touqianzhuang"}];
+
+var thsr_station = [{"StationID":"0990","lat":25.053704,"lon":121.60709,"name":"南港","ename":"Nangang"},{"StationID":"1000","lat":25.04767,"lon":121.516983,"name":"台北","ename":"Taipei"},{"StationID":"1010","lat":25.014214,"lon":121.4638,"name":"板橋","ename":"Banqiao"},{"StationID":"1020","lat":25.012861,"lon":121.214729,"name":"桃園","ename":"Taoyuan"},{"StationID":"1030","lat":24.808441,"lon":121.04026,"name":"新竹","ename":"Hsinchu"},{"StationID":"1035","lat":24.605448,"lon":120.825272,"name":"苗栗","ename":"Miaoli"},{"StationID":"1040","lat":24.112484,"lon":120.615967,"name":"台中","ename":"Taichung"},{"StationID":"1043","lat":23.874327,"lon":120.574608,"name":"彰化","ename":"Changhua"},{"StationID":"1047","lat":23.736231,"lon":120.416512,"name":"雲林","ename":"Yunlin"},{"StationID":"1050","lat":23.459507,"lon":120.323257,"name":"嘉義","ename":"Chiayi"},{"StationID":"1060","lat":22.925077,"lon":120.286201,"name":"台南","ename":"Tainan"},{"StationID":"1070","lat":22.687391,"lon":120.307487,"name":"左營","ename":"Zuoying"}];
+
+var tra_line = [{"dir":0,"LineID":"CZ","station":[{"name":"成功","ID":"3350","TD":0},{"name":"追分","ID":"2260","TD":2.2}]},{"dir":0,"LineID":"EL","station":[{"name":"八堵","ID":"0920","TD":0},{"name":"暖暖","ID":"7390","TD":1.6},{"name":"四腳亭","ID":"7380","TD":3.9},{"name":"瑞芳","ID":"7360","TD":8.9},{"name":"猴硐","ID":"7350","TD":13.5},{"name":"三貂嶺","ID":"7330","TD":16},{"name":"牡丹","ID":"7320","TD":19.5},{"name":"雙溪","ID":"7310","TD":22.9},{"name":"貢寮","ID":"7300","TD":28.2},{"name":"福隆","ID":"7290","TD":32},{"name":"石城","ID":"7280","TD":37.4},{"name":"大里","ID":"7270","TD":40.1},{"name":"大溪","ID":"7260","TD":44.8},{"name":"龜山","ID":"7250","TD":49.4},{"name":"外澳","ID":"7240","TD":52.9},{"name":"頭城","ID":"7230","TD":56.6},{"name":"頂埔","ID":"7220","TD":58.8},{"name":"礁溪","ID":"7210","TD":62.9},{"name":"四城","ID":"7200","TD":67.6},{"name":"宜蘭","ID":"7190","TD":71.3},{"name":"二結","ID":"7180","TD":77.1},{"name":"中里","ID":"7170","TD":78.3},{"name":"羅東","ID":"7160","TD":80.1},{"name":"冬山","ID":"7150","TD":85.1},{"name":"新馬","ID":"7140","TD":89.3},{"name":"蘇澳新","ID":"7130","TD":90.2},{"name":"永樂","ID":"7110","TD":95.4},{"name":"東澳","ID":"7100","TD":101.1},{"name":"南澳","ID":"7090","TD":109.1},{"name":"武塔","ID":"7080","TD":112.8},{"name":"漢本","ID":"7070","TD":125.7},{"name":"和平","ID":"7060","TD":130.1},{"name":"和仁","ID":"7050","TD":138},{"name":"崇德","ID":"7040","TD":148},{"name":"新城","ID":"7030","TD":153.3},{"name":"景美","ID":"7020","TD":158.6},{"name":"北埔","ID":"7010","TD":165.1},{"name":"花蓮","ID":"7000","TD":169.7},{"name":"吉安","ID":"6250","TD":173.2},{"name":"志學","ID":"6240","TD":182},{"name":"平和","ID":"6230","TD":185},{"name":"壽豐","ID":"6220","TD":186.8},{"name":"豐田","ID":"6210","TD":189.6},{"name":"林榮新光","ID":"6200","TD":195.8},{"name":"南平","ID":"6190","TD":198},{"name":"鳳林","ID":"6180","TD":202.2},{"name":"萬榮","ID":"6170","TD":207.1},{"name":"光復","ID":"6160","TD":212.7},{"name":"大富","ID":"6150","TD":220.2},{"name":"富源","ID":"6140","TD":223.4},{"name":"瑞穗","ID":"6130","TD":232.5},{"name":"三民","ID":"6120","TD":241.9},{"name":"玉里","ID":"6110","TD":252.7},{"name":"東里","ID":"6100","TD":259.5},{"name":"東竹","ID":"6090","TD":265.5},{"name":"富里","ID":"6080","TD":271.6},{"name":"池上","ID":"6070","TD":278.4},{"name":"海端","ID":"6060","TD":284.1},{"name":"關山","ID":"6050","TD":290.6},{"name":"瑞和","ID":"6040","TD":298.1},{"name":"瑞源","ID":"6030","TD":300.8},{"name":"鹿野","ID":"6020","TD":306.3},{"name":"山里","ID":"6010","TD":312.4},{"name":"臺東","ID":"6000","TD":320.6}]},{"dir":1,"LineID":"JJ","station":[{"name":"二水","ID":"3430","TD":0},{"name":"源泉","ID":"3431","TD":3},{"name":"濁水","ID":"3432","TD":10.8},{"name":"龍泉","ID":"3433","TD":15.7},{"name":"集集","ID":"3434","TD":20},{"name":"水里","ID":"3435","TD":27.4},{"name":"車埕","ID":"3436","TD":29.6}]},{"dir":0,"LineID":"LJ","station":[{"name":"竹中","ID":"1193","TD":0},{"name":"六家","ID":"1194","TD":3.1}]},{"dir":0,"LineID":"NW","station":[{"name":"北新竹","ID":"1190","TD":0},{"name":"千甲","ID":"1191","TD":2.2},{"name":"新莊","ID":"1192","TD":5.2},{"name":"竹中","ID":"1193","TD":6.5},{"name":"上員","ID":"1201","TD":9.2},{"name":"榮華","ID":"1202","TD":13.6},{"name":"竹東","ID":"1203","TD":15.2},{"name":"橫山","ID":"1204","TD":18.7},{"name":"九讚頭","ID":"1205","TD":20.7},{"name":"合興","ID":"1206","TD":22.9},{"name":"富貴","ID":"1207","TD":24.3},{"name":"內灣","ID":"1208","TD":26.5}]},{"dir":0,"LineID":"PX","station":[{"name":"三貂嶺","ID":"7330","TD":0},{"name":"大華","ID":"7331","TD":3.6},{"name":"十分","ID":"7332","TD":6.4},{"name":"望古","ID":"7333","TD":8.1},{"name":"嶺腳","ID":"7334","TD":10.2},{"name":"平溪","ID":"7335","TD":11.2},{"name":"菁桐","ID":"7336","TD":12.9}]},{"dir":1,"LineID":"SA","station":[{"name":"瑞芳","ID":"7360","TD":0},{"name":"海科館","ID":"7361","TD":4.3},{"name":"八斗子","ID":"7362","TD":4.7}]},{"dir":1,"LineID":"SH","station":[{"name":"中洲","ID":"4270","TD":0},{"name":"長榮大學","ID":"4271","TD":2.6},{"name":"沙崙","ID":"4272","TD":5.7}]},{"dir":1,"LineID":"SL","station":[{"name":"屏東","ID":"5000","TD":0},{"name":"歸來","ID":"5010","TD":2.6},{"name":"麟洛","ID":"5020","TD":4.9},{"name":"西勢","ID":"5030","TD":7.3},{"name":"竹田","ID":"5040","TD":11},{"name":"潮州","ID":"5050","TD":15},{"name":"崁頂","ID":"5060","TD":19.9},{"name":"南州","ID":"5070","TD":22.3},{"name":"鎮安","ID":"5080","TD":26.1},{"name":"林邊","ID":"5090","TD":29.2},{"name":"佳冬","ID":"5100","TD":33.1},{"name":"東海","ID":"5110","TD":36.2},{"name":"枋寮","ID":"5120","TD":40.3},{"name":"加祿","ID":"5130","TD":45.6},{"name":"內獅","ID":"5140","TD":49.1},{"name":"枋山","ID":"5160","TD":53.9},{"name":"枋野","ID":"5170","TD":60.8},{"name":"大武","ID":"5190","TD":84.1},{"name":"瀧溪","ID":"5200","TD":95.8},{"name":"金崙","ID":"5210","TD":104.2},{"name":"太麻里","ID":"5220","TD":115.1},{"name":"知本","ID":"5230","TD":126.8},{"name":"康樂","ID":"5240","TD":133.9},{"name":"臺東","ID":"6000","TD":138.4}]},{"dir":0,"LineID":"SU","station":[{"name":"蘇澳新","ID":"7130","TD":0},{"name":"蘇澳","ID":"7120","TD":3.3}]},{"dir":1,"LineID":"WL","station":[{"name":"基隆","ID":"0900","TD":0},{"name":"三坑","ID":"0910","TD":1.5},{"name":"八堵","ID":"0920","TD":3.9},{"name":"七堵","ID":"0930","TD":6.2},{"name":"百福","ID":"0940","TD":8.9},{"name":"五堵","ID":"0950","TD":11.9},{"name":"汐止","ID":"0960","TD":13.3},{"name":"汐科","ID":"0970","TD":14.6},{"name":"南港","ID":"0980","TD":19.3},{"name":"松山","ID":"0990","TD":22.1},{"name":"臺北","ID":"1000","TD":28.5},{"name":"臺北-環島","ID":"1001","TD":28.5},{"name":"萬華","ID":"1010","TD":31.3},{"name":"板橋","ID":"1020","TD":35.7},{"name":"浮洲","ID":"1030","TD":38.1},{"name":"樹林","ID":"1040","TD":41.1},{"name":"南樹林","ID":"1050","TD":43.1},{"name":"山佳","ID":"1060","TD":45},{"name":"鶯歌","ID":"1070","TD":49.4},{"name":"鳳鳴","ID":"1075","TD":54.4},{"name":"桃園","ID":"1080","TD":57.6},{"name":"內壢","ID":"1090","TD":63.5},{"name":"中壢","ID":"1100","TD":67.5},{"name":"埔心","ID":"1110","TD":73.3},{"name":"楊梅","ID":"1120","TD":77.3},{"name":"富岡","ID":"1130","TD":84.1},{"name":"新富","ID":"1140","TD":85.8},{"name":"北湖","ID":"1150","TD":87.3},{"name":"湖口","ID":"1160","TD":89.8},{"name":"新豐","ID":"1170","TD":96},{"name":"竹北","ID":"1180","TD":100.8},{"name":"北新竹","ID":"1190","TD":105.2},{"name":"新竹","ID":"1210","TD":106.6},{"name":"三姓橋","ID":"1220","TD":111.4},{"name":"香山","ID":"1230","TD":114.6},{"name":"崎頂","ID":"1240","TD":120.8},{"name":"竹南","ID":"1250","TD":125.3},{"name":"造橋","ID":"3140","TD":130.7},{"name":"豐富","ID":"3150","TD":136.6},{"name":"苗栗","ID":"3160","TD":140.6},{"name":"南勢","ID":"3170","TD":147.2},{"name":"銅鑼","ID":"3180","TD":151.4},{"name":"三義","ID":"3190","TD":158.8},{"name":"泰安","ID":"3210","TD":169.7},{"name":"后里","ID":"3220","TD":172.3},{"name":"豐原","ID":"3230","TD":179},{"name":"栗林","ID":"3240","TD":181.6},{"name":"潭子","ID":"3250","TD":184.1},{"name":"頭家厝","ID":"3260","TD":186},{"name":"松竹","ID":"3270","TD":187.7},{"name":"太原","ID":"3280","TD":189.5},{"name":"精武","ID":"3290","TD":191.2},{"name":"臺中","ID":"3300","TD":193.1},{"name":"五權","ID":"3310","TD":195.3},{"name":"大慶","ID":"3320","TD":197.4},{"name":"烏日","ID":"3330","TD":200.5},{"name":"新烏日","ID":"3340","TD":201.4},{"name":"成功","ID":"3350","TD":203.8},{"name":"彰化","ID":"3360","TD":210.9},{"name":"花壇","ID":"3370","TD":217.5},{"name":"大村","ID":"3380","TD":222.1},{"name":"員林","ID":"3390","TD":225.6},{"name":"永靖","ID":"3400","TD":229.1},{"name":"社頭","ID":"3410","TD":232.8},{"name":"田中","ID":"3420","TD":237.1},{"name":"二水","ID":"3430","TD":242.9},{"name":"林內","ID":"3450","TD":251},{"name":"石榴","ID":"3460","TD":255.8},{"name":"斗六","ID":"3470","TD":260.6},{"name":"斗南","ID":"3480","TD":268.2},{"name":"石龜","ID":"3490","TD":272.1},{"name":"大林","ID":"4050","TD":276.7},{"name":"民雄","ID":"4060","TD":282.5},{"name":"嘉北","ID":"4070","TD":289.2},{"name":"嘉義","ID":"4080","TD":291.8},{"name":"水上","ID":"4090","TD":298.4},{"name":"南靖","ID":"4100","TD":301},{"name":"後壁","ID":"4110","TD":307},{"name":"新營","ID":"4120","TD":314.7},{"name":"柳營","ID":"4130","TD":318},{"name":"林鳳營","ID":"4140","TD":321.9},{"name":"隆田","ID":"4150","TD":327.4},{"name":"拔林","ID":"4160","TD":329.6},{"name":"善化","ID":"4170","TD":334.2},{"name":"南科","ID":"4180","TD":337.1},{"name":"新市","ID":"4190","TD":341.8},{"name":"永康","ID":"4200","TD":346.8},{"name":"大橋","ID":"4210","TD":350.5},{"name":"臺南","ID":"4220","TD":353.2},{"name":"保安","ID":"4250","TD":360.8},{"name":"仁德","ID":"4260","TD":362.2},{"name":"中洲","ID":"4270","TD":364.7},{"name":"大湖","ID":"4290","TD":367.6},{"name":"路竹","ID":"4300","TD":370.6},{"name":"岡山","ID":"4310","TD":378.4},{"name":"橋頭","ID":"4320","TD":382},{"name":"楠梓","ID":"4330","TD":386.2},{"name":"新左營","ID":"4340","TD":391.3},{"name":"左營","ID":"4350","TD":393.3},{"name":"內惟","ID":"4360","TD":394.4},{"name":"美術館","ID":"4370","TD":396.1},{"name":"鼓山","ID":"4380","TD":397.3},{"name":"三塊厝","ID":"4390","TD":399},{"name":"高雄","ID":"4400","TD":399.9},{"name":"民族","ID":"4410","TD":401.2},{"name":"科工館","ID":"4420","TD":402.3},{"name":"正義","ID":"4430","TD":404.1},{"name":"鳳山","ID":"4440","TD":405.4},{"name":"後庄","ID":"4450","TD":409.3},{"name":"九曲堂","ID":"4460","TD":413.5},{"name":"六塊厝","ID":"4470","TD":418.5},{"name":"屏東","ID":"5000","TD":420.8}]},{"dir":1,"LineID":"WL-C","station":[{"name":"竹南","ID":"1250","TD":0},{"name":"談文","ID":"2110","TD":4.5},{"name":"大山","ID":"2120","TD":11.3},{"name":"後龍","ID":"2130","TD":15},{"name":"龍港","ID":"2140","TD":18.6},{"name":"白沙屯","ID":"2150","TD":26.7},{"name":"新埔","ID":"2160","TD":29.8},{"name":"通霄","ID":"2170","TD":35.6},{"name":"苑裡","ID":"2180","TD":41.7},{"name":"日南","ID":"2190","TD":49.4},{"name":"大甲","ID":"2200","TD":54.1},{"name":"臺中港","ID":"2210","TD":59.3},{"name":"清水","ID":"2220","TD":65.3},{"name":"沙鹿","ID":"2230","TD":68.5},{"name":"龍井","ID":"2240","TD":73.1},{"name":"大肚","ID":"2250","TD":78.1},{"name":"追分","ID":"2260","TD":83.1},{"name":"彰化","ID":"3360","TD":90.3}]}];
+
+var tra_station = [{"StationID":"0900","lat":25.13191,"lon":121.73837,"name":"基隆","ename":"Keelung"},{"StationID":"0910","lat":25.12305,"lon":121.74202,"name":"三坑","ename":"Sankeng"},{"StationID":"0920","lat":25.10838,"lon":121.72904,"name":"八堵","ename":"Badu"},{"StationID":"0930","lat":25.09294,"lon":121.71415,"name":"七堵","ename":"Qidu"},{"StationID":"0940","lat":25.07795,"lon":121.69379,"name":"百福","ename":"Baifu"},{"StationID":"0950","lat":25.07799,"lon":121.66758,"name":"五堵","ename":"Wudu"},{"StationID":"0960","lat":25.0679,"lon":121.66113,"name":"汐止","ename":"Xizhi"},{"StationID":"0970","lat":25.06406,"lon":121.65233,"name":"汐科","ename":"Xike"},{"StationID":"0980","lat":25.05348,"lon":121.60706,"name":"南港","ename":"Nangang"},{"StationID":"0990","lat":25.04927,"lon":121.57906,"name":"松山","ename":"Songshan"},{"StationID":"1000","lat":25.04775,"lon":121.51711,"name":"臺北","ename":"Taipei"},{"StationID":"1001","lat":25.04774,"lon":121.51711,"name":"臺北-環島","ename":"Taipei Surround Island"},{"StationID":"1010","lat":25.03339,"lon":121.49996,"name":"萬華","ename":"Wanhua"},{"StationID":"1020","lat":25.01434,"lon":121.46377,"name":"板橋","ename":"Banqiao"},{"StationID":"1030","lat":25.00419,"lon":121.44477,"name":"浮洲","ename":"Fuzhou"},{"StationID":"1040","lat":24.99123,"lon":121.42442,"name":"樹林","ename":"Shulin"},{"StationID":"1050","lat":24.98044,"lon":121.40884,"name":"南樹林","ename":"South Shulin"},{"StationID":"1060","lat":24.97273,"lon":121.39254,"name":"山佳","ename":"Shanjia"},{"StationID":"1070","lat":24.95455,"lon":121.35517,"name":"鶯歌","ename":"Yingge"},{"StationID":"1075","lat":24.97268,"lon":121.33658,"name":"鳳鳴","ename":"Fengming"},{"StationID":"1080","lat":24.98888,"lon":121.31449,"name":"桃園","ename":"Taoyuan"},{"StationID":"1090","lat":24.97281,"lon":121.25826,"name":"內壢","ename":"Neili"},{"StationID":"1100","lat":24.95374,"lon":121.22589,"name":"中壢","ename":"Zhongli_Taoyuan"},{"StationID":"1110","lat":24.91939,"lon":121.18363,"name":"埔心","ename":"Puxin"},{"StationID":"1120","lat":24.91427,"lon":121.14637,"name":"楊梅","ename":"Yangmei"},{"StationID":"1130","lat":24.93436,"lon":121.08309,"name":"富岡","ename":"Fugang"},{"StationID":"1140","lat":24.93109,"lon":121.06751,"name":"新富","ename":"Xinfu"},{"StationID":"1150","lat":24.92218,"lon":121.05575,"name":"北湖","ename":"Beihu"},{"StationID":"1160","lat":24.90303,"lon":121.04412,"name":"湖口","ename":"Hukou"},{"StationID":"1170","lat":24.86939,"lon":120.99626,"name":"新豐","ename":"Xinfeng"},{"StationID":"1180","lat":24.83919,"lon":121.00946,"name":"竹北","ename":"Zhubei"},{"StationID":"1190","lat":24.80875,"lon":120.98381,"name":"北新竹","ename":"North Hsinchu"},{"StationID":"1191","lat":24.80657,"lon":121.0034,"name":"千甲","ename":"Qianjia"},{"StationID":"1192","lat":24.78811,"lon":121.02196,"name":"新莊","ename":"Xinzhuang"},{"StationID":"1193","lat":24.78145,"lon":121.03141,"name":"竹中","ename":"Zhuzhong"},{"StationID":"1194","lat":24.80766,"lon":121.03941,"name":"六家","ename":"Liujia"},{"StationID":"1201","lat":24.77776,"lon":121.05582,"name":"上員","ename":"Shangyuan"},{"StationID":"1202","lat":24.74839,"lon":121.08319,"name":"榮華","ename":"Ronghua"},{"StationID":"1203","lat":24.73823,"lon":121.09472,"name":"竹東","ename":"Zhudong"},{"StationID":"1204","lat":24.72041,"lon":121.11772,"name":"橫山","ename":"Hengshan"},{"StationID":"1205","lat":24.72062,"lon":121.13622,"name":"九讚頭","ename":"Jiuzantou"},{"StationID":"1206","lat":24.71667,"lon":121.15437,"name":"合興","ename":"Hexing"},{"StationID":"1207","lat":24.71551,"lon":121.16743,"name":"富貴","ename":"Fugui"},{"StationID":"1208","lat":24.70535,"lon":121.18255,"name":"內灣","ename":"Neiwan"},{"StationID":"1210","lat":24.80157,"lon":120.97157,"name":"新竹","ename":"Hsinchu"},{"StationID":"1220","lat":24.78731,"lon":120.92844,"name":"三姓橋","ename":"Sanxingqiao"},{"StationID":"1230","lat":24.76311,"lon":120.91388,"name":"香山","ename":"Xiangshan"},{"StationID":"1240","lat":24.72291,"lon":120.87183,"name":"崎頂","ename":"Qiding"},{"StationID":"1250","lat":24.68654,"lon":120.88041,"name":"竹南","ename":"Zhunan"},{"StationID":"1998","lat":24.97992,"lon":121.40554,"name":"樹林調車場","ename":"Shulin Rail Yard"},{"StationID":"2110","lat":24.65641,"lon":120.85825,"name":"談文","ename":"Tanwen"},{"StationID":"2120","lat":24.64565,"lon":120.80376,"name":"大山","ename":"Dashan"},{"StationID":"2130","lat":24.61621,"lon":120.78731,"name":"後龍","ename":"Houlong"},{"StationID":"2140","lat":24.61169,"lon":120.75812,"name":"龍港","ename":"Longgang"},{"StationID":"2150","lat":24.56481,"lon":120.70824,"name":"白沙屯","ename":"Baishatun"},{"StationID":"2160","lat":24.54018,"lon":120.69518,"name":"新埔","ename":"Xinpu"},{"StationID":"2170","lat":24.49141,"lon":120.67843,"name":"通霄","ename":"Tongxiao"},{"StationID":"2180","lat":24.44344,"lon":120.65146,"name":"苑裡","ename":"Yuanli"},{"StationID":"2190","lat":24.37815,"lon":120.65412,"name":"日南","ename":"Rinan"},{"StationID":"2200","lat":24.34448,"lon":120.62702,"name":"大甲","ename":"Dajia"},{"StationID":"2210","lat":24.30441,"lon":120.60231,"name":"臺中港","ename":"Taichung Port"},{"StationID":"2220","lat":24.26364,"lon":120.56918,"name":"清水","ename":"Qingshui"},{"StationID":"2230","lat":24.23702,"lon":120.55752,"name":"沙鹿","ename":"Shalu"},{"StationID":"2240","lat":24.19748,"lon":120.54335,"name":"龍井","ename":"Longjing"},{"StationID":"2250","lat":24.15417,"lon":120.54249,"name":"大肚","ename":"Dadu"},{"StationID":"2260","lat":24.12051,"lon":120.57018,"name":"追分","ename":"Zhuifen"},{"StationID":"3140","lat":24.64186,"lon":120.86721,"name":"造橋","ename":"Zaoqiao"},{"StationID":"3150","lat":24.60429,"lon":120.82637,"name":"豐富","ename":"Fengfu"},{"StationID":"3160","lat":24.57001,"lon":120.82233,"name":"苗栗","ename":"Miaoli"},{"StationID":"3170","lat":24.52246,"lon":120.79154,"name":"南勢","ename":"Nanshi"},{"StationID":"3180","lat":24.48634,"lon":120.78617,"name":"銅鑼","ename":"Tongluo"},{"StationID":"3190","lat":24.42066,"lon":120.77393,"name":"三義","ename":"Sanyi"},{"StationID":"3210","lat":24.33146,"lon":120.74181,"name":"泰安","ename":"Tai'an"},{"StationID":"3220","lat":24.30933,"lon":120.73288,"name":"后里","ename":"Houli"},{"StationID":"3230","lat":24.25438,"lon":120.72374,"name":"豐原","ename":"Fengyuan"},{"StationID":"3240","lat":24.23461,"lon":120.7106,"name":"栗林","ename":"Lilin"},{"StationID":"3250","lat":24.21214,"lon":120.70564,"name":"潭子","ename":"Tanzi"},{"StationID":"3260","lat":24.19572,"lon":120.70398,"name":"頭家厝","ename":"Toujiacuo"},{"StationID":"3270","lat":24.18035,"lon":120.70193,"name":"松竹","ename":"Songzhu"},{"StationID":"3280","lat":24.16449,"lon":120.69988,"name":"太原","ename":"Taiyuan"},{"StationID":"3290","lat":24.14887,"lon":120.69784,"name":"精武","ename":"Jingwu"},{"StationID":"3300","lat":24.13728,"lon":120.68691,"name":"臺中","ename":"Taichung"},{"StationID":"3310","lat":24.12877,"lon":120.66654,"name":"五權","ename":"Wuquan"},{"StationID":"3320","lat":24.11911,"lon":120.64795,"name":"大慶","ename":"Daqing"},{"StationID":"3330","lat":24.10867,"lon":120.62244,"name":"烏日","ename":"Wuri"},{"StationID":"3340","lat":24.10937,"lon":120.61421,"name":"新烏日","ename":"Xinwuri"},{"StationID":"3350","lat":24.11424,"lon":120.59021,"name":"成功","ename":"Chenggong"},{"StationID":"3360","lat":24.08177,"lon":120.53854,"name":"彰化","ename":"Changhua"},{"StationID":"3370","lat":24.02502,"lon":120.53742,"name":"花壇","ename":"Huatan"},{"StationID":"3380","lat":23.99002,"lon":120.56062,"name":"大村","ename":"Dacun"},{"StationID":"3390","lat":23.95947,"lon":120.56977,"name":"員林","ename":"Yuanlin"},{"StationID":"3400","lat":23.92808,"lon":120.57173,"name":"永靖","ename":"Yongjing"},{"StationID":"3410","lat":23.89573,"lon":120.58077,"name":"社頭","ename":"Shetou"},{"StationID":"3420","lat":23.85843,"lon":120.59146,"name":"田中","ename":"Tianzhong"},{"StationID":"3430","lat":23.81321,"lon":120.61805,"name":"二水","ename":"Ershui"},{"StationID":"3431","lat":23.79845,"lon":120.64211,"name":"源泉","ename":"Yuanquan"},{"StationID":"3432","lat":23.83467,"lon":120.70467,"name":"濁水","ename":"Zhuoshui"},{"StationID":"3433","lat":23.83521,"lon":120.75014,"name":"龍泉","ename":"Longquan"},{"StationID":"3434","lat":23.82647,"lon":120.78495,"name":"集集","ename":"Jiji"},{"StationID":"3435","lat":23.81845,"lon":120.85332,"name":"水里","ename":"Shuili"},{"StationID":"3436","lat":23.83263,"lon":120.86572,"name":"車埕","ename":"Checheng"},{"StationID":"3450","lat":23.75967,"lon":120.61499,"name":"林內","ename":"Linnei"},{"StationID":"3460","lat":23.73167,"lon":120.57998,"name":"石榴","ename":"Shiliu"},{"StationID":"3470","lat":23.71184,"lon":120.54099,"name":"斗六","ename":"Douliu"},{"StationID":"3480","lat":23.67257,"lon":120.48089,"name":"斗南","ename":"Dounan"},{"StationID":"3490","lat":23.63951,"lon":120.47106,"name":"石龜","ename":"Shigui"},{"StationID":"4050","lat":23.60089,"lon":120.45597,"name":"大林","ename":"Dalin"},{"StationID":"4060","lat":23.55522,"lon":120.43165,"name":"民雄","ename":"Minxiong"},{"StationID":"4070","lat":23.49981,"lon":120.44851,"name":"嘉北","ename":"Jiabei"},{"StationID":"4080","lat":23.47915,"lon":120.44114,"name":"嘉義","ename":"Chiayi"},{"StationID":"4090","lat":23.43398,"lon":120.39971,"name":"水上","ename":"Shuishang"},{"StationID":"4100","lat":23.41344,"lon":120.38654,"name":"南靖","ename":"Nanjing"},{"StationID":"4110","lat":23.36626,"lon":120.36058,"name":"後壁","ename":"Houbi"},{"StationID":"4120","lat":23.30673,"lon":120.32307,"name":"新營","ename":"Xinying"},{"StationID":"4130","lat":23.27762,"lon":120.32252,"name":"柳營","ename":"Liuying"},{"StationID":"4140","lat":23.24259,"lon":120.32107,"name":"林鳳營","ename":"Linfengying"},{"StationID":"4150","lat":23.19271,"lon":120.31917,"name":"隆田","ename":"Longtian"},{"StationID":"4160","lat":23.17284,"lon":120.32125,"name":"拔林","ename":"Balin"},{"StationID":"4170","lat":23.13333,"lon":120.30653,"name":"善化","ename":"Shanhua"},{"StationID":"4180","lat":23.10726,"lon":120.30202,"name":"南科","ename":"Nanke"},{"StationID":"4190","lat":23.06823,"lon":120.29004,"name":"新市","ename":"Xinshi"},{"StationID":"4200","lat":23.03825,"lon":120.25347,"name":"永康","ename":"Yongkang"},{"StationID":"4210","lat":23.01923,"lon":120.22429,"name":"大橋","ename":"Daqiao"},{"StationID":"4220","lat":22.99681,"lon":120.21295,"name":"臺南","ename":"Tainan"},{"StationID":"4250","lat":22.93296,"lon":120.23158,"name":"保安","ename":"Bao'an"},{"StationID":"4260","lat":22.92354,"lon":120.24054,"name":"仁德","ename":"Rende"},{"StationID":"4270","lat":22.90446,"lon":120.25284,"name":"中洲","ename":"Zhongzhou"},{"StationID":"4271","lat":22.90729,"lon":120.27263,"name":"長榮大學","ename":"Chang Jung Christian University"},{"StationID":"4272","lat":22.92407,"lon":120.28622,"name":"沙崙","ename":"Shalun"},{"StationID":"4290","lat":22.87821,"lon":120.25384,"name":"大湖","ename":"Dahu"},{"StationID":"4300","lat":22.85404,"lon":120.26619,"name":"路竹","ename":"Luzhu"},{"StationID":"4310","lat":22.79223,"lon":120.30004,"name":"岡山","ename":"Gangshan"},{"StationID":"4320","lat":22.76098,"lon":120.31011,"name":"橋頭","ename":"Qiaotou"},{"StationID":"4330","lat":22.72696,"lon":120.32425,"name":"楠梓","ename":"Nanzi"},{"StationID":"4340","lat":22.68754,"lon":120.30678,"name":"新左營","ename":"Xinzuoying"},{"StationID":"4350","lat":22.67445,"lon":120.29401,"name":"左營","ename":"Zuoying"},{"StationID":"4360","lat":22.66589,"lon":120.28701,"name":"內惟","ename":"Neiwei"},{"StationID":"4370","lat":22.65185,"lon":120.28148,"name":"美術館","ename":"Museum of Fine Arts"},{"StationID":"4380","lat":22.64181,"lon":120.28071,"name":"鼓山","ename":"Gushan"},{"StationID":"4390","lat":22.63931,"lon":120.29414,"name":"三塊厝","ename":"Sankuaicuo"},{"StationID":"4400","lat":22.63946,"lon":120.30292,"name":"高雄","ename":"Kaohsiung"},{"StationID":"4410","lat":22.63879,"lon":120.31494,"name":"民族","ename":"Minzu"},{"StationID":"4420","lat":22.63709,"lon":120.32603,"name":"科工館","ename":"Science And Technology Museum"},{"StationID":"4430","lat":22.63425,"lon":120.34245,"name":"正義","ename":"Zhengyi"},{"StationID":"4440","lat":22.63145,"lon":120.35745,"name":"鳳山","ename":"Fongshan"},{"StationID":"4450","lat":22.64016,"lon":120.39131,"name":"後庄","ename":"Houzhuang"},{"StationID":"4460","lat":22.65641,"lon":120.42089,"name":"九曲堂","ename":"Jiuqutang"},{"StationID":"4470","lat":22.66597,"lon":120.46497,"name":"六塊厝","ename":"Liukuaicuo"},{"StationID":"5000","lat":22.66905,"lon":120.48617,"name":"屏東","ename":"Pingtung"},{"StationID":"5010","lat":22.65246,"lon":120.50263,"name":"歸來","ename":"Guilai"},{"StationID":"5020","lat":22.63481,"lon":120.51432,"name":"麟洛","ename":"Linluo"},{"StationID":"5030","lat":22.61637,"lon":120.52649,"name":"西勢","ename":"Xishi"},{"StationID":"5040","lat":22.58658,"lon":120.53978,"name":"竹田","ename":"Zhutian"},{"StationID":"5050","lat":22.55008,"lon":120.53604,"name":"潮州","ename":"Chaozhou"},{"StationID":"5060","lat":22.51311,"lon":120.51481,"name":"崁頂","ename":"Kanding"},{"StationID":"5070","lat":22.49207,"lon":120.51174,"name":"南州","ename":"Nanzhou"},{"StationID":"5080","lat":22.45794,"lon":120.51129,"name":"鎮安","ename":"Zhen'an"},{"StationID":"5090","lat":22.43135,"lon":120.51529,"name":"林邊","ename":"Linbian"},{"StationID":"5100","lat":22.41409,"lon":120.54774,"name":"佳冬","ename":"Jiadong"},{"StationID":"5110","lat":22.39897,"lon":120.57236,"name":"東海","ename":"Donghai"},{"StationID":"5120","lat":22.36802,"lon":120.59511,"name":"枋寮","ename":"Fangliao"},{"StationID":"5130","lat":22.33085,"lon":120.62445,"name":"加祿","ename":"Jialu"},{"StationID":"5140","lat":22.30617,"lon":120.64331,"name":"內獅","ename":"Neishi"},{"StationID":"5160","lat":22.26704,"lon":120.65947,"name":"枋山","ename":"Fangshan"},{"StationID":"5170","lat":22.28091,"lon":120.71709,"name":"枋野","ename":"Fangye"},{"StationID":"5190","lat":22.36526,"lon":120.90094,"name":"大武","ename":"Dawu"},{"StationID":"5200","lat":22.46102,"lon":120.94176,"name":"瀧溪","ename":"Longxi"},{"StationID":"5210","lat":22.53161,"lon":120.96721,"name":"金崙","ename":"Jinlun"},{"StationID":"5220","lat":22.61883,"lon":121.00492,"name":"太麻里","ename":"Taimali"},{"StationID":"5230","lat":22.71022,"lon":121.06068,"name":"知本","ename":"Zhiben"},{"StationID":"5240","lat":22.76426,"lon":121.09356,"name":"康樂","ename":"Kangle"},{"StationID":"5998","lat":22.52755,"lon":120.53658,"name":"南方小站","ename":"South"},{"StationID":"5999","lat":22.52231,"lon":120.52642,"name":"潮州基地","ename":"Chaozhou Railway Workshop"},{"StationID":"6000","lat":22.79372,"lon":121.1231,"name":"臺東","ename":"Taitung"},{"StationID":"6010","lat":22.86194,"lon":121.13778,"name":"山里","ename":"Shanli"},{"StationID":"6020","lat":22.91249,"lon":121.13701,"name":"鹿野","ename":"Luye"},{"StationID":"6030","lat":22.95604,"lon":121.15901,"name":"瑞源","ename":"Ruiyuan"},{"StationID":"6040","lat":22.97997,"lon":121.15595,"name":"瑞和","ename":"Ruihe"},{"StationID":"6050","lat":23.04566,"lon":121.1643,"name":"關山","ename":"Guanshan"},{"StationID":"6060","lat":23.10292,"lon":121.17676,"name":"海端","ename":"Haiduan"},{"StationID":"6070","lat":23.12613,"lon":121.21949,"name":"池上","ename":"Chishang"},{"StationID":"6080","lat":23.17924,"lon":121.24864,"name":"富里","ename":"Fuli"},{"StationID":"6090","lat":23.22605,"lon":121.27842,"name":"東竹","ename":"Dongzhu"},{"StationID":"6100","lat":23.27234,"lon":121.30418,"name":"東里","ename":"Dongli"},{"StationID":"6110","lat":23.33155,"lon":121.31172,"name":"玉里","ename":"Yuli"},{"StationID":"6120","lat":23.42458,"lon":121.34539,"name":"三民","ename":"Sanmin"},{"StationID":"6130","lat":23.49738,"lon":121.37684,"name":"瑞穗","ename":"Ruisui"},{"StationID":"6140","lat":23.58031,"lon":121.38008,"name":"富源","ename":"Fuyuan"},{"StationID":"6150","lat":23.60571,"lon":121.38963,"name":"大富","ename":"Dafu"},{"StationID":"6160","lat":23.66631,"lon":121.42117,"name":"光復","ename":"Guangfu"},{"StationID":"6170","lat":23.71199,"lon":121.41907,"name":"萬榮","ename":"Wanrong"},{"StationID":"6180","lat":23.74634,"lon":121.44701,"name":"鳳林","ename":"Fenglin"},{"StationID":"6190","lat":23.78231,"lon":121.45824,"name":"南平","ename":"Nanping"},{"StationID":"6200","lat":23.80176,"lon":121.46169,"name":"林榮新光","ename":"Linrong Shin Kong"},{"StationID":"6210","lat":23.84842,"lon":121.49618,"name":"豐田","ename":"Fengtian"},{"StationID":"6220","lat":23.86901,"lon":121.51064,"name":"壽豐","ename":"Shoufeng"},{"StationID":"6230","lat":23.88279,"lon":121.52045,"name":"平和","ename":"Pinghe"},{"StationID":"6240","lat":23.90769,"lon":121.5295,"name":"志學","ename":"Zhixue"},{"StationID":"6250","lat":23.96823,"lon":121.58266,"name":"吉安","ename":"Ji'an"},{"StationID":"7000","lat":23.99265,"lon":121.60131,"name":"花蓮","ename":"Hualien"},{"StationID":"7010","lat":24.03253,"lon":121.60166,"name":"北埔","ename":"Beipu"},{"StationID":"7020","lat":24.09041,"lon":121.61095,"name":"景美","ename":"Jingmei"},{"StationID":"7030","lat":24.12756,"lon":121.64086,"name":"新城","ename":"Xincheng"},{"StationID":"7040","lat":24.17199,"lon":121.65536,"name":"崇德","ename":"Chongde"},{"StationID":"7050","lat":24.24225,"lon":121.71182,"name":"和仁","ename":"Heren"},{"StationID":"7060","lat":24.29839,"lon":121.75344,"name":"和平","ename":"Heping"},{"StationID":"7070","lat":24.33543,"lon":121.76838,"name":"漢本","ename":"Hanben"},{"StationID":"7080","lat":24.44879,"lon":121.77601,"name":"武塔","ename":"Wuta"},{"StationID":"7090","lat":24.46342,"lon":121.80103,"name":"南澳","ename":"Nan'ao"},{"StationID":"7100","lat":24.51827,"lon":121.83072,"name":"東澳","ename":"Dong'ao"},{"StationID":"7110","lat":24.56843,"lon":121.84458,"name":"永樂","ename":"Yongle"},{"StationID":"7120","lat":24.59516,"lon":121.85143,"name":"蘇澳","ename":"Su'ao"},{"StationID":"7130","lat":24.60852,"lon":121.82735,"name":"蘇澳新","ename":"Su'aoxin"},{"StationID":"7140","lat":24.61541,"lon":121.82291,"name":"新馬","ename":"Xinma"},{"StationID":"7150","lat":24.63633,"lon":121.79211,"name":"冬山","ename":"Dongshan"},{"StationID":"7160","lat":24.67791,"lon":121.77464,"name":"羅東","ename":"Luodong"},{"StationID":"7170","lat":24.69415,"lon":121.77526,"name":"中里","ename":"Zhongli_Yilan"},{"StationID":"7180","lat":24.70528,"lon":121.77409,"name":"二結","ename":"Erjie"},{"StationID":"7190","lat":24.75457,"lon":121.75803,"name":"宜蘭","ename":"Yilan"},{"StationID":"7200","lat":24.78681,"lon":121.76271,"name":"四城","ename":"Sicheng"},{"StationID":"7210","lat":24.82703,"lon":121.77535,"name":"礁溪","ename":"Jiaoxi"},{"StationID":"7220","lat":24.84391,"lon":121.80913,"name":"頂埔","ename":"Dingpu"},{"StationID":"7230","lat":24.85898,"lon":121.82258,"name":"頭城","ename":"Toucheng"},{"StationID":"7240","lat":24.88375,"lon":121.84572,"name":"外澳","ename":"Wai'ao"},{"StationID":"7250","lat":24.90484,"lon":121.8689,"name":"龜山","ename":"Guishan"},{"StationID":"7260","lat":24.93836,"lon":121.88983,"name":"大溪","ename":"Daxi"},{"StationID":"7270","lat":24.96677,"lon":121.92253,"name":"大里","ename":"Dali"},{"StationID":"7280","lat":24.97832,"lon":121.94507,"name":"石城","ename":"Shicheng"},{"StationID":"7290","lat":25.01595,"lon":121.94471,"name":"福隆","ename":"Fulong"},{"StationID":"7300","lat":25.02197,"lon":121.90879,"name":"貢寮","ename":"Gongliao"},{"StationID":"7310","lat":25.03851,"lon":121.86654,"name":"雙溪","ename":"Shuangxi"},{"StationID":"7320","lat":25.05871,"lon":121.85197,"name":"牡丹","ename":"Mudan"},{"StationID":"7330","lat":25.06555,"lon":121.82257,"name":"三貂嶺","ename":"Sandiaoling"},{"StationID":"7331","lat":25.04998,"lon":121.79732,"name":"大華","ename":"Dahua"},{"StationID":"7332","lat":25.04111,"lon":121.77514,"name":"十分","ename":"Shifen"},{"StationID":"7333","lat":25.03445,"lon":121.76349,"name":"望古","ename":"Wanggu"},{"StationID":"7334","lat":25.03016,"lon":121.74795,"name":"嶺腳","ename":"Lingjiao"},{"StationID":"7335","lat":25.02571,"lon":121.74019,"name":"平溪","ename":"Pingxi"},{"StationID":"7336","lat":25.02391,"lon":121.72391,"name":"菁桐","ename":"Jingtong"},{"StationID":"7350","lat":25.08702,"lon":121.82743,"name":"猴硐","ename":"Houtong"},{"StationID":"7360","lat":25.10872,"lon":121.80599,"name":"瑞芳","ename":"Ruifang"},{"StationID":"7361","lat":25.13754,"lon":121.79997,"name":"海科館","ename":"Haikeguan"},{"StationID":"7362","lat":25.13528,"lon":121.80286,"name":"八斗子","ename":"Badouzi"},{"StationID":"7380","lat":25.10281,"lon":121.76195,"name":"四腳亭","ename":"Sijiaoting"},{"StationID":"7390","lat":25.10231,"lon":121.74031,"name":"暖暖","ename":"Nuannuan"}];
+
+var tra_train = [{"TrainTypeID":"1100","TrainTypeCode":"3","note":"DMU2800、2900、3000 型柴聯及 EMU 型電車","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"1101","TrainTypeCode":"1","note":"太魯閣","name":"太魯閣","ename":"Taroko Express"},{"TrainTypeID":"1102","TrainTypeCode":"3","note":"推拉式自強號","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"1103","TrainTypeCode":"3","note":"DMU3100 型有身障座位柴聯","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"1104","TrainTypeCode":"3","note":"專開列車","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"1105","TrainTypeCode":"3","note":"郵輪式列車","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"1106","TrainTypeCode":"3","note":"商務專開列車","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"1107","TrainTypeCode":"2","note":"普悠瑪","name":"普悠瑪","ename":"Puyuma Express"},{"TrainTypeID":"1108","TrainTypeCode":"3","note":"推拉式自強號且無自行車車廂","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"1109","TrainTypeCode":"3","note":"推拉式自強號且無自行車車廂","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"110A","TrainTypeCode":"3","note":"推拉式自強號且有自行車車廂","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"110B","TrainTypeCode":"3","note":"EMU1200 型電車","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"110C","TrainTypeCode":"3","note":"EMU300 型電車","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"110D","TrainTypeCode":"3","note":"DMU2800 型柴聯","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"110E","TrainTypeCode":"3","note":"DMU2900 型柴聯","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"110F","TrainTypeCode":"3","note":"DMU3100 型柴聯","name":"自強","ename":"Tze-Chiang Express"},{"TrainTypeID":"110G","TrainTypeCode":"11","note":"3000","name":"自強","ename":"Tze-Chiang 3000 Express "},{"TrainTypeID":"110H","TrainTypeCode":"11","note":"3000","name":"自強","ename":"Tze-Chiang 3000 Express "},{"TrainTypeID":"110K","TrainTypeCode":"11","note":"3000","name":"自強","ename":"Tze-Chiang 3000 Express "},{"TrainTypeID":"110M","TrainTypeCode":"11","note":"3000","name":"自強","ename":"Tze-Chiang 3000 Express "},{"TrainTypeID":"1110","TrainTypeCode":"4","note":"無身障座位","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1111","TrainTypeCode":"4","note":"有身障座位","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1112","TrainTypeCode":"4","note":"專開列車","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1113","TrainTypeCode":"4","note":"郵輪式列車","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1114","TrainTypeCode":"4","note":"無身障座位, 有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1115","TrainTypeCode":"4","note":"有身障座位, 有自行車車廂","name":"莒光","ename":"Chu-Kuang Express"},{"TrainTypeID":"1120","TrainTypeCode":"5","note":"","name":"復興","ename":"Fu-Hsing Semi Express"},{"TrainTypeID":"1121","TrainTypeCode":"5","note":"專開列車","name":"復興","ename":"Fu-Hsing Semi Express"},{"TrainTypeID":"1122","TrainTypeCode":"5","note":"郵輪式列車","name":"復興","ename":"Fu-Hsing Semi Express"},{"TrainTypeID":"1130","TrainTypeCode":"6","note":"專開列車","name":"區間","ename":"Local Train"},{"TrainTypeID":"1131","TrainTypeCode":"6","note":"","name":"區間","ename":"Local Train"},{"TrainTypeID":"1132","TrainTypeCode":"10","note":"","name":"區間快","ename":"Fast Local Train"},{"TrainTypeID":"1133","TrainTypeCode":"6","note":"郵輪式列車","name":"區間","ename":"Local Train"},{"TrainTypeID":"1134","TrainTypeCode":"6","note":"專開列車","name":"區間","ename":"Local Train"},{"TrainTypeID":"1135","TrainTypeCode":"6","note":"有身障座位, 有自行車車廂","name":"區間","ename":"Local Train"},{"TrainTypeID":"113A","TrainTypeCode":"6","note":"EMU500 型","name":"區間","ename":"Local Train"},{"TrainTypeID":"113B","TrainTypeCode":"6","note":"EMU700 型","name":"區間","ename":"Local Train"},{"TrainTypeID":"113C","TrainTypeCode":"6","note":"EMU800 型","name":"區間","ename":"Local Train"},{"TrainTypeID":"113D","TrainTypeCode":"6","note":"EMU900 型","name":"區間","ename":"Local Train"},{"TrainTypeID":"1140","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"1141","TrainTypeCode":"6","note":"","name":"區間","ename":"Local Train"},{"TrainTypeID":"1150","TrainTypeCode":"7","note":"專開列車","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"1151","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"1152","TrainTypeCode":"5","note":"","name":"復興","ename":"Fu-Hsing Semi Express"},{"TrainTypeID":"1154","TrainTypeCode":"6","note":"專開列車","name":"區間","ename":"Local Train"},{"TrainTypeID":"1155","TrainTypeCode":"5","note":"郵輪式列車","name":"復興","ename":"Fu-Hsing Semi Express"},{"TrainTypeID":"1270","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"1280","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"1281","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"1282","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"12A0","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"12A1","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"12B0","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"4200","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"},{"TrainTypeID":"5230","TrainTypeCode":"7","note":"","name":"普快","ename":"Ordinary Train"}];
+
+var afr_line = [{"LineNo":"M-1","LineID":"1","LineName":{"Zh_tw":"本線(嘉義-阿里山)","En":"Main Line(Chiayi-Alishan)"},"LineSectionName":{"Zh_tw":"嘉義-阿里山","En":"Chiayi-Alishan"},"IsBranch":false,"LineGroup":"1","LineURL":"https://afrch.forest.gov.tw/0000115"},{"LineNo":"B-2","LineID":"2","LineName":{"Zh_tw":"祝山線","En":"Zhushan Line"},"LineSectionName":{"Zh_tw":"阿里山-祝山","En":"Alishan-Zhushan"},"IsBranch":true,"LineGroup":"1","LineURL":"https://afrch.forest.gov.tw/0000300"},{"LineNo":"B-3","LineID":"3","LineName":{"Zh_tw":"神木線","En":"Shenmu Line"},"LineSectionName":{"Zh_tw":"神木-阿里山","En":"Shenmu-Alishan"},"IsBranch":true,"LineGroup":"1","LineURL":"https://afrch.forest.gov.tw/0000300"},{"LineNo":"B-4","LineID":"4","LineName":{"Zh_tw":"沼平線","En":"Zhaoping Line"},"LineSectionName":{"Zh_tw":"阿里山-沼平","En":"Alishan-Zhaoping"},"IsBranch":true,"LineGroup":"1","LineURL":"https://afrch.forest.gov.tw/0000300"}];
+
+var afr_station = [{"StationClass":"X","StationUID":"AFR-360","StationID":"360","ReservationCode":"360","StationName":{"Zh_tw":"嘉義","En":"Chiayi"},"StationPosition":{"PositionLon":120.4412,"PositionLat":23.479},"StationAddress":"600嘉義市西區中山路528號","StationPhone":"05-2256918","StationURL":"https://afrch.forest.gov.tw/0000081"},{"StationClass":"1","StationUID":"AFR-361","StationID":"361","ReservationCode":"361","StationName":{"Zh_tw":"北門","En":"Beimen"},"StationPosition":{"PositionLon":120.4542,"PositionLat":23.488},"StationAddress":"600嘉義市東區忠孝路306號","StationPhone":"05-2768094","StationURL":"https://afrch.forest.gov.tw/0000082"},{"StationClass":"5","StationUID":"AFR-362","StationID":"362","ReservationCode":"362","StationName":{"Zh_tw":"鹿麻產","En":"Lumachan"},"StationPosition":{"PositionLon":120.5315,"PositionLat":23.5042},"StationAddress":"604嘉義縣竹崎鄉鹿滿村下溪心61之3號","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000083"},{"StationClass":"2","StationUID":"AFR-363","StationID":"363","ReservationCode":"363","StationName":{"Zh_tw":"竹崎","En":"Zhuqi"},"StationPosition":{"PositionLon":120.5535,"PositionLat":23.5258},"StationAddress":"604嘉義縣竹崎鄉竹崎村舊車站11號","StationPhone":"05-2611275","StationURL":"https://afrch.forest.gov.tw/0000084"},{"StationClass":"5","StationUID":"AFR-365","StationID":"365","ReservationCode":"365","StationName":{"Zh_tw":"樟腦寮","En":"Zhangnaoliao"},"StationPosition":{"PositionLon":120.6025,"PositionLat":23.5329},"StationAddress":"604嘉義縣竹崎鄉緞繻村樟腦寮37-1號","StationPhone":"05-2630104","StationURL":"https://afrch.forest.gov.tw/0000086"},{"StationClass":"5","StationUID":"AFR-366","StationID":"366","ReservationCode":"366","StationName":{"Zh_tw":"獨立山","En":"Dulishan"},"StationPosition":{"PositionLon":120.6074,"PositionLat":23.5385},"StationAddress":"604嘉義縣竹崎鄉緞繻村","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000087"},{"StationClass":"5","StationUID":"AFR-367","StationID":"367","ReservationCode":"367","StationName":{"Zh_tw":"梨園寮","En":"Liyuanliao"},"StationPosition":{"PositionLon":120.62,"PositionLat":23.5423},"StationAddress":"603嘉義縣梅山鄉太興村","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000088"},{"StationClass":"2","StationUID":"AFR-368","StationID":"368","ReservationCode":"368","StationName":{"Zh_tw":"交力坪","En":"Jiaoliping"},"StationPosition":{"PositionLon":120.6438,"PositionLat":23.5314},"StationAddress":"603嘉義縣竹崎鄉仁壽村交力坪63號","StationPhone":"05-2501504","StationURL":"https://afrch.forest.gov.tw/0000089"},{"StationClass":"5","StationUID":"AFR-369","StationID":"369","ReservationCode":"369","StationName":{"Zh_tw":"水社寮","En":"Shuisheliao"},"StationPosition":{"PositionLon":120.6596,"PositionLat":23.5044},"StationAddress":"603嘉義縣竹崎鄉仁壽村水社寮","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000090"},{"StationClass":"1","StationUID":"AFR-370","StationID":"370","ReservationCode":"370","StationName":{"Zh_tw":"奮起湖","En":"Fenqihu"},"StationPosition":{"PositionLon":120.6951,"PositionLat":23.5053},"StationAddress":"嘉義縣竹崎鄉中和村奮起湖168號之1","StationPhone":"05-2561007","StationURL":"https://afrch.forest.gov.tw/0000091"},{"StationClass":"5","StationUID":"AFR-371","StationID":"371","ReservationCode":"371","StationName":{"Zh_tw":"多林","En":"Duolin"},"StationPosition":{"PositionLon":120.7305,"PositionLat":23.4987},"StationAddress":"605嘉義縣阿里山鄉十字村哆囉嘕106號","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000092"},{"StationClass":"5","StationUID":"AFR-372","StationID":"372","ReservationCode":"372","StationName":{"Zh_tw":"十字路","En":"Shizilu"},"StationPosition":{"PositionLon":120.7539,"PositionLat":23.4928},"StationAddress":"605嘉義縣阿里山鄉十字村十字路9號","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000093"},{"StationClass":"X","StationUID":"AFR-373","StationID":"373","ReservationCode":"373","StationName":{"Zh_tw":"屏遮那","En":"Pingzhena"},"StationPosition":{"PositionLon":120.7793,"PositionLat":23.5106},"StationAddress":"605嘉義縣阿里山鄉","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000094"},{"StationClass":"X","StationUID":"AFR-374","StationID":"374","ReservationCode":"374","StationName":{"Zh_tw":"第一分道","En":"1st-Switch"},"StationPosition":{"PositionLon":120.7943,"PositionLat":23.5207},"StationAddress":" ","StationPhone":"00-00000000","StationURL":" "},{"StationClass":"X","StationUID":"AFR-375","StationID":"375","ReservationCode":"375","StationName":{"Zh_tw":"第二分道","En":"2nd-Switch"},"StationPosition":{"PositionLon":120.7909,"PositionLat":23.514},"StationAddress":" ","StationPhone":"00-00000000","StationURL":" "},{"StationClass":"5","StationUID":"AFR-376","StationID":"376","ReservationCode":"376","StationName":{"Zh_tw":"二萬平","En":"Erwanping"},"StationPosition":{"PositionLon":120.7902,"PositionLat":23.5089},"StationAddress":"605嘉義縣阿里山鄉香林村二萬平106號旁","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000095"},{"StationClass":"4","StationUID":"AFR-377","StationID":"377","ReservationCode":"377","StationName":{"Zh_tw":"神木","En":"Shenmu"},"StationPosition":{"PositionLon":120.8064,"PositionLat":23.5191},"StationAddress":"605嘉義縣阿里山鄉香林村45號","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000096"},{"StationClass":"1","StationUID":"AFR-378","StationID":"378","ReservationCode":"378","StationName":{"Zh_tw":"阿里山","En":"Alishan"},"StationPosition":{"PositionLon":120.8042,"PositionLat":23.5099},"StationAddress":"605嘉義縣阿里山鄉中正村阿里山1號","StationPhone":"05-2679200","StationURL":"https://afrch.forest.gov.tw/0000097"},{"StationClass":"1","StationUID":"AFR-379","StationID":"379","ReservationCode":"379","StationName":{"Zh_tw":"沼平","En":"Zhaoping"},"StationPosition":{"PositionLon":120.8138,"PositionLat":23.5144},"StationAddress":"605嘉義縣阿里山鄉香林村17號","StationPhone":"05-2679086","StationURL":"https://afrch.forest.gov.tw/0000098"},{"StationClass":"5","StationUID":"AFR-380","StationID":"380","ReservationCode":"380","StationName":{"Zh_tw":"對高岳","En":"Duigaoyue"},"StationPosition":{"PositionLon":120.82,"PositionLat":23.5173},"StationAddress":"605南投縣信義鄉神木村神木巷47號","StationPhone":"00-00000000","StationURL":"https://afrch.forest.gov.tw/0000101"},{"StationClass":"1","StationUID":"AFR-381","StationID":"381","ReservationCode":"381","StationName":{"Zh_tw":"祝山","En":"Zhushan"},"StationPosition":{"PositionLon":120.8231,"PositionLat":23.5102},"StationAddress":"605嘉義縣阿里山鄉中正村阿里山99號","StationPhone":"05-2679685","StationURL":"https://afrch.forest.gov.tw/0000100"}];
+
+var afr_train = [{"TrainTypeCode":"1","TrainTypeID":"1","TrainTypeName":{"Zh_tw":"中興號","En":"Jungshing Express"}},{"TrainTypeCode":"2","TrainTypeID":"2","TrainTypeName":{"Zh_tw":"區間","En":"Local Train"}},{"TrainTypeCode":"3","TrainTypeID":"3","TrainTypeName":{"Zh_tw":"主題式列車","En":"Themed Train"}},{"TrainTypeCode":"5","TrainTypeID":"5","TrainTypeName":{"Zh_tw":"阿里山號","En":"Alishan Express"}},{"TrainTypeCode":"6","TrainTypeID":"6","TrainTypeName":{"Zh_tw":"祝客","En":"Blessing Express"}},{"TrainTypeCode":"7","TrainTypeID":"7","TrainTypeName":{"Zh_tw":"祝客（祝山線）","En":"Chushan Line"}},{"TrainTypeCode":"8","TrainTypeID":"8","TrainTypeName":{"Zh_tw":"檜木車廂","En":"Elm Train"}}];
+
+var afr_time = [{"TrainInfo":{"TrainNo":"1","RouteID":"1","Direction":0,"TripHeadSign":"往十字路","StartingStationID":"360","StartingStationName":{"Zh_tw":"嘉義","En":"Chiayi"},"EndingStationID":"372","EndingStationName":{"Zh_tw":"十字路","En":"Shizilu"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":" "},"StopTimes":[{"StopSequence":1,"StationID":"360","StationName":{"Zh_tw":"嘉義","En":"Chiayi"},"ArrivalTime":"08:57","DepartureTime":"09:00"},{"StopSequence":2,"StationID":"361","StationName":{"Zh_tw":"北門","En":"Beimen"},"ArrivalTime":"09:06","DepartureTime":"09:10"},{"StopSequence":3,"StationID":"362","StationName":{"Zh_tw":"鹿麻產","En":"Lumachan"},"ArrivalTime":"09:32","DepartureTime":"09:33"},{"StopSequence":4,"StationID":"363","StationName":{"Zh_tw":"竹崎","En":"Zhuqi"},"ArrivalTime":"09:41","DepartureTime":"09:43"},{"StopSequence":5,"StationID":"365","StationName":{"Zh_tw":"樟腦寮","En":"Zhangnaoliao"},"ArrivalTime":"10:09","DepartureTime":"10:10"},{"StopSequence":6,"StationID":"366","StationName":{"Zh_tw":"獨立山","En":"Dulishan"},"ArrivalTime":"10:22","DepartureTime":"10:23"},{"StopSequence":7,"StationID":"367","StationName":{"Zh_tw":"梨園寮","En":"Liyuanliao"},"ArrivalTime":"10:35","DepartureTime":"10:36"},{"StopSequence":8,"StationID":"368","StationName":{"Zh_tw":"交力坪","En":"Jiaoliping"},"ArrivalTime":"10:46","DepartureTime":"10:48"},{"StopSequence":9,"StationID":"369","StationName":{"Zh_tw":"水社寮","En":"Shuisheliao"},"ArrivalTime":"11:04","DepartureTime":"11:05"},{"StopSequence":10,"StationID":"370","StationName":{"Zh_tw":"奮起湖","En":"Fenqihu"},"ArrivalTime":"11:21","DepartureTime":"11:30"},{"StopSequence":11,"StationID":"371","StationName":{"Zh_tw":"多林","En":"Duolin"},"ArrivalTime":"11:44","DepartureTime":"11:45"},{"StopSequence":12,"StationID":"372","StationName":{"Zh_tw":"十字路","En":"Shizilu"},"ArrivalTime":"12:00","DepartureTime":"12:03"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}},{"TrainInfo":{"TrainNo":"120","RouteID":"3","Direction":1,"TripHeadSign":"往神木","StartingStationID":"378","StartingStationName":{"Zh_tw":"阿里山","En":"Alishan"},"EndingStationID":"377","EndingStationName":{"Zh_tw":"神木","En":"Shenmu"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":" "},"StopTimes":[{"StopSequence":1,"StationID":"378","StationName":{"Zh_tw":"阿里山","En":"Alishan"},"ArrivalTime":"15:47","DepartureTime":"15:50"},{"StopSequence":2,"StationID":"377","StationName":{"Zh_tw":"神木","En":"Shenmu"},"ArrivalTime":"15:57","DepartureTime":"16:10"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}},{"TrainInfo":{"TrainNo":"121","RouteID":"3","Direction":0,"TripHeadSign":"往阿里山","StartingStationID":"377","StartingStationName":{"Zh_tw":"神木","En":"Shenmu"},"EndingStationID":"378","EndingStationName":{"Zh_tw":"阿里山","En":"Alishan"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":" "},"StopTimes":[{"StopSequence":1,"StationID":"377","StationName":{"Zh_tw":"神木","En":"Shenmu"},"ArrivalTime":"15:57","DepartureTime":"16:10"},{"StopSequence":2,"StationID":"378","StationName":{"Zh_tw":"阿里山","En":"Alishan"},"ArrivalTime":"16:17","DepartureTime":"16:20"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}},{"TrainInfo":{"TrainNo":"2","RouteID":"1","Direction":1,"TripHeadSign":"往嘉義","StartingStationID":"372","StartingStationName":{"Zh_tw":"十字路","En":"Shizilu"},"EndingStationID":"360","EndingStationName":{"Zh_tw":"嘉義","En":"Chiayi"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":" "},"StopTimes":[{"StopSequence":1,"StationID":"372","StationName":{"Zh_tw":"十字路","En":"Shizilu"},"ArrivalTime":"13:18","DepartureTime":"13:21"},{"StopSequence":2,"StationID":"371","StationName":{"Zh_tw":"多林","En":"Duolin"},"ArrivalTime":"13:35","DepartureTime":"13:36"},{"StopSequence":3,"StationID":"370","StationName":{"Zh_tw":"奮起湖","En":"Fenqihu"},"ArrivalTime":"13:50","DepartureTime":"14:31"},{"StopSequence":4,"StationID":"369","StationName":{"Zh_tw":"水社寮","En":"Shuisheliao"},"ArrivalTime":"14:47","DepartureTime":"14:48"},{"StopSequence":5,"StationID":"368","StationName":{"Zh_tw":"交力坪","En":"Jiaoliping"},"ArrivalTime":"15:05","DepartureTime":"15:06"},{"StopSequence":6,"StationID":"367","StationName":{"Zh_tw":"梨園寮","En":"Liyuanliao"},"ArrivalTime":"15:17","DepartureTime":"15:18"},{"StopSequence":7,"StationID":"366","StationName":{"Zh_tw":"獨立山","En":"Dulishan"},"ArrivalTime":"15:30","DepartureTime":"15:31"},{"StopSequence":8,"StationID":"365","StationName":{"Zh_tw":"樟腦寮","En":"Zhangnaoliao"},"ArrivalTime":"15:43","DepartureTime":"15:44"},{"StopSequence":9,"StationID":"363","StationName":{"Zh_tw":"竹崎","En":"Zhuqi"},"ArrivalTime":"16:11","DepartureTime":"16:12"},{"StopSequence":10,"StationID":"362","StationName":{"Zh_tw":"鹿麻產","En":"Lumachan"},"ArrivalTime":"16:20","DepartureTime":"16:21"},{"StopSequence":11,"StationID":"361","StationName":{"Zh_tw":"北門","En":"Beimen"},"ArrivalTime":"16:43","DepartureTime":"16:45"},{"StopSequence":12,"StationID":"360","StationName":{"Zh_tw":"嘉義","En":"Chiayi"},"ArrivalTime":"16:51","DepartureTime":"16:54"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}},{"TrainInfo":{"TrainNo":"5","RouteID":"1","Direction":0,"TripHeadSign":"往阿里山","StartingStationID":"360","StartingStationName":{"Zh_tw":"嘉義","En":"Chiayi"},"EndingStationID":"378","EndingStationName":{"Zh_tw":"阿里山","En":"Alishan"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":" "},"StopTimes":[{"StopSequence":1,"StationID":"360","StationName":{"Zh_tw":"嘉義","En":"Chiayi"},"ArrivalTime":"09:57","DepartureTime":"10:00"},{"StopSequence":2,"StationID":"361","StationName":{"Zh_tw":"北門","En":"Beimen"},"ArrivalTime":"10:06","DepartureTime":"10:08"},{"StopSequence":3,"StationID":"363","StationName":{"Zh_tw":"竹崎","En":"Zhuqi"},"ArrivalTime":"10:38","DepartureTime":"10:39"},{"StopSequence":4,"StationID":"368","StationName":{"Zh_tw":"交力坪","En":"Jiaoliping"},"ArrivalTime":"11:41","DepartureTime":"11:43"},{"StopSequence":5,"StationID":"370","StationName":{"Zh_tw":"奮起湖","En":"Fenqihu"},"ArrivalTime":"12:16","DepartureTime":"13:21"},{"StopSequence":6,"StationID":"376","StationName":{"Zh_tw":"二萬平","En":"Erwanping"},"ArrivalTime":"14:32","DepartureTime":"14:38"},{"StopSequence":7,"StationID":"378","StationName":{"Zh_tw":"阿里山","En":"Alishan"},"ArrivalTime":"14:56","DepartureTime":"14:59"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}},{"TrainInfo":{"TrainNo":"53","RouteID":"4","Direction":0,"TripHeadSign":"往沼平","StartingStationID":"378","StartingStationName":{"Zh_tw":"阿里山","En":"Alishan"},"EndingStationID":"379","EndingStationName":{"Zh_tw":"沼平","En":"Zhaoping"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":" "},"StopTimes":[{"StopSequence":1,"StationID":"378","StationName":{"Zh_tw":"阿里山","En":"Alishan"},"ArrivalTime":"15:36","DepartureTime":"15:40"},{"StopSequence":2,"StationID":"379","StationName":{"Zh_tw":"沼平","En":"Zhaoping"},"ArrivalTime":"15:46","DepartureTime":"15:50"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}},{"TrainInfo":{"TrainNo":"54","RouteID":"4","Direction":1,"TripHeadSign":"往阿里山","StartingStationID":"379","StartingStationName":{"Zh_tw":"沼平","En":"Zhaoping"},"EndingStationID":"378","EndingStationName":{"Zh_tw":"阿里山","En":"Alishan"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":" "},"StopTimes":[{"StopSequence":1,"StationID":"379","StationName":{"Zh_tw":"沼平","En":"Zhaoping"},"ArrivalTime":"15:46","DepartureTime":"16:00"},{"StopSequence":2,"StationID":"378","StationName":{"Zh_tw":"阿里山","En":"Alishan"},"ArrivalTime":"16:06","DepartureTime":"16:10"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}},{"TrainInfo":{"TrainNo":"8","RouteID":"1","Direction":1,"TripHeadSign":"往嘉義","StartingStationID":"378","StartingStationName":{"Zh_tw":"阿里山","En":"Alishan"},"EndingStationID":"360","EndingStationName":{"Zh_tw":"嘉義","En":"Chiayi"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":" "},"StopTimes":[{"StopSequence":1,"StationID":"378","StationName":{"Zh_tw":"阿里山","En":"Alishan"},"ArrivalTime":"11:47","DepartureTime":"11:50"},{"StopSequence":2,"StationID":"376","StationName":{"Zh_tw":"二萬平","En":"Erwanping"},"ArrivalTime":"12:08","DepartureTime":"12:09"},{"StopSequence":3,"StationID":"370","StationName":{"Zh_tw":"奮起湖","En":"Fenqihu"},"ArrivalTime":"13:19","DepartureTime":"13:29"},{"StopSequence":4,"StationID":"368","StationName":{"Zh_tw":"交力坪","En":"Jiaoliping"},"ArrivalTime":"14:02","DepartureTime":"14:04"},{"StopSequence":5,"StationID":"363","StationName":{"Zh_tw":"竹崎","En":"Zhuqi"},"ArrivalTime":"15:06","DepartureTime":"15:07"},{"StopSequence":6,"StationID":"361","StationName":{"Zh_tw":"北門","En":"Beimen"},"ArrivalTime":"15:37","DepartureTime":"15:39"},{"StopSequence":7,"StationID":"360","StationName":{"Zh_tw":"嘉義","En":"Chiayi"},"ArrivalTime":"15:45","DepartureTime":"15:48"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}},{"TrainInfo":{"TrainNo":"97","RouteID":"2","Direction":0,"TripHeadSign":"往祝山","StartingStationID":"378","StartingStationName":{"Zh_tw":"阿里山","En":"Alishan"},"EndingStationID":"381","EndingStationName":{"Zh_tw":"祝山","En":"Zhushan"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":"停靠時間根據日出時間而定"},"StopTimes":[{"StopSequence":1,"StationID":"378","StationName":{"Zh_tw":"阿里山","En":"Alishan"},"ArrivalTime":"07:57","DepartureTime":"08:00"},{"StopSequence":2,"StationID":"381","StationName":{"Zh_tw":"祝山","En":"Zhushan"},"ArrivalTime":"08:30","DepartureTime":"08:33"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}},{"TrainInfo":{"TrainNo":"98","RouteID":"2","Direction":1,"TripHeadSign":"往阿里山","StartingStationID":"381","StartingStationName":{"Zh_tw":"祝山","En":"Zhushan"},"EndingStationID":"378","EndingStationName":{"Zh_tw":"阿里山","En":"Alishan"},"OverNightStationID":" ","TripLine":1,"WheelChairFlag":1,"PackageServiceFlag":1,"DiningFlag":0,"BreastFeedFlag":1,"BikeFlag":1,"CarFlag":0,"DailyFlag":1,"ExtraTrainFlag":0,"Note":"停靠時間根據日出時間而定"},"StopTimes":[{"StopSequence":1,"StationID":"381","StationName":{"Zh_tw":"祝山","En":"Zhushan"},"ArrivalTime":"08:57","DepartureTime":"09:00"},{"StopSequence":2,"StationID":"378","StationName":{"Zh_tw":"阿里山","En":"Alishan"},"ArrivalTime":"09:30","DepartureTime":"09:33"}],"ServiceDay":{"ServiceTag":"請參閱官網","Monday":1,"Tuesday":1,"Wednesday":1,"Thursday":1,"Friday":1,"Saturday":1,"Sunday":1,"NationalHolidays":1,"DayBeforeHoliday":0,"DayAfterHoliday":0}}];
+
+var rail_operator = [{"ProviderID":"028","OperatorID":"KRTC","OperatorName":{"Zh_tw":"高雄捷運股份有限公司","En":"Kaohsiung Rapid Transit Corporation"},"OperatorPhone":"(07)793-8888","OperatorUrl":"https://www.krtco.com.tw/","OperatorCode":"KRTC","AuthorityCode":"KRTC","OperatorNo":"5103","UpdateTime":"2020-07-28T00:00:00+08:00"},{"ProviderID":"049","OperatorID":"NTMC","OperatorName":{"Zh_tw":"新北大眾捷運股份有限公司","En":"New Taipei Metro Corporation"},"OperatorPhone":"(02)2805-9877","OperatorUrl":"https://www.ntmetro.com.tw/","OperatorCode":"NTMC","AuthorityCode":"NTMC","OperatorNo":"5104","UpdateTime":"2020-07-28T00:00:00+08:00"},{"ProviderID":"050","OperatorID":"NTMC","OperatorName":{"Zh_tw":"新北大眾捷運股份有限公司","En":"New Taipei Metro Corporation"},"OperatorPhone":"(02)2805-9877","OperatorUrl":"https://www.ntmetro.com.tw/","OperatorCode":"NTMC","AuthorityCode":"NTMC","OperatorNo":"5104","UpdateTime":"2020-07-28T00:00:00+08:00"},{"ProviderID":"002","OperatorID":"THSR","OperatorName":{"Zh_tw":"臺灣高速鐵路股份有限公司","En":"Taiwan High Speed Rail Corporation"},"OperatorPhone":"(02)8789-2000","OperatorUrl":"https://www.thsrc.com.tw","ReservationUrl":"https://irs.thsrc.com.tw/IMINT/","ReservationPhone":"02-4066-0000","OperatorCode":"THSR","AuthorityCode":"THSR","OperatorNo":"5002","UpdateTime":"2020-07-28T00:00:00+08:00"},{"ProviderID":"053","OperatorID":"TMRT","OperatorName":{"Zh_tw":"臺中捷運股份有限公司","En":"Taichung Mass Rapid Transit Corporation"},"OperatorPhone":"04-24375537","OperatorUrl":"https://www.tmrt.com.tw/","OperatorCode":"TMRT","AuthorityCode":"TMRT","OperatorNo":"5105","UpdateTime":"2020-07-28T00:00:00+08:00"},{"ProviderID":"001","OperatorID":"TRA","OperatorName":{"Zh_tw":"交通部臺灣鐵路管理局","En":"Taiwan Railways Administration"},"OperatorPhone":"(02)2381-5226、0800-765-888","OperatorUrl":"http://twtraffic.tra.gov.tw/twrail/","ReservationUrl":"http://railway.hinet.net","ReservationPhone":"02-412-1111","OperatorCode":"TRA","AuthorityCode":"TRA","OperatorNo":"5001","UpdateTime":"2020-07-28T00:00:00+08:00"},{"ProviderID":"027","OperatorID":"TRTC","OperatorName":{"Zh_tw":"臺北大眾捷運股份有限公司","En":"Taipei Rapid Transit Corporation"},"OperatorPhone":"02-218-12345","OperatorUrl":"http://www.metro.taipei/","OperatorCode":"TRTC","AuthorityCode":"TRTC","OperatorNo":"5101","UpdateTime":"2020-07-28T00:00:00+08:00"},{"ProviderID":"051","OperatorID":"TRTC","OperatorName":{"Zh_tw":"臺北大眾捷運股份有限公司","En":"Taipei Rapid Transit Corporation"},"OperatorPhone":"02-218-12345","OperatorUrl":"http://www.metro.taipei/","OperatorCode":"TRTC","AuthorityCode":"TRTC","OperatorNo":"5101","UpdateTime":"2020-07-28T00:00:00+08:00"},{"ProviderID":"034","OperatorID":"TYMC","OperatorName":{"Zh_tw":"桃園大眾捷運股份有限公司","En":"Taoyuan Metro Corporation"},"OperatorPhone":"(03)286-8789","OperatorUrl":"https://www.tymetro.com.tw/","OperatorCode":"TYMC","AuthorityCode":"TYMC","OperatorNo":"5102","UpdateTime":"2020-07-28T00:00:00+08:00"}];
 
 //import trav3_station from './datax/tra.v3.station.json';
 //import trav3_train from './datax/tra.v3.train.json';
@@ -12519,7 +13161,12 @@ var datax = {
     transfer: trtc_transfer
   },
   tmrt: {
+    line: tmrt_line,
     station: tmrt_station
+  },
+  klrt: {
+    line: klrt_line,
+    station: klrt_station
   },
   krtc: {
     line: krtc_line,
@@ -12531,8 +13178,9 @@ var datax = {
     station: tymc_station
   },
   ntmc: {
-    line: [],
-    station: []
+    line: ntmc_line,
+    station: ntmc_station,
+    transfer: ntmc_transfer
   },
   thsr: {
     station: thsr_station
@@ -12541,6 +13189,15 @@ var datax = {
     line: tra_line,
     station: tra_station,
     train: tra_train
+  },
+  afr: {
+    line: afr_line,
+    station: afr_station,
+    train: afr_train,
+    time: afr_time
+  },
+  rail: {
+    operator: rail_operator
   },
   getLine: function getLine(uid) {
     var objA = getObjID(uid);
@@ -12572,6 +13229,74 @@ var datax = {
     var stAry = this[objA.company].station;
     return stAry.find(function (c) {
       return c.StationID == objA.id;
+    });
+  },
+  //========== 外部資料（out_data/）按需載入接口 ==========
+  //大體積資料（票價 fare、時刻表 time）不打包進 library，存放於 out_data/（打包時 clone 至 dist/out_data/）。
+  //檔名格式 {company}.{pack}.json，載入後掛到 datax[company][pack]。
+  //把一筆外部資料塞進 datax，fileName 例：'tra.fare' 或 'tra.fare.json'
+  attachData: function attachData(fileName, data) {
+    var ary = fileName.replace(/\.json$/, '').split('.');
+    var company = ary[0],
+        pack = ary[1];
+    if (!company || !pack) throw 'attachData fileName 格式應為 {company}.{pack}';
+    if (!this[company]) this[company] = {};
+    this[company][pack] = data;
+    return this;
+  },
+  //以 URL 載入（web / Node 18+ 皆可，使用全域 fetch）
+  //baseURL 例：'https://melixyen.github.io/rocptx/dist/out_data'
+  //list 例：['tra.fare', 'thsr.time']
+  loadOutDataByURL: function loadOutDataByURL(baseURL, list) {
+    var me = this;
+    if (typeof fetch != 'function') return Promise.reject('此環境無 fetch，請改用 loadOutDataByFile 或自行取得 JSON 後以 attachData 塞入');
+    if (!list || !list.length) return Promise.reject('loadOutDataByURL 需要指定 list，例如 [\'tra.fare\']');
+    baseURL = baseURL.replace(/\/$/, '');
+    return Promise.all(list.map(function (name) {
+      var fileName = /\.json$/.test(name) ? name : name + '.json';
+      return fetch(baseURL + '/' + fileName).then(function (res) {
+        if (!res.ok) throw 'loadOutDataByURL ' + fileName + ' HTTP ' + res.status;
+        return res.json();
+      }).then(function (data) {
+        me.attachData(name, data);
+        return name;
+      });
+    })).then(function () {
+      return me;
+    });
+  },
+  //以檔案系統載入（Node 專用；web 環境呼叫會 reject 但不會拋出未捕捉錯誤）
+  //dirPath 例：require('path').join(__dirname, 'node_modules/rocptx/out_data')
+  //list 省略時載入目錄內全部 *.json
+  loadOutDataByFile: function loadOutDataByFile(dirPath, list) {
+    var me = this;
+    return new Promise(function (resolve, reject) {
+      var fs, path;
+
+      try {
+        //eval 避免 bundler 靜態解析 require，web 環境執行到這裡會進 catch
+        fs = eval('require')('fs');
+        path = eval('require')('path');
+      } catch (e) {
+        return reject('此環境無檔案系統（web 請改用 loadOutDataByURL）');
+      }
+
+      try {
+        if (!list || !list.length) {
+          list = fs.readdirSync(dirPath).filter(function (f) {
+            return /\.json$/.test(f);
+          });
+        }
+
+        list.forEach(function (name) {
+          var fileName = /\.json$/.test(name) ? name : name + '.json';
+          var data = JSON.parse(fs.readFileSync(path.join(dirPath, fileName), 'utf8'));
+          me.attachData(name, data);
+        });
+        resolve(me);
+      } catch (e) {
+        reject('loadOutDataByFile 失敗: ' + (e && e.message || e));
+      }
     });
   }
 };
@@ -12610,8 +13335,11 @@ var v3urls = {
 var drtsV3urls = {
   Stop: busV3URL + '/DRTS/Stop/City/{City}',
   Station: busV3URL + '/DRTS/Station/City/{City}',
+  StationGroup: busV3URL + '/DRTS/StationGroup/City/{City}',
   Operator: busV3URL + '/DRTS/Operator/City/{City}',
   Route: busV3URL + '/DRTS/Route/City/{City}',
+  SubRoute: busV3URL + '/DRTS/SubRoute/City/{City}',
+  SubRoute_RouteName: busV3URL + '/DRTS/SubRoute/City/{City}/{RouteName}',
   BookingRule: busV3URL + '/DRTS/BookingRule/City/{City}',
   StopOfRoute: busV3URL + '/DRTS/StopOfRoute/City/{City}',
   StopOfRoute_RouteName: busV3URL + '/DRTS/StopOfRoute/City/{City}/{RouteName}',
@@ -12619,6 +13347,14 @@ var drtsV3urls = {
   RouteFare_RouteName: busV3URL + '/DRTS/RouteFare/City/{City}/{RouteName}',
   Schedule: busV3URL + '/DRTS/Schedule/City/{City}',
   Schedule_RouteName: busV3URL + '/DRTS/Schedule/City/{City}/{RouteName}',
+  DailyTimeTable: busV3URL + '/DRTS/DailyTimeTable/City/{City}',
+  DailyTimeTable_RouteName: busV3URL + '/DRTS/DailyTimeTable/City/{City}/{RouteName}',
+  GeneralStopTimeTable: busV3URL + '/DRTS/GeneralStopTimeTable/City/{City}',
+  GeneralStopTimeTable_RouteName: busV3URL + '/DRTS/GeneralStopTimeTable/City/{City}/{RouteName}',
+  DailyStopTimeTable: busV3URL + '/DRTS/DailyStopTimeTable/City/{City}',
+  DailyStopTimeTable_RouteName: busV3URL + '/DRTS/DailyStopTimeTable/City/{City}/{RouteName}',
+  Location: busV3URL + '/DRTS/Location/City/{City}',
+  LocationGroup: busV3URL + '/DRTS/LocationGroup/City/{City}',
   Shape: busV3URL + '/DRTS/Shape/City/{City}',
   Shape_RouteName: busV3URL + '/DRTS/Shape/City/{City}/{RouteName}',
   S2STravelTime: busV3URL + '/DRTS/S2STravelTime/City/{City}',
@@ -12638,6 +13374,17 @@ var shuttleHospitalV3urls = {
   Route: busV3URL + '/Shuttle/Hospital/Route/Authority/{AuthorityCode}',
   StopOfRoute: busV3URL + '/Shuttle/Hospital/StopOfRoute/Authority/{AuthorityCode}',
   Schedule: busV3URL + '/Shuttle/Hospital/Schedule/Authority/{AuthorityCode}'
+};
+var shuttleScienceParkV3urls = {
+  Authority: busV3URL + '/Shuttle/SciencePark/Authority',
+  Operator: busV3URL + '/Shuttle/SciencePark/Operator/Authority/{AuthorityCode}',
+  Stop: busV3URL + '/Shuttle/SciencePark/Stop/Authority/{AuthorityCode}',
+  Route: busV3URL + '/Shuttle/SciencePark/Route/Authority/{AuthorityCode}',
+  StopOfRoute: busV3URL + '/Shuttle/SciencePark/StopOfRoute/Authority/{AuthorityCode}',
+  Schedule: busV3URL + '/Shuttle/SciencePark/Schedule/Authority/{AuthorityCode}',
+  RealTimeByFrequency: busV3URL + '/Shuttle/SciencePark/RealTimeByFrequency/Authority/{AuthorityCode}',
+  RealTimeNearStop: busV3URL + '/Shuttle/SciencePark/RealTimeNearStop/Authority/{AuthorityCode}',
+  EstimatedTimeOfArrival: busV3URL + '/Shuttle/SciencePark/EstimatedTimeOfArrival/Authority/{AuthorityCode}'
 };
 
 function findBusCity(str) {
@@ -12769,25 +13516,26 @@ var fnBUS = {
   getBusRouteInfo: function getBusRouteInfo(RouteUID, cfg) {
     cfg = this.setDefaultCfg(cfg);
     var city = RouteUID.substr(0, 3);
-    var myURL = busURL + '/Route/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-    myURL += ptx.filterFn(ptx.filterParam('RouteUID', '==', RouteUID) + '&' + ptx.topFn());
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    var myURL = buildBusURL('Route', city, cfg);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam('RouteUID', '==', RouteUID))]);
     ptx.getURL(myURL, cfg.cbFn);
   },
   getBusRealtimeNearStop: function getBusRealtimeNearStop(RouteUID, dir, cfg) {
     cfg = this.setDefaultCfg(cfg);
     var city = RouteUID.substr(0, 3);
+    var myURL = buildBusURL('RealTimeNearStop', city, cfg);
+    if (!myURL) return false;
+    var filterStr;
 
     if (/string|number/.test(_typeof(dir))) {
       dir = dir.toString();
-      var myURL = busURL + '/RealTimeNearStop/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-      myURL += ptx.filterFn(ptx.filterParam(['RouteUID', 'Direction'], '==', [RouteUID, dir], 'and')) + '&' + ptx.topFn();
+      filterStr = ptx.filterFn(ptx.filterParam(['RouteUID', 'Direction'], '==', [RouteUID, dir], 'and'));
     } else {
-      var myURL = busURL + '/RealTimeNearStop/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-      myURL += ptx.filterFn(ptx.filterParam(['RouteUID'], '==', [RouteUID], 'and')) + '&' + ptx.topFn();
+      filterStr = ptx.filterFn(ptx.filterParam(['RouteUID'], '==', [RouteUID], 'and'));
     }
 
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    myURL += buildBusQuery(cfg, [filterStr]);
     ptx.getURL(myURL, cfg.cbFn);
   },
   getBusRoute: function getBusRoute(RouteUID, cfg, city) {
@@ -12801,23 +13549,23 @@ var fnBUS = {
       }
     }
 
-    var myURL = busURL + '/Route/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-    myURL += ptx.filterFn(ptx.filterParam('RouteUID', '==', RouteUID), 'or') + '&' + ptx.topFn();
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    var myURL = buildBusURL('Route', city, cfg);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam('RouteUID', '==', RouteUID))]);
     ptx.getURL(myURL, cfg.cbFn);
   },
   getBusStation: function getBusStation(StationID, city, cfg) {
     cfg = this.setDefaultCfg(cfg);
-    var myURL = busURL + '/Station/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-    myURL += ptx.filterFn(ptx.filterParam('StationID', '==', StationID.toString())) + '&' + ptx.topFn();
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    var myURL = buildBusURL('Station', city, cfg);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam('StationID', '==', StationID.toString()))]);
     ptx.getURL(myURL, cfg.cbFn);
   },
   getPositionBusStation: function getPositionBusStation(city, lat, lng, cfg) {
     cfg = this.setDefaultCfg(cfg);
-    var myURL = busURL + '/Station/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-    myURL += ptx.spatialFilterFn(lat, lng, cfg.far, cfg.field) + '&' + ptx.topFn();
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    var myURL = buildBusURL('Station', city, cfg);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg, [ptx.spatialFilterFn(lat, lng, cfg.far, cfg.field)]);
     ptx.getURL(myURL, cfg.cbFn);
   },
   getPromisePositionBusStation: function getPromisePositionBusStation(city, lat, lng) {
@@ -12832,10 +13580,9 @@ var fnBUS = {
   },
   getBusStopRoute: function getBusStopRoute(RouteUID, city, cfg) {
     cfg = this.setDefaultCfg(cfg);
-    var myURL = busURL + '/StopOfRoute/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-    myURL += ptx.filterFn(ptx.filterParam('RouteUID', '==', RouteUID.toString())) + '&';
-    myURL += ptx.orderByFn('SubRouteName/Zh_tw', 'asc') + '&' + ptx.topFn();
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    var myURL = buildBusURL('StopOfRoute', city, cfg);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam('RouteUID', '==', RouteUID.toString())), ptx.orderByFn('SubRouteName/Zh_tw', 'asc')]);
     ptx.getURL(myURL, cfg.cbFn);
   },
   getPromiseBusStopRoute: function getPromiseBusStopRoute(RouteUID, city) {
@@ -12854,34 +13601,32 @@ var fnBUS = {
       return 'RouteUID';
     });
     cfg = this.setDefaultCfg(cfg);
-    var myURL = busURL + '/StopOfRoute/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-    myURL += ptx.filterFn(ptx.filterParam(rtuids, '==', aryRouteUID, 'or')) + '&';
-    myURL += ptx.orderByFn('SubRouteName/Zh_tw', 'asc') + '&' + ptx.topFn();
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    var myURL = buildBusURL('StopOfRoute', city, cfg);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam(rtuids, '==', aryRouteUID, 'or')), ptx.orderByFn('SubRouteName/Zh_tw', 'asc')]);
     return new Promise(function (resolve) {
       ptx.getURL(myURL, resolve);
     });
   },
   getBusStopRouteByNumber: function getBusStopRouteByNumber(busNumber, city, cfg) {
     cfg = this.setDefaultCfg(cfg);
-    var myURL = busURL + '/StopOfRoute/' + cfg.manageBy + '/' + this.getCityData(city).City + '/' + encodeURI(busNumber) + '?';
-    myURL += ptx.orderByFn('SubRouteName/Zh_tw', 'asc') + '&' + ptx.topFn();
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    var myURL = buildBusURL('StopOfRoute', city, cfg, busNumber);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg, [ptx.orderByFn('SubRouteName/Zh_tw', 'asc')]);
     ptx.getURL(myURL, cfg.cbFn);
   },
   getEstimatedTimeOfArrival: function getEstimatedTimeOfArrival(filterStr, city, cfg) {
-    filterStr = filterStr ? filterStr + '&' : '';
     cfg = this.setDefaultCfg(cfg);
-    var myURL = busURL + '/EstimatedTimeOfArrival/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-    myURL += filterStr + ptx.topFn();
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    var myURL = buildBusURL('EstimatedTimeOfArrival', city, cfg);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg, [filterStr]);
     ptx.getURL(myURL, cfg.cbFn);
   },
   searchBusByNumber: function searchBusByNumber(busNumber, city, cfg) {
     cfg = this.setDefaultCfg(cfg);
-    var myURL = busURL + '/Route/' + cfg.manageBy + '/' + this.getCityData(city).City + '/' + encodeURI(busNumber) + '?';
-    myURL += ptx.orderByFn('RouteName/Zh_tw', 'asc') + '&' + ptx.topFn();
-    if (cfg.selectField) myURL += '&' + cfg.selectField;
+    var myURL = buildBusURL('Route', city, cfg, busNumber);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg, [ptx.orderByFn('RouteName/Zh_tw', 'asc')]);
     ptx.getURL(myURL, cfg.cbFn);
   },
   getBusOperator: function getBusOperator(city, cfg) {
@@ -13098,6 +13843,38 @@ var fnBUS = {
     myURL += buildBusQuery(cfg);
     ptx.getURL(myURL, cfg.cbFn);
   },
+  getBusRealTimeNearStopStreaming: function getBusRealTimeNearStopStreaming(city, cfg) {
+    var arg = normalizeCityCfg(city, cfg);
+    cfg = this.setDefaultCfg(arg.cfg);
+    var myURL = buildBusURL('RealTimeNearStop/Streaming', arg.city, cfg);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg);
+    ptx.getURL(myURL, cfg.cbFn);
+  },
+  getBusRealTimeNearStopStreamingByNumber: function getBusRealTimeNearStopStreamingByNumber(busNumber, city, cfg) {
+    var arg = normalizeCityCfg(city, cfg);
+    cfg = this.setDefaultCfg(arg.cfg);
+    var myURL = buildBusURL('RealTimeNearStop/Streaming', arg.city, cfg, busNumber);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg);
+    ptx.getURL(myURL, cfg.cbFn);
+  },
+  getBusEstimatedTimeOfArrivalStreaming: function getBusEstimatedTimeOfArrivalStreaming(city, cfg) {
+    var arg = normalizeCityCfg(city, cfg);
+    cfg = this.setDefaultCfg(arg.cfg);
+    var myURL = buildBusURL('EstimatedTimeOfArrival/Streaming', arg.city, cfg);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg);
+    ptx.getURL(myURL, cfg.cbFn);
+  },
+  getBusEstimatedTimeOfArrivalStreamingByNumber: function getBusEstimatedTimeOfArrivalStreamingByNumber(busNumber, city, cfg) {
+    var arg = normalizeCityCfg(city, cfg);
+    cfg = this.setDefaultCfg(arg.cfg);
+    var myURL = buildBusURL('EstimatedTimeOfArrival/Streaming', arg.city, cfg, busNumber);
+    if (!myURL) return false;
+    myURL += buildBusQuery(cfg);
+    ptx.getURL(myURL, cfg.cbFn);
+  },
   getBusStationGroup: function getBusStationGroup(city, cfg) {
     var arg = normalizeCityCfg(city, cfg);
     cfg = this.setDefaultCfg(arg.cfg);
@@ -13257,6 +14034,10 @@ fnBUS.v3 = {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       return fnBUS.v3.drts._Station(city, cfg);
     },
+    getStationGroup: function getStationGroup(city) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.drts._StationGroup(city, cfg);
+    },
     getOperator: function getOperator(city) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       return fnBUS.v3.drts._Operator(city, cfg);
@@ -13264,6 +14045,14 @@ fnBUS.v3 = {
     getRoute: function getRoute(city) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       return fnBUS.v3.drts._Route(city, cfg);
+    },
+    getSubRoute: function getSubRoute(city) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.drts._SubRoute(city, cfg);
+    },
+    getSubRouteByRouteName: function getSubRouteByRouteName(routeName, city) {
+      var cfg = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      return fnBUS.v3.drts._SubRoute_RouteName(city, routeName, cfg);
     },
     getBookingRule: function getBookingRule(city) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -13292,6 +14081,38 @@ fnBUS.v3 = {
     getScheduleByRouteName: function getScheduleByRouteName(routeName, city) {
       var cfg = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
       return fnBUS.v3.drts._Schedule_RouteName(city, routeName, cfg);
+    },
+    getDailyTimeTable: function getDailyTimeTable(city) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.drts._DailyTimeTable(city, cfg);
+    },
+    getDailyTimeTableByRouteName: function getDailyTimeTableByRouteName(routeName, city) {
+      var cfg = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      return fnBUS.v3.drts._DailyTimeTable_RouteName(city, routeName, cfg);
+    },
+    getGeneralStopTimeTable: function getGeneralStopTimeTable(city) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.drts._GeneralStopTimeTable(city, cfg);
+    },
+    getGeneralStopTimeTableByRouteName: function getGeneralStopTimeTableByRouteName(routeName, city) {
+      var cfg = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      return fnBUS.v3.drts._GeneralStopTimeTable_RouteName(city, routeName, cfg);
+    },
+    getDailyStopTimeTable: function getDailyStopTimeTable(city) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.drts._DailyStopTimeTable(city, cfg);
+    },
+    getDailyStopTimeTableByRouteName: function getDailyStopTimeTableByRouteName(routeName, city) {
+      var cfg = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      return fnBUS.v3.drts._DailyStopTimeTable_RouteName(city, routeName, cfg);
+    },
+    getLocation: function getLocation(city) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.drts._Location(city, cfg);
+    },
+    getLocationGroup: function getLocationGroup(city) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.drts._LocationGroup(city, cfg);
     },
     getShape: function getShape(city) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -13363,6 +14184,45 @@ fnBUS.v3 = {
     getSchedule: function getSchedule(authorityCode) {
       var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       return fnBUS.v3.shuttleHospital._Schedule(authorityCode, cfg);
+    }
+  },
+  shuttleSciencePark: {
+    urls: shuttleScienceParkV3urls,
+    getAuthority: function getAuthority() {
+      var cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      return fnBUS.v3.shuttleSciencePark._Authority(cfg);
+    },
+    getOperator: function getOperator(authorityCode) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.shuttleSciencePark._Operator(authorityCode, cfg);
+    },
+    getStop: function getStop(authorityCode) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.shuttleSciencePark._Stop(authorityCode, cfg);
+    },
+    getRoute: function getRoute(authorityCode) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.shuttleSciencePark._Route(authorityCode, cfg);
+    },
+    getStopOfRoute: function getStopOfRoute(authorityCode) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.shuttleSciencePark._StopOfRoute(authorityCode, cfg);
+    },
+    getSchedule: function getSchedule(authorityCode) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.shuttleSciencePark._Schedule(authorityCode, cfg);
+    },
+    getRealTimeByFrequency: function getRealTimeByFrequency(authorityCode) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.shuttleSciencePark._RealTimeByFrequency(authorityCode, cfg);
+    },
+    getRealTimeNearStop: function getRealTimeNearStop(authorityCode) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.shuttleSciencePark._RealTimeNearStop(authorityCode, cfg);
+    },
+    getEstimatedTimeOfArrival: function getEstimatedTimeOfArrival(authorityCode) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return fnBUS.v3.shuttleSciencePark._EstimatedTimeOfArrival(authorityCode, cfg);
     }
   }
 };
@@ -13443,6 +14303,7 @@ function attachBusV3Api(target, urlMap, autoKeyName) {
 attachBusV3Api(fnBUS.v3, v3urls, 'ptxAutoBusV3FunctionKey');
 attachBusV3Api(fnBUS.v3.drts, drtsV3urls, 'ptxAutoBusV3DRTSFunctionKey');
 attachBusV3Api(fnBUS.v3.shuttleHospital, shuttleHospitalV3urls, 'ptxAutoBusV3ShuttleHospitalFunctionKey');
+attachBusV3Api(fnBUS.v3.shuttleSciencePark, shuttleScienceParkV3urls, 'ptxAutoBusV3ShuttleScienceParkFunctionKey');
 
 var metroURL = CM.metroURL;
 var urls = {
@@ -13482,6 +14343,14 @@ var urls = {
   //取得捷運站別時刻表資料
   StationTransfer: metroURL + '/StationTransfer/',
   //取得捷運車站跨運具轉乘資料
+  TransferStations: metroURL + '/TransferStations/',
+  //取得指定捷運共站站點資料(RailSystem 限 TRTC_NTMC、KRTC)
+  News: metroURL + '/News/',
+  //取得捷運最新消息資料
+  StationPlatform: metroURL + '/StationPlatform/',
+  //取得捷運車站月台資訊資料(RailSystem 限 KLRT)
+  StoppingPattern: metroURL + '/StoppingPattern/',
+  //取得捷運停靠模式資料(RailSystem 限 TYMC)
   Shape: metroURL + '/Shape/' //取得指定營運業者之軌道路網實體路線圖資資料
 
 };
@@ -14224,6 +15093,10 @@ var baseMethod = function baseMethod(companyTag) {
           //合併
           return promiseCatchLineCombine(json, data, 'Transfer', 'FromLineID');
         }).catch(function () {
+          json.forEach(function (c) {
+            if (!c.Transfer) c.Transfer = [];
+          }); //API 不支援該營運商時保底空陣列
+
           return json;
         });
       }).then(function (json) {
@@ -14268,18 +15141,24 @@ var baseMethod = function baseMethod(companyTag) {
               c.AveMins = Math.ceil((parseInt(c.MinHeadwayMins) + parseInt(c.MaxHeadwayMins)) / 2);
               return c;
             });
-            var tmpSD = rt.ServiceDays;
+            var tmpSD = rt.ServiceDay || rt.ServiceDays; //TDX 現行欄位為 ServiceDay(單數)，輸出維持舊格式 ServiceDays
+
             rt.ServiceDays = {
               ServiceTag: tmpSD.ServiceTag,
               NationalHolidays: tmpSD.NationalHolidays,
               week: [tmpSD.Sunday, tmpSD.Monday, tmpSD.Tuesday, tmpSD.Wednesday, tmpSD.Thursday, tmpSD.Friday, tmpSD.Saturday]
             };
+            delete rt.ServiceDay;
             return rt;
           });
         }).then(function (data) {
           //合併
           return promiseCatchLineCombine(json, data, 'Frequency');
         }).catch(function () {
+          json.forEach(function (c) {
+            if (!c.Frequency) c.Frequency = [];
+          }); //API 不支援該營運商時保底空陣列
+
           return json;
         });
       }).then(function (json) {
@@ -14427,6 +15306,7 @@ var baseMethod = function baseMethod(companyTag) {
       });
     },
     TimeSimple: function TimeSimple(progressFn) {
+      if (typeof progressFn != 'function') progressFn = function progressFn(msg) {};
       return catchData.TimeTable(progressFn).then(function (json) {
         progressFn('簡化輸出格式');
         json.forEach(function (station, idx, arr) {
@@ -14438,7 +15318,9 @@ var baseMethod = function baseMethod(companyTag) {
               rt.Direction = [[], []]; //Direction 0 與 1 直接分配到陣列的 0 跟 1
             }
 
-            var weekStr = [data.ServiceDays.Sunday, data.ServiceDays.Monday, data.ServiceDays.Tuesday, data.ServiceDays.Wednesday, data.ServiceDays.Thursday, data.ServiceDays.Friday, data.ServiceDays.Saturday].map(function (day, idx) {
+            var sd = data.ServiceDay || data.ServiceDays; //TDX 現行欄位為 ServiceDay(單數)
+
+            var weekStr = [sd.Sunday, sd.Monday, sd.Tuesday, sd.Wednesday, sd.Thursday, sd.Friday, sd.Saturday].map(function (day, idx) {
               return day ? idx.toString() : '';
             }).join('');
             var TrainType = undefined;
@@ -15272,7 +16154,7 @@ var companyTag$4 = metro.getCompanyTag('tymc');
 var mrtPTXFn$3 = new metro.baseMethod(companyTag$4); //修正桃園捷運的 function
 
 mrtPTXFn$3.catchData.config.Line_S2STravelTime_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'TravelTimes'];
-mrtPTXFn$3.catchData.config.Line_Frequency_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'ServiceDays', 'OperationTime', 'Headways'];
+mrtPTXFn$3.catchData.config.Line_Frequency_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'ServiceDay', 'OperationTime', 'Headways'];
 mrtPTXFn$3.catchData.config.Station_FirstLastTimetable_BackTag = ['LineID', 'StationID', 'TrainType', 'DestinationStaionID', 'FirstTrainTime', 'LastTrainTime'];
 mrtPTXFn$3.catchData.config.Station_Fare_BackTag = ['OriginStationID', 'DestinationStationID', 'Fares', 'TrainType']; //Catch Data 資料預處理
 
@@ -15502,7 +16384,48 @@ mrtPTXFn$3.methodList.forEach(function (k) {
 });
 
 var companyTag$5 = metro.getCompanyTag('klrt');
-var mrtPTXFn$4 = new metro.baseMethod(companyTag$5);
+var mrtPTXFn$4 = new metro.baseMethod(companyTag$5); //Catch Data 資料預處理：將站間行駛時間依方向合併進各 Route（同 trtc 格式）
+
+mrtPTXFn$4.catchData.config.Line_callback = function (json) {
+  json.forEach(function (Line) {
+    var TravelTime = Line.TravelTime || [],
+        tmpA,
+        tmpB;
+    Line.Route.forEach(function (Route) {
+      tmpA = TravelTime.find(function (rr) {
+        return !!(rr.RouteID == Route.RouteID);
+      });
+      if (!tmpA) return;
+      var sameDir = !!(tmpA.TravelTimes[0].FromTo[0] == Route.Stations[0]);
+      var RunTime = [],
+          StopTime = [];
+
+      for (var i = 0; i < Route.Stations.length; i++) {
+        tmpB = tmpA.TravelTimes[i] || {
+          RunTime: 0,
+          StopTime: 0
+        };
+        RunTime.push(tmpB.RunTime);
+        StopTime.push(tmpB.StopTime);
+      }
+
+      if (!sameDir) {
+        //與 Route 同方向時，每一站同一 index；不同時反轉陣列，RunTime 位移一站再補終站 0
+        RunTime.reverse().shift();
+        RunTime.push(0);
+        StopTime.reverse();
+      }
+
+      Route.TravelTime = {
+        RunTime: RunTime,
+        StopTime: StopTime
+      };
+    });
+    delete Line.TravelTime;
+  });
+  return json;
+};
+
 var fnMRT$4 = {
   checkRouteIdOnUse: function checkRouteIdOnUse(RouteID, LineID) {
     var lineData = this.getLineData(LineID);
@@ -15688,6 +16611,8 @@ var v2urls = {
   //取得當天所有車次的車次資料
   DailyTimetable_Today: thsrV2URL + '/DailyTimetable/Today',
   //取得當天所有車次的時刻表資料
+  DailyTimetable_TrainDates: thsrV2URL + '/DailyTimetable/TrainDates',
+  //取得高鐵每日時刻表所有供應的日期資料
   AlertInfo: thsrV2URL + '/AlertInfo',
   //取得即時通阻事件資料
   News: thsrV2URL + '/News',
@@ -15709,6 +16634,8 @@ var v2urls = {
   //取得指定[車次]的定期時刻表資料
   DailyTrainInfo_Today_TrainNo: thsrV2URL + '/DailyTrainInfo/Today/TrainNo/{TrainNo}',
   //取得當天指定[車次]的車次資料
+  DailyTrainInfo_TrainDate: thsrV2URL + '/DailyTrainInfo/TrainDate/{TrainDate}',
+  //取得指定[日期]所有車次的車次資料 yyyy-MM-dd
   DailyTrainInfo_TrainNo_TrainDate: thsrV2URL + '/DailyTrainInfo/TrainNo/{TrainNo}/TrainDate/{TrainDate}',
   //取得指定[日期]與[車次]的車次資料
   DailyTimetable_Today_TrainNo: thsrV2URL + '/DailyTimetable/Today/TrainNo/{TrainNo}',
@@ -15863,6 +16790,14 @@ thsr.v2 = {
   getDailyFreeSeatingCarByDate: function getDailyFreeSeatingCarByDate(TrainDate) {
     var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
     return thsr.v2._DailyFreeSeatingCar_TrainDate(TrainDate, cfg);
+  },
+  getDailyTimetableDates: function getDailyTimetableDates() {
+    var cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    return thsr.v2._DailyTimetable_TrainDates(cfg);
+  },
+  getDailyTrainInfoByDate: function getDailyTrainInfoByDate(TrainDate) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    return thsr.v2._DailyTrainInfo_TrainDate(TrainDate, cfg);
   } //產生整包抓取 Function
 
 };
@@ -16169,6 +17104,34 @@ function idTrans(objS) {
 
       break;
 
+    case 'krtc':
+      stationAry = pData.krtc.station_ary;
+      stData = findData(stationAry, objS.fromType, objS.from);
+
+      if (stData) {
+        if (objS.returnType == 'string') {
+          tmpA = stData[objS.toType];
+
+          if (_typeof(tmpA) == 'object' && tmpA.length && objS.LineID) {
+            if (/^krtc/.test(objS.LineID)) {
+              objS.LineID = findData(pData.krtc.line, 'id', objS.LineID)['LineID']; //如果給的是 rocptx 的路線 id 則於此處交換為 PTX 上操作 KRTC 的 LineID
+            }
+
+            var testReg = new RegExp('^' + objS.LineID + '[0-9]', 'i');
+            var returnValue = tmpA.find(function (k) {
+              return testReg.test(k);
+            });
+            rt = returnValue;
+          } else {
+            rt = stData[objS.toType];
+          }
+        } else {
+          rt = stData;
+        }
+      }
+
+      break;
+
     case 'ntmc':
       stationAry = pData.ntmc.station_ary;
       stData = findData(stationAry, objS.fromType, objS.from);
@@ -16227,6 +17190,16 @@ function mrtLineTrans(objS) {
 
     case "tymc":
       lineAry = pData.tymc.line;
+      lineData = findData(lineAry, objS.fromType, objS.value);
+
+      if (lineData) {
+        rt = objS.returnType == 'string' ? lineData[objS.toType] : lineData;
+      }
+
+      break;
+
+    case "krtc":
+      lineAry = pData.krtc.line;
       lineData = findData(lineAry, objS.fromType, objS.value);
 
       if (lineData) {
@@ -16379,6 +17352,46 @@ var tymc = {
     });
   }
 };
+var krtc = {
+  getPTXV2: function getPTXV2(id, line) {
+    var param = {
+      company: 'krtc',
+      value: id,
+      fromType: 'id',
+      toType: 'StationID'
+    };
+
+    if (line) {
+      param.LineID = line;
+    }
+
+    return idTrans(param);
+  },
+  getRPIDbyPTXV2: function getRPIDbyPTXV2(id) {
+    return idTrans({
+      company: 'krtc',
+      value: id,
+      fromType: 'StationID',
+      toType: 'id'
+    });
+  },
+  getLINE_LineIDbyRPID: function getLINE_LineIDbyRPID(id) {
+    return mrtLineTrans({
+      company: 'krtc',
+      value: id,
+      fromType: 'id',
+      toType: 'LineID'
+    });
+  },
+  getLINE_RPIDbyLineID: function getLINE_RPIDbyLineID(id) {
+    return mrtLineTrans({
+      company: 'krtc',
+      value: id,
+      fromType: 'LineID',
+      toType: 'id'
+    });
+  }
+};
 var ntmc = {
   getPTXV2: function getPTXV2(id, line) {
     var param = {
@@ -16425,6 +17438,7 @@ var id$2 = {
   thsr: thsr$1,
   tra: tra,
   trtc: trtc,
+  krtc: krtc,
   tymc: tymc,
   ntmc: ntmc,
   getMRTStationIDInWhatLine: getMRTStationIDInWhatLine
@@ -16529,8 +17543,8 @@ var v3urls$1 = {
   //以下為帶有變數的 API
   ODFareFromTo: traV3URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}',
   //取得指定[起訖站間]之票價資料
-  GeneralTimetable_TrainNo: traV3URL + '/GeneralTimetable/TrainNo/{TrainNo}',
-  //取得指定[車次]的定期時刻表資料
+  GeneralTrainTimetable_TrainNo: traV3URL + '/GeneralTrainTimetable/TrainNo/{TrainNo}',
+  //取得指定[車次]的定期時刻表資料(v3 為 GeneralTrainTimetable，舊 GeneralTimetable_TrainNo 路徑有誤已更名修正)
   GeneralStationTimetable_Station: traV3URL + '/GeneralStationTimetable/Station/{StationID}',
   //取得指定[車站]的定期站別時刻表資料
   SpecificTrainTimetable_TrainNo: traV3URL + '/SpecificTrainTimetable/TrainNo/{TrainNo}',
@@ -16785,13 +17799,23 @@ var catchData$1 = {
     return rt;
   },
   getDataXStationData: function getDataXStationData(StationID) {
-    var rt = ptx.datax['tra'].station.find(function (c) {
-      return !!(c.StationID == StationID);
-    });
+    var findFn = function findFn(sid) {
+      return ptx.datax['tra'].station.find(function (c) {
+        return !!(c.StationID == sid);
+      });
+    };
+
+    var rt = findFn(StationID);
+
+    if (!rt) {
+      //2026-07 起 TDX 的 TRA v2 API 已改回傳 v3 站 ID，datax 亦為 v3 ID；傳入 v2 ID 查無時自動轉 v3 相容舊用法
+      var v3id = id$2.tra.getPTXV3byV2(StationID);
+      if (v3id) rt = findFn(v3id);
+    }
 
     if (rt) {
       var dt = ptx.data.tra.station_ary.find(function (c) {
-        return !!(id$2.tra.getPTXV2(c.id) == StationID);
+        return !!(id$2.tra.getPTXV2(c.id) == StationID || c.v3id == rt.StationID);
       });
 
       for (var k in dt) {
@@ -16899,9 +17923,10 @@ var catchData$1 = {
   },
   SimpleLine: function SimpleLine(progressFn) {
     if (typeof progressFn != 'function') progressFn = function progressFn(msg) {}; //區分要抓的 line 在資料中是順時針或逆時針方向
+    //2026-07 更新：TDX 現行 v2 LineID 與 v3 相同（舊 YL/NL/TT/TL-* 等已不存在），清單同步 v3 版
 
-    var recordLineDir0 = ['CZ', 'YL', 'NL', 'TT', 'PX', 'NW', 'LJ'];
-    var recordLineDir1 = ['TL-N', 'TL-M', 'TL-C', 'TL-S', 'PL', 'SL', 'SA', 'JJ', 'SH'];
+    var recordLineDir0 = ['CZ', 'EL', 'SU', 'PX', 'NW', 'LJ'];
+    var recordLineDir1 = ['WL', 'WL-C', 'SL', 'SA', 'JJ', 'SH'];
     var lineCfg = {
       filterBy: ptx.filterParam('LineID', '==', recordLineDir0.concat(recordLineDir1), 'or')
     };
@@ -17728,15 +18753,187 @@ aryMakeAFRV3Function.forEach(function (fn) {
 afr.v3.ptxAutoAFRFunctionKey = ptxAutoAFRV3FunctionKey;
 afr.v3.getFromToFare = afr.v3._ODFare_OriginStationID_to_DestinationStationID;
 
+var railV2URL = CM.railV2URL;
+var v2urls$1 = {
+  Operator: railV2URL + '/Operator',
+  //取得軌道營運業者基本資料
+  S2SDistance: railV2URL + '/S2SDistance/{RailSystem}',
+  //取得[指定軌道系統]相鄰兩站站間距離資料
+  ODDistance: railV2URL + '/ODDistance/{RailSystem}',
+  //取得[指定軌道起迄站]站間距離資料
+  ODDistance_OriginStationName_to_DestinationStationName: railV2URL + '/ODDistance/{RailSystem}/{OriginStationName}/to/{DestinationStationName}',
+  //取得[指定軌道指定起迄站]站間距離資料
+  ODFare_OriginStationName_to_DestinationStationName: railV2URL + '/ODFare/{RailSystem}/{OriginStationName}/to/{DestinationStationName}' //取得[指定軌道指定起迄站]站間票價資料
+
+};
+var vars$3 = {
+  queryCount: 10000,
+  format: 'JSON'
+};
+var getPTX$4 = ptx.getPromiseURL;
+
+function setDefaultCfg$4() {
+  var cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  if (typeof cfg == 'string') cfg = {
+    paramDirectlyUse: cfg
+  };
+
+  cfg.cbFn = cfg.cbFn || function (data, e) {};
+
+  cfg.top = cfg.top || vars$3.queryCount;
+  cfg.format = vars$3.format;
+  return cfg;
+}
+
+function processCfg$4(cfg) {
+  if (cfg.paramDirectlyUse) return cfg.paramDirectlyUse;
+  var aryParam = [];
+  if (cfg.selectField) aryParam.push(ptx.selectFieldFn(cfg.selectField));
+  if (cfg.filterBy) aryParam.push(ptx.filterFn(cfg.filterBy));
+
+  if (cfg.orderBy) {
+    var dir = cfg.orderDir || false;
+    aryParam.push(ptx.orderByFn(cfg.orderBy, dir));
+  }
+
+  aryParam.push(ptx.topFn(cfg.top, cfg.format));
+  return '?' + aryParam.join('&');
+}
+
+var rail = {
+  vars: vars$3
+};
+rail.v2 = {
+  urls: v2urls$1,
+  getOperator: function getOperator() {
+    var cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    return rail.v2._Operator(cfg);
+  },
+  getS2SDistance: function getS2SDistance(RailSystem) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    return rail.v2._S2SDistance(RailSystem, cfg);
+  },
+  getODDistance: function getODDistance(RailSystem) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    return rail.v2._ODDistance(RailSystem, cfg);
+  },
+  getODDistanceFromTo: function getODDistanceFromTo(RailSystem, OriginStationName, DestinationStationName) {
+    var cfg = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+    return rail.v2._ODDistance_OriginStationName_to_DestinationStationName(RailSystem, OriginStationName, DestinationStationName, cfg);
+  },
+  getODFareFromTo: function getODFareFromTo(RailSystem, OriginStationName, DestinationStationName) {
+    var cfg = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+    return rail.v2._ODFare_OriginStationName_to_DestinationStationName(RailSystem, OriginStationName, DestinationStationName, cfg);
+  }
+};
+rail.v2.getFromToFare = rail.v2.getODFareFromTo;
+var aryMakeRailV2Function = Object.keys(v2urls$1);
+var ptxAutoRailV2FunctionKey = [];
+aryMakeRailV2Function.forEach(function (fn) {
+  var urlAry = v2urls$1[fn].split('/');
+  var paramCount = 0;
+  var paramAry = [];
+  urlAry.forEach(function (c) {
+    if (/^\{/.test(c)) {
+      paramCount++;
+      paramAry.push(c);
+    }
+  });
+
+  rail.v2['_' + fn] = function () {
+    var ptr = 0;
+    var arg = arguments;
+    var isObjArgs = false;
+    var paramsObj = null;
+    var cleanParamAry = paramAry.map(function (p) {
+      return p.replace(/[{}]/g, '');
+    });
+
+    if (arg.length > 0 && _typeof(arg[0]) === 'object' && arg[0] !== null) {
+      if (cleanParamAry.some(function (p) {
+        return p in arg[0];
+      })) {
+        isObjArgs = true;
+        paramsObj = arg[0];
+      }
+    }
+
+    if (!isObjArgs && arg.length < paramCount) throw 'Lose parameter, need ' + paramAry.join();
+    var url = urlAry.map(function (c) {
+      if (/^\{/.test(c)) {
+        var key = c.replace(/[{}]/g, '');
+
+        if (isObjArgs) {
+          if (paramsObj[key] === undefined) throw 'Lose parameter, need ' + key;
+          c = paramsObj[key];
+        } else {
+          c = arg[ptr];
+          ptr++;
+        }
+
+        c = encodeURI(c);
+      }
+
+      return c;
+    }).join('/');
+    var cfg = isObjArgs ? arguments[1] : arguments[paramCount];
+    cfg = setDefaultCfg$4(cfg);
+    var param = processCfg$4(cfg);
+    return getPTX$4(url + param, cfg);
+  };
+
+  ptxAutoRailV2FunctionKey.push('_' + fn);
+});
+rail.v2.ptxAutoRailFunctionKey = ptxAutoRailV2FunctionKey;
+
 var companyTag$6 = metro.getCompanyTag('ntmc');
 var mrtPTXFn$5 = new metro.baseMethod(companyTag$6); //修正新北捷運的 function
 
 mrtPTXFn$5.catchData.config.Line_S2STravelTime_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'TravelTimes'];
-mrtPTXFn$5.catchData.config.Line_Frequency_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'ServiceDays', 'OperationTime', 'Headways'];
+mrtPTXFn$5.catchData.config.Line_Frequency_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'ServiceDay', 'OperationTime', 'Headways'];
 mrtPTXFn$5.catchData.config.Station_FirstLastTimetable_BackTag = ['LineID', 'StationID', 'TrainType', 'DestinationStaionID', 'FirstTrainTime', 'LastTrainTime'];
-mrtPTXFn$5.catchData.config.Station_Fare_BackTag = ['OriginStationID', 'DestinationStationID', 'Fares', 'TrainType']; //Catch Data 資料預處理
+mrtPTXFn$5.catchData.config.Station_Fare_BackTag = ['OriginStationID', 'DestinationStationID', 'Fares', 'TrainType']; //Catch Data 資料預處理：將站間行駛時間依方向合併進各 Route（同 trtc 格式）
 
 mrtPTXFn$5.catchData.config.Line_callback = function (json) {
+  json.forEach(function (Line) {
+    var TravelTime = Line.TravelTime,
+        tmpA,
+        tmpB,
+        main = [];
+    Line.Route.forEach(function (Route) {
+      if (main.indexOf(Route.RouteID) == -1) main.push(Route.RouteID);
+      tmpA = TravelTime.find(function (rr) {
+        return !!(rr.RouteID == Route.RouteID);
+      });
+      if (!tmpA) return;
+      var sameDir = !!(tmpA.TravelTimes[0].FromTo[0] == Route.Stations[0]);
+      var RunTime = [],
+          StopTime = [];
+
+      for (var i = 0; i < Route.Stations.length; i++) {
+        tmpB = tmpA.TravelTimes[i] || {
+          RunTime: 0,
+          StopTime: 0
+        };
+        RunTime.push(tmpB.RunTime);
+        StopTime.push(tmpB.StopTime);
+      }
+
+      if (!sameDir) {
+        //與 Route 同方向時，每一站同一 index , RunTime 儲存本站到下一站要開多久 , StopTime 儲存本站要停多久 ; 不同時反轉陣列，RunTime 位移一站再補終站 0
+        RunTime.reverse().shift();
+        RunTime.push(0);
+        StopTime.reverse();
+      }
+
+      Route.TravelTime = {
+        RunTime: RunTime,
+        StopTime: StopTime
+      };
+    });
+    delete Line.TravelTime;
+    Line.main = main;
+  });
   return json;
 };
 
@@ -18173,7 +19370,9 @@ function getMRTThrough(from, to) {
 var findMapBlock = {};
 
 function findBlock(BlockID) {
-  if (findMapBlock[BlockID]) return findMapBlock[BlockID];
+  //快取 key 需帶公司別：不同公司的 LineID 會撞名（如北捷與高捷都有 R / O 線），BlockID 單獨使用會互相污染
+  var mapKey = this.company + ',' + BlockID;
+  if (findMapBlock[mapKey]) return findMapBlock[mapKey];
   var blockData = this.getBlockData();
   var aryBlock = blockData.reduce(function (c, n) {
     return c.concat(n);
@@ -18181,7 +19380,7 @@ function findBlock(BlockID) {
 
   for (var i = 0; i < aryBlock.length; i++) {
     if (aryBlock[i].BlockID == BlockID) {
-      findMapBlock[BlockID] = aryBlock[i];
+      findMapBlock[mapKey] = aryBlock[i];
       return CM.assign({}, aryBlock[i]);
     }
   }
@@ -18228,7 +19427,10 @@ function getAllLineRoute(from, to) {
 
         if (bObj.toIDList) {
           bObj.toIDList.map(function (trans) {
-            var tmpBlockID = me.getStationBlockByID(trans).BlockID;
+            var transBlock = me.getStationBlockByID(trans);
+            if (!transBlock) return; //跨公司轉乘目標（如環狀線轉北捷）不在本公司 block 內
+
+            var tmpBlockID = transBlock.BlockID;
 
             if (stAry.indexOf(tmpBlockID) == -1) {
               linkTarget.push(tmpBlockID);
@@ -18415,7 +19617,7 @@ var trtc$1 = function () {
   return baseMRT('trtc');
 }();
 
-var krtc = function () {
+var krtc$1 = function () {
   return baseMRT('krtc');
 }();
 
@@ -18429,7 +19631,7 @@ var ntmc$1 = function () {
 
 var router$1 = {
   trtc: trtc$1,
-  krtc: krtc,
+  krtc: krtc$1,
   tymc: tymc$1,
   ntmc: ntmc$1
 };
@@ -18652,6 +19854,7 @@ var combine = {
   tra: tra$1,
   ntmc: fnMRT$5,
   afr: afr,
+  rail: rail,
   router: router$2,
   jsSHA: jsSHA,
   id: id$2,

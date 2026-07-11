@@ -1,8 +1,13 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.0.4",
   "info": {
     "title": "公共運輸-軌道",
     "description": "本平臺提供涵蓋全國尺度之交通旅運資料服務API，歡迎各產政學單位介接使用。\n<br><span class=swagger-description-indicatation>利用本平臺開放資料進行各項應用服務開發時，請考量不同特性使用者(如：性別/身心障礙/老幼等)的需求，並歡迎回饋寶貴意見。</span>\n<br>計費方式：\n<br>計次：1,500次/1點\n<br>計量：150MB/1點\n---\n##### API使用說明與注意事項：\n1. 如您尚未註冊平臺會員帳號，或未以帳號登入，您將僅能以「訪客模式」使用平臺服務，包含：限以瀏覽器存取，限使用`【基礎服務】`，且限制每個呼叫來源端IP每日存取至多20次。。\n2. 如您已註冊平臺會員帳號，請務必確保在存取服務(包含瀏覽器、程式呼叫API)時帶入您的API金鑰，方能以「會員模式」使用完整平臺服務，包含平臺各類資料服務，如`【基礎服務】`、`【進階服務】`、`【加值服務】`、`【歷史服務】`、`【圖資服務】`、`【第三方服務】`等。\n3. 建議您立即[註冊平臺會員帳號](/register)，依您用量需求訂閱服務方案，並於[【會員中心->資料服務->API金鑰】](/user/dataservice/key)取得API金鑰(即Client Id和Client Secret資訊)。\n4. 會員訂閱服務方案之級別不同，將決定其API金鑰之存取頻率有不同限制，各個方案的存取頻率限制說明請參考[訂閱收費](/pricing)。\n5. 以瀏覽器帶入API金鑰之操作方式：請點選Swagger UI上的Authorize按鈕，依指示填入Client Id和Client Secret資訊並進行驗證，驗證完成後可開始於Swagger UI使用API。\n6. 以程式呼叫API帶入API金鑰之操作方式：請參考[範例程式](https://github.com/tdxmotc/SampleCode)。\n7. 不論您是以瀏覽器或是以程式呼叫API，所有服務存取行為均將被記錄並定期檢視，以確保系統資源使用的合理分配與避免遭受濫用。\n\nAPI OAS文本 :[請點我](https://tdx.transportdata.tw/webapi/File/Swagger/V3/5fa88b0c-120b-43f1-b188-c379ddb2593d)",
+    "termsOfService": "https://tdx.transportdata.tw/term",
+    "contact": {
+      "name": "TDX客服信箱",
+      "email": "tdx@motc.gov.tw"
+    },
     "version": "v3"
   },
   "servers": [
@@ -6127,6 +6132,7 @@
         "title": "TRANetworkList",
         "required": [
           "AuthorityCode",
+          "Networks",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -6166,6 +6172,17 @@
               "name": "AuthorityCode"
             }
           },
+          "Networks": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Network.Network"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Networks"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -6177,6 +6194,188 @@
         "xml": {
           "name": "TRABaseWrapperOfNetwork",
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Network.Network": {
+        "title": "Network",
+        "required": [
+          "Lines",
+          "NetworkID",
+          "NetworkMapURL",
+          "NetworkName",
+          "OperatorCode",
+          "OperatorName"
+        ],
+        "type": "object",
+        "properties": {
+          "NetworkID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路網代碼",
+            "xml": {
+              "name": "NetworkID"
+            }
+          },
+          "NetworkName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路網名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運業者代碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "NetworkMapURL": {
+            "title": "MapNameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Network.MapNameType"
+              }
+            ],
+            "description": "路網圖網址URL",
+            "xml": {
+              "name": "MapNameType"
+            }
+          },
+          "Lines": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Network.Line"
+            },
+            "description": "路線資訊",
+            "xml": {
+              "name": "List`1"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "路網資料",
+        "xml": {
+          "name": "Network"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Network.Line": {
+        "title": "Line",
+        "required": [
+          "LineID",
+          "LineNo"
+        ],
+        "type": "object",
+        "properties": {
+          "LineNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線編號",
+            "xml": {
+              "name": "LineNo"
+            }
+          },
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線代碼",
+            "xml": {
+              "name": "LineID"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線基本資料",
+        "xml": {
+          "name": "Line"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.NameType": {
+        "title": "NameType",
+        "type": "object",
+        "properties": {
+          "Zh_tw": {
+            "title": "String",
+            "type": "string",
+            "description": "中文繁體名稱",
+            "nullable": true,
+            "xml": {
+              "name": "Zh_tw"
+            }
+          },
+          "En": {
+            "title": "String",
+            "type": "string",
+            "description": "英文名稱",
+            "nullable": true,
+            "xml": {
+              "name": "En"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "NameType"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Network.MapNameType": {
+        "title": "MapNameType",
+        "type": "object",
+        "properties": {
+          "MapName": {
+            "title": "String",
+            "type": "string",
+            "description": "路網圖名稱",
+            "nullable": true,
+            "xml": {
+              "name": "MapName"
+            }
+          },
+          "Zh_tw": {
+            "title": "String",
+            "type": "string",
+            "description": "路網圖網址(中文版)",
+            "nullable": true,
+            "xml": {
+              "name": "Zh_tw"
+            }
+          },
+          "En": {
+            "title": "String",
+            "type": "string",
+            "description": "路網圖網址(英文版)",
+            "nullable": true,
+            "xml": {
+              "name": "En"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "MapNameType"
         }
       },
       "PTX.Service.DTO.Shared.Specification.V3.Base.DisplayHealth": {
@@ -6318,6 +6517,7 @@
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "Stations",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -6353,6 +6553,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Stations": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Station"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Stations"
             }
           },
           "Count": {
@@ -6368,12 +6579,140 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Station": {
+        "title": "Station",
+        "required": [
+          "StationID",
+          "StationName",
+          "StationPosition",
+          "StationUID"
+        ],
+        "type": "object",
+        "properties": {
+          "StationUID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站唯一識別代碼",
+            "xml": {
+              "name": "StationUID"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "ReservationCode": {
+            "title": "String",
+            "type": "string",
+            "description": "訂票車站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "ReservationCode"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "StationPosition": {
+            "title": "PointType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.PointType"
+              }
+            ],
+            "description": "車站座標(WGS84)",
+            "xml": {
+              "name": "PointType"
+            }
+          },
+          "StationAddress": {
+            "title": "String",
+            "type": "string",
+            "description": "車站地址",
+            "nullable": true,
+            "xml": {
+              "name": "StationAddress"
+            }
+          },
+          "StationPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "車站聯絡電話",
+            "nullable": true,
+            "xml": {
+              "name": "StationPhone"
+            }
+          },
+          "StationClass": {
+            "title": "String",
+            "type": "string",
+            "description": "車站級別 = ['0: 特等', '1: 一等', '2: 二等', '3: 三等', '4: 簡易', '5: 招呼', '6: 號誌', 'A: 貨運', 'B: 基地', 'X: 非車']",
+            "nullable": true,
+            "xml": {
+              "name": "StationClass"
+            }
+          },
+          "StationURL": {
+            "title": "String",
+            "type": "string",
+            "description": "車站資訊說明網址",
+            "nullable": true,
+            "xml": {
+              "name": "StationURL"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "車站資料",
+        "xml": {
+          "name": "Station"
+        }
+      },
+      "PTX.Service.DTO.Shared.Specification.V3.Base.PointType": {
+        "title": "PointType",
+        "type": "object",
+        "properties": {
+          "PositionLon": {
+            "type": "number",
+            "description": "位置經度(WGS84)",
+            "format": "double",
+            "nullable": true
+          },
+          "PositionLat": {
+            "type": "number",
+            "description": "位置緯度(WGS84)",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "座標資料型別",
+        "xml": {
+          "name": "PointType"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.StationExit.StationExit]": {
         "title": "TRAStationExitList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "StationExits",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -6409,6 +6748,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "StationExits": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationExit.StationExit"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "StationExits"
             }
           },
           "Count": {
@@ -6424,12 +6774,209 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationExit.StationExit": {
+        "title": "StationExit",
+        "required": [
+          "Exits",
+          "StationID",
+          "StationName"
+        ],
+        "type": "object",
+        "properties": {
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "出入口所屬車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "Exits": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationExit.Exit"
+            },
+            "description": "車站出入口",
+            "xml": {
+              "name": "Exit"
+            }
+          },
+          "ExitMapURLs": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationExit.ExitMapURL"
+            },
+            "description": "車站出入口簡圖網址連結資訊",
+            "nullable": true,
+            "xml": {
+              "name": "ExitMapURL"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "車站出入口資料",
+        "xml": {
+          "name": "StationExit"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationExit.Exit": {
+        "title": "Exit",
+        "required": [
+          "Escalator",
+          "ExitID",
+          "ExitName",
+          "ExitPosition"
+        ],
+        "type": "object",
+        "properties": {
+          "ExitID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "出入口代碼",
+            "xml": {
+              "name": "ExitID"
+            }
+          },
+          "ExitName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "出入口名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "ExitPosition": {
+            "title": "PointType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.PointType"
+              }
+            ],
+            "description": "出入口座標",
+            "xml": {
+              "name": "PointType"
+            }
+          },
+          "Bearing": {
+            "title": "String",
+            "type": "string",
+            "description": "出入口所在道路路段方位角",
+            "nullable": true,
+            "xml": {
+              "name": "Bearing"
+            }
+          },
+          "RoadName": {
+            "title": "String",
+            "type": "string",
+            "description": "出入口所在道路名稱",
+            "nullable": true,
+            "xml": {
+              "name": "RoadName"
+            }
+          },
+          "LocationDescription": {
+            "title": "String",
+            "type": "string",
+            "description": "地址描述",
+            "nullable": true,
+            "xml": {
+              "name": "LocationDescription"
+            }
+          },
+          "Stair": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "是否有樓梯"
+          },
+          "Escalator": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否有電扶梯 = ['0: 沒有', '1: 雙向皆有', '2: 出站有', '3: 入站有']",
+            "format": "int32"
+          },
+          "Elevator": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "是否有電梯"
+          }
+        },
+        "additionalProperties": false,
+        "description": "車站出入口",
+        "xml": {
+          "name": "Exit"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationExit.ExitMapURL": {
+        "title": "ExitMapURL",
+        "required": [
+          "MapName"
+        ],
+        "type": "object",
+        "properties": {
+          "MapName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站出入口簡圖名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "MapURL": {
+            "title": "String",
+            "type": "string",
+            "description": "車站出入口簡圖網址",
+            "nullable": true,
+            "xml": {
+              "name": "MapURL"
+            }
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "ExitMapURL"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.StationFacility]": {
         "title": "TRAStationFacilityList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "StationFacilities",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -6465,6 +7012,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "StationFacilities": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.StationFacility"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "StationFacilities"
             }
           },
           "Count": {
@@ -6480,10 +7038,183 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.StationFacility": {
+        "title": "StationFacility",
+        "required": [
+          "DrinkingFountains",
+          "Elevators",
+          "FacilityMapURLs",
+          "InformationSpots",
+          "StationID",
+          "StationName",
+          "Toilets"
+        ],
+        "type": "object",
+        "properties": {
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "FacilityMapURLs": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.FacilityMapURL"
+            },
+            "description": "車站出入口",
+            "xml": {
+              "name": "FacilityMapURL"
+            }
+          },
+          "Elevators": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.FacilityInfo"
+            },
+            "description": "無障礙電梯位置資訊",
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "InformationSpots": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.FacilityInfo"
+            },
+            "description": "詢問處位置資訊",
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "DrinkingFountains": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.FacilityInfo"
+            },
+            "description": "飲水機位置資訊",
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "Toilets": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.FacilityInfo"
+            },
+            "description": "廁所位置資訊",
+            "xml": {
+              "name": "List`1"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "車站設施資訊",
+        "xml": {
+          "name": "StationFacility"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.FacilityMapURL": {
+        "title": "FacilityMapURL",
+        "required": [
+          "MapName",
+          "MapURL"
+        ],
+        "type": "object",
+        "properties": {
+          "MapName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站設施簡圖名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "MapURL": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站設施簡圖網址",
+            "xml": {
+              "name": "MapURL"
+            }
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "車站設施簡圖網址連結資訊",
+        "xml": {
+          "name": "FacilityMapURL"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationFacility.FacilityInfo": {
+        "title": "FacilityInfo",
+        "required": [
+          "Description"
+        ],
+        "type": "object",
+        "properties": {
+          "Description": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "位置描述",
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "FacilityInfo"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.Line]": {
         "title": "TRALineList",
         "required": [
           "AuthorityCode",
+          "Lines",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -6521,6 +7252,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Lines": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Line"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Lines"
             }
           },
           "Count": {
@@ -6536,12 +7278,105 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Line": {
+        "title": "Line",
+        "required": [
+          "IsBranch",
+          "LineID",
+          "LineName",
+          "LineNo",
+          "LineSectionName"
+        ],
+        "type": "object",
+        "properties": {
+          "LineNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線編號",
+            "xml": {
+              "name": "LineNo"
+            }
+          },
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線代碼",
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "LineName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "LineSectionName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線區間名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "LineColor": {
+            "title": "String",
+            "type": "string",
+            "description": "路線顏色",
+            "nullable": true,
+            "xml": {
+              "name": "LineColor"
+            }
+          },
+          "IsBranch": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "是否位於支線"
+          },
+          "LineGroup": {
+            "title": "String",
+            "type": "string",
+            "description": "路線群組",
+            "nullable": true,
+            "xml": {
+              "name": "LineGroup"
+            }
+          },
+          "LineURL": {
+            "title": "String",
+            "type": "string",
+            "description": "路線群組",
+            "nullable": true,
+            "xml": {
+              "name": "LineURL"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線基本資料",
+        "xml": {
+          "name": "Line"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.StationOfLine.StationOfLine]": {
         "title": "TRAStationOfLineList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "StationOfLines",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -6577,6 +7412,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "StationOfLines": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationOfLine.StationOfLine"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "StationOfLines"
             }
           },
           "Count": {
@@ -6592,12 +7438,108 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationOfLine.StationOfLine": {
+        "title": "StationOfLine",
+        "required": [
+          "LineID",
+          "LineNo",
+          "Stations"
+        ],
+        "type": "object",
+        "properties": {
+          "LineNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線編號",
+            "xml": {
+              "name": "LineNo"
+            }
+          },
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線代碼",
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "Stations": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationOfLine.LineStation"
+            },
+            "description": "路線車站資訊",
+            "xml": {
+              "name": "Station"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線車站基本資料",
+        "xml": {
+          "name": "StationOfLine"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationOfLine.LineStation": {
+        "title": "LineStation",
+        "required": [
+          "CumulativeDistance",
+          "Sequence",
+          "StationID",
+          "StationName"
+        ],
+        "type": "object",
+        "properties": {
+          "Sequence": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "站序",
+            "format": "int32"
+          },
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "CumulativeDistance": {
+            "title": "Single",
+            "type": "number",
+            "description": "已累積之里程距離(公里)",
+            "format": "float"
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線車站資訊",
+        "xml": {
+          "name": "LineStation"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.TrainType]": {
         "title": "TRATrainTypeList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "TrainTypes",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -6635,6 +7577,17 @@
               "name": "AuthorityCode"
             }
           },
+          "TrainTypes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TrainType"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "TrainTypes"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -6648,10 +7601,57 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TrainType": {
+        "title": "TrainType",
+        "required": [
+          "TrainTypeCode",
+          "TrainTypeID",
+          "TrainTypeName"
+        ],
+        "type": "object",
+        "properties": {
+          "TrainTypeID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "列車車種代碼",
+            "xml": {
+              "name": "TrainTypeID"
+            }
+          },
+          "TrainTypeCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車種簡碼 = ['1: 太魯閣', '2: 普悠瑪', '3: 自強', '4: 莒光', '5: 復興', '6: 區間', '7: 普快', '10: 區間快']",
+            "xml": {
+              "name": "TrainTypeCode"
+            }
+          },
+          "TrainTypeName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "列車車種名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "列車車種資料",
+        "xml": {
+          "name": "TrainType"
+        }
+      },
       "PTX.API.Rail.Model.TRAODFareWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.ODFare.ODFare]": {
         "title": "TRAODFareList",
         "required": [
           "AuthorityCode",
+          "ODFares",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -6718,6 +7718,17 @@
               "name": "SrcVersion"
             }
           },
+          "ODFares": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.ODFare.ODFare"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "List`1"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -6731,6 +7742,136 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.ODFare.ODFare": {
+        "title": "ODFare",
+        "required": [
+          "DestinationStationID",
+          "DestinationStationName",
+          "Fares",
+          "OriginStationID",
+          "OriginStationName",
+          "TrainType"
+        ],
+        "type": "object",
+        "properties": {
+          "OriginStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "起點車站代碼",
+            "xml": {
+              "name": "OriginStationID"
+            }
+          },
+          "OriginStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "起點車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "DestinationStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "迄點車站代碼",
+            "xml": {
+              "name": "DestinationStationID"
+            }
+          },
+          "DestinationStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "迄點車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "方向 : [0:'順行',1:'逆行']",
+            "format": "int32",
+            "nullable": true
+          },
+          "TrainType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "車種簡碼 = ['1: 太魯閣', '2: 普悠瑪', '3: 自強', '4: 莒光', '5: 復興', '6: 區間', '7: 普快', '10: 區間快']",
+            "format": "int32"
+          },
+          "Fares": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.ODFare.Fare"
+            },
+            "description": "票價",
+            "xml": {
+              "name": "Fare"
+            }
+          },
+          "TravelDistance": {
+            "type": "number",
+            "description": "起迄站間乘車距離",
+            "format": "float",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "ODFare"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.ODFare.Fare": {
+        "title": "Fare",
+        "required": [
+          "CabinClass",
+          "FareClass",
+          "Price",
+          "TicketType"
+        ],
+        "type": "object",
+        "properties": {
+          "TicketType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "票種類型 = ['1: 一般票', '2: 來回票', '3: 電子票證', '4: 回數票', '5: 定期票(30天期)', '6: 定期票(60天期)', '7: 早鳥票']",
+            "format": "int32"
+          },
+          "FareClass": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "費率等級 = ['1: 成人', '2: 學生', '3: 孩童', '4: 敬老', '5: 愛心', '6: 愛心孩童', '7: 愛心優待/愛心陪伴', '8: 團體', '9: 軍警']",
+            "format": "int32"
+          },
+          "CabinClass": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "艙等 = ['1: 標準座車廂', '2: 商務座車廂', '3: 自由座車廂']",
+            "format": "int32"
+          },
+          "Price": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "計費價格(新台幣)",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "Fare"
+        }
+      },
       "PTX.API.Rail.Model.TRAGeneralTrainWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralTrainTimetable]": {
         "title": "TRAGeneralTrainTimetableList",
         "required": [
@@ -6738,6 +7879,7 @@
           "EffectiveDate",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "TrainTimetables",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -6812,6 +7954,17 @@
             "nullable": true,
             "xml": {
               "name": "ValidityDesciption"
+            }
+          },
+          "TrainTimetables": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralTrainTimetable"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "List`1"
             }
           },
           "Count": {
@@ -6827,6 +7980,423 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralTrainTimetable": {
+        "title": "GeneralTrainTimetable",
+        "required": [
+          "ServiceDay",
+          "StopTimes",
+          "TrainInfo"
+        ],
+        "type": "object",
+        "properties": {
+          "TrainInfo": {
+            "title": "TrainInfo",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Common.TrainInfo"
+              }
+            ],
+            "description": "定期車次資料",
+            "xml": {
+              "name": "TrainInfo"
+            }
+          },
+          "StopTimes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Common.StopTime"
+            },
+            "description": "停靠時間資料",
+            "xml": {
+              "name": "StopTime"
+            }
+          },
+          "ServiceDay": {
+            "title": "ServiceDay",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Common.ServiceDay"
+              }
+            ],
+            "description": "營運日型態",
+            "xml": {
+              "name": "ServiceDay"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "定期時刻表資料型別",
+        "xml": {
+          "name": "GeneralTrainTimetable"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Common.StopTime": {
+        "title": "StopTime",
+        "required": [
+          "ArrivalTime",
+          "DepartureTime",
+          "StationID",
+          "StationName",
+          "StopSequence"
+        ],
+        "type": "object",
+        "properties": {
+          "StopSequence": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "停靠站序(由1開始)",
+            "format": "int32"
+          },
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "ArrivalTime": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "到站時間(格式: HH:mm)",
+            "xml": {
+              "name": "ArrivalTime"
+            }
+          },
+          "DepartureTime": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "離站時間(格式: HH:mm)",
+            "xml": {
+              "name": "DepartureTime"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "停靠時間資料",
+        "xml": {
+          "name": "StopTime"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Common.TrainInfo": {
+        "title": "TrainInfo",
+        "required": [
+          "BikeFlag",
+          "BreastFeedFlag",
+          "CarFlag",
+          "DailyFlag",
+          "DiningFlag",
+          "Direction",
+          "ExtraTrainFlag",
+          "PackageServiceFlag",
+          "TrainNo",
+          "WheelChairFlag"
+        ],
+        "type": "object",
+        "properties": {
+          "TrainNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車次代碼",
+            "xml": {
+              "name": "TrainNo"
+            }
+          },
+          "RouteID": {
+            "title": "String",
+            "type": "string",
+            "description": "營運路線代碼",
+            "nullable": true,
+            "xml": {
+              "name": "RouteID"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "行駛方向 : [0:'順行',1:'逆行']",
+            "format": "int32"
+          },
+          "TrainTypeID": {
+            "title": "String",
+            "type": "string",
+            "description": "車種代嗎",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeID"
+            }
+          },
+          "TrainTypeCode": {
+            "title": "String",
+            "type": "string",
+            "description": "車種簡碼 = ['1: 太魯閣', '2: 普悠瑪', '3: 自強', '4: 莒光', '5: 復興', '6: 區間', '7: 普快', '10: 區間快']",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeCode"
+            }
+          },
+          "TrainTypeName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車種名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "TripHeadSign": {
+            "title": "String",
+            "type": "string",
+            "description": "車次之目的地方向描述",
+            "nullable": true,
+            "xml": {
+              "name": "TripHeadSign"
+            }
+          },
+          "StartingStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "列車起點車站代號",
+            "nullable": true,
+            "xml": {
+              "name": "StartingStationID"
+            }
+          },
+          "StartingStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "列車起點車站名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "EndingStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "列車終點車站代號",
+            "nullable": true,
+            "xml": {
+              "name": "EndingStationID"
+            }
+          },
+          "EndingStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "列車終點車站名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "OverNightStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "跨夜車站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "OverNightStationID"
+            }
+          },
+          "TripLine": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "山海線類型 : [0:'不經山海線',1:'山線',2:'海線',3:'成追線']",
+            "format": "int32",
+            "nullable": true
+          },
+          "WheelChairFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否設身障旅客專用座位車 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "PackageServiceFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否提供行李服務 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "DiningFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否提供訂便當服務 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "BreastFeedFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否設有哺(集)乳室車廂 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "BikeFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否人車同行班次(置於攜車袋之自行車各級列車均可乘車) : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "CarFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否提供小客車 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "DailyFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否為每日行駛 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "ExtraTrainFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否為加班車 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "Note": {
+            "title": "String",
+            "type": "string",
+            "description": "附註說明",
+            "nullable": true,
+            "xml": {
+              "name": "Note"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "車次定期資料型別(時刻表用)",
+        "xml": {
+          "name": "TrainInfo"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Common.ServiceDay": {
+        "title": "ServiceDay",
+        "required": [
+          "DayAfterHoliday",
+          "DayBeforeHoliday",
+          "Friday",
+          "Monday",
+          "NationalHolidays",
+          "Saturday",
+          "Sunday",
+          "Thursday",
+          "Tuesday",
+          "TyphoonDay",
+          "Wednesday"
+        ],
+        "type": "object",
+        "properties": {
+          "ServiceTag": {
+            "title": "String",
+            "type": "string",
+            "description": "服務日標籤",
+            "nullable": true,
+            "xml": {
+              "name": "ServiceTag"
+            }
+          },
+          "Monday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "星期一是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "Tuesday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "星期二是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "Wednesday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "星期三是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "Thursday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "星期四是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "Friday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "星期五是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "Saturday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "星期六是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "Sunday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "星期日是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "NationalHolidays": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "國定假日是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "DayBeforeHoliday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "假日前一日是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "DayAfterHoliday": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "假日後一日是否營運 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "TyphoonDay": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "颱風停止上班上課期間營運營運 : [0:'否',1:'是']",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "服務日型態",
+        "xml": {
+          "name": "ServiceDay"
+        }
+      },
       "PTX.API.Rail.Model.TRAGeneralStationWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralStationTimetable.GeneralStationTimetable]": {
         "title": "TRAGeneralStationTimetableList",
         "required": [
@@ -6834,6 +8404,7 @@
           "EffectiveDate",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "StationTimetables",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -6908,6 +8479,17 @@
             "nullable": true,
             "xml": {
               "name": "ValidityDesciption"
+            }
+          },
+          "StationTimetables": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralStationTimetable.GeneralStationTimetable"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "List`1"
             }
           },
           "Count": {
@@ -6923,6 +8505,264 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralStationTimetable.GeneralStationTimetable": {
+        "title": "GeneralStationTimetable",
+        "required": [
+          "Direction",
+          "ServiceDay",
+          "StationID",
+          "Timetables"
+        ],
+        "type": "object",
+        "properties": {
+          "RouteID": {
+            "title": "String",
+            "type": "string",
+            "description": "營運路線代碼",
+            "nullable": true,
+            "xml": {
+              "name": "RouteID"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "行駛方向 : [0:'順行',1:'逆行']",
+            "format": "int32"
+          },
+          "Timetables": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralStationTimetable.Timetable"
+            },
+            "description": "車次停靠站資料",
+            "xml": {
+              "name": "Timetable"
+            }
+          },
+          "ServiceDay": {
+            "title": "ServiceDay",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralStationTimetable.ServiceDay"
+              }
+            ],
+            "description": "服務日型態",
+            "xml": {
+              "name": "ServiceDay"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "車站站別時刻表資料型別",
+        "xml": {
+          "name": "GeneralStationTimetable"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralStationTimetable.Timetable": {
+        "title": "Timetable",
+        "type": "object",
+        "properties": {
+          "Sequence": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "發車順序",
+            "format": "int32"
+          },
+          "TrainNo": {
+            "title": "String",
+            "type": "string",
+            "description": "車次代碼",
+            "nullable": true,
+            "xml": {
+              "name": "TrainNo"
+            }
+          },
+          "DestinationStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "目的站車站代號",
+            "nullable": true,
+            "xml": {
+              "name": "DestinationStationID"
+            }
+          },
+          "DestinationStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "目的站車站",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "TrainTypeID": {
+            "title": "String",
+            "type": "string",
+            "description": "車種代嗎",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeID"
+            }
+          },
+          "TrainTypeCode": {
+            "title": "String",
+            "type": "string",
+            "description": "車種簡碼 = ['1: 太魯閣', '2: 普悠瑪', '3: 自強', '4: 莒光', '5: 復興', '6: 區間', '7: 普快', '10: 區間快']",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeCode"
+            }
+          },
+          "TrainTypeName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車種名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "ArrivalTime": {
+            "title": "String",
+            "type": "string",
+            "description": "到站時刻",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalTime"
+            }
+          },
+          "DepartureTime": {
+            "title": "String",
+            "type": "string",
+            "description": "發車時刻",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureTime"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "車次停靠站資料",
+        "xml": {
+          "name": "Timetable"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.GeneralStationTimetable.ServiceDay": {
+        "title": "ServiceDay",
+        "required": [
+          "Friday",
+          "Monday",
+          "Saturday",
+          "Sunday",
+          "Thursday",
+          "Tuesday",
+          "Wednesday"
+        ],
+        "type": "object",
+        "properties": {
+          "ServiceTag": {
+            "title": "String",
+            "type": "string",
+            "description": "服務日標籤",
+            "nullable": true,
+            "xml": {
+              "name": "ServiceTag"
+            }
+          },
+          "Monday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "星期一營運與否"
+          },
+          "Tuesday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "星期二營運與否"
+          },
+          "Wednesday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "星期三營運與否"
+          },
+          "Thursday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "星期四營運與否"
+          },
+          "Friday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "星期五營運與否"
+          },
+          "Saturday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "星期六營運與否"
+          },
+          "Sunday": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "星期日營運與否"
+          },
+          "NationalHolidays": {
+            "type": "boolean",
+            "description": "國定假日營運與否",
+            "nullable": true
+          },
+          "DayBeforeHoliday": {
+            "type": "boolean",
+            "description": "假日前一日營運與否",
+            "nullable": true
+          },
+          "DayAfterHoliday": {
+            "type": "boolean",
+            "description": "假日後一日營運與否",
+            "nullable": true
+          },
+          "TyphoonDay": {
+            "type": "boolean",
+            "description": "颱風停止上班上課期間營運與否",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "服務日型態",
+        "xml": {
+          "name": "ServiceDay"
+        }
+      },
       "PTX.API.Rail.Model.TRASpecificWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.SpecificTrainTimetable]": {
         "title": "TRASpecificTrainTimetableList",
         "required": [
@@ -6930,6 +8770,7 @@
           "EffectiveDate",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "TrainTimetables",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -7006,6 +8847,17 @@
               "name": "ValidityDesciption"
             }
           },
+          "TrainTimetables": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.SpecificTrainTimetable"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "List`1"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -7017,6 +8869,105 @@
         "xml": {
           "name": "TRASpecificWrapperOfSpecificTrainTimetable",
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.SpecificTrainTimetable": {
+        "title": "SpecificTrainTimetable",
+        "required": [
+          "SpecialDay",
+          "StopTimes",
+          "TrainInfo"
+        ],
+        "type": "object",
+        "properties": {
+          "TrainInfo": {
+            "title": "TrainInfo",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Common.TrainInfo"
+              }
+            ],
+            "description": "定期車次資料",
+            "xml": {
+              "name": "TrainInfo"
+            }
+          },
+          "StopTimes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Common.StopTime"
+            },
+            "description": "停靠時間資料",
+            "xml": {
+              "name": "StopTime"
+            }
+          },
+          "SpecialDay": {
+            "title": "SpecialDay",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Common.SpecialDay"
+              }
+            ],
+            "description": "營運日型態",
+            "xml": {
+              "name": "SpecialDay"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "特殊車次時刻表資料型別",
+        "xml": {
+          "name": "SpecificTrainTimetable"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Common.SpecialDay": {
+        "title": "SpecialDay",
+        "type": "object",
+        "properties": {
+          "Dates": {
+            "title": "String",
+            "type": "string",
+            "description": "不連續特殊日期",
+            "nullable": true,
+            "xml": {
+              "name": "Dates"
+            }
+          },
+          "StartDate": {
+            "type": "string",
+            "description": "開始日期",
+            "format": "date-time",
+            "nullable": true
+          },
+          "EndDate": {
+            "type": "string",
+            "description": "結束日期",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ServiceStatus": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "營運服務狀態代碼 : [0:'停止營運',1:'正常營運',2:'加班營運']",
+            "format": "int32",
+            "nullable": true
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "description": "特殊營運描述",
+            "nullable": true,
+            "xml": {
+              "name": "Description"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "特定日期",
+        "xml": {
+          "name": "SpecialDay"
         }
       },
       "PTX.API.Rail.Model.TraDailyTrainWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.TrainTimetable]": {
@@ -7072,6 +9023,18 @@
               "name": "TrainDate"
             }
           },
+          "TrainTimetables": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.TrainTimetable"
+            },
+            "description": "資料(陣列)",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -7083,6 +9046,410 @@
         "xml": {
           "name": "TraDailyTrainWrapperOfTrainTimetable",
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.TrainTimetable": {
+        "title": "TrainTimetable",
+        "required": [
+          "StopTimes",
+          "TrainInfo"
+        ],
+        "type": "object",
+        "properties": {
+          "TrainInfo": {
+            "title": "TrainInfo",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.TrainInfo"
+              }
+            ],
+            "description": "車次資料",
+            "xml": {
+              "name": "TrainInfo"
+            }
+          },
+          "StopTimes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.StopTime"
+            },
+            "description": "停靠站資料",
+            "xml": {
+              "name": "StopTime"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "TrainTimetable"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.StopTime": {
+        "title": "StopTime",
+        "required": [
+          "StationID",
+          "StationName",
+          "StopSequence",
+          "SuspendedFlag"
+        ],
+        "type": "object",
+        "properties": {
+          "StopSequence": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "停靠站序",
+            "format": "int32"
+          },
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "ArrivalTime": {
+            "title": "String",
+            "type": "string",
+            "description": "到站時間",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalTime"
+            }
+          },
+          "DepartureTime": {
+            "title": "String",
+            "type": "string",
+            "description": "離站時間",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureTime"
+            }
+          },
+          "SuspendedFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "本站是否停駛 : [0:'否',1:'是']",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "StopTime"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.TrainInfo": {
+        "title": "TrainInfo",
+        "required": [
+          "BikeFlag",
+          "BreastFeedFlag",
+          "DailyFlag",
+          "DiningFlag",
+          "Direction",
+          "EndingStationName",
+          "ExtraTrainFlag",
+          "PackageServiceFlag",
+          "RouteID",
+          "StartingStationName",
+          "SuspendedFlag",
+          "TrainNo",
+          "TrainTypeName",
+          "WheelChairFlag"
+        ],
+        "type": "object",
+        "properties": {
+          "TrainNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車次代碼",
+            "xml": {
+              "name": "TrainNo"
+            }
+          },
+          "RouteID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運路線代碼",
+            "xml": {
+              "name": "RouteID"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "行駛方向 : [0:'順行',1:'逆行']",
+            "format": "int32"
+          },
+          "TrainTypeID": {
+            "title": "String",
+            "type": "string",
+            "description": "車種代嗎",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeID"
+            }
+          },
+          "TrainTypeCode": {
+            "title": "String",
+            "type": "string",
+            "description": "車種簡碼 = ['1: 太魯閣', '2: 普悠瑪', '3: 自強', '4: 莒光', '5: 復興', '6: 區間', '7: 普快', '10: 區間快']",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeCode"
+            }
+          },
+          "TrainTypeName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車種名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "TripHeadSign": {
+            "title": "String",
+            "type": "string",
+            "description": "車次之目的地方向描述",
+            "nullable": true,
+            "xml": {
+              "name": "TripHeadSign"
+            }
+          },
+          "StartingStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "車次之起始站車站代號",
+            "nullable": true,
+            "xml": {
+              "name": "StartingStationID"
+            }
+          },
+          "StartingStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車次之起始站車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "EndingStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "車次之終點站車站代號",
+            "nullable": true,
+            "xml": {
+              "name": "EndingStationID"
+            }
+          },
+          "EndingStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車次之終點站車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "OverNightStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "跨夜車站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "OverNightStationID"
+            }
+          },
+          "TripLine": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "山海線類型 : [0:'不經山海線',1:'山線',2:'海線',3:'成追線']",
+            "format": "int32",
+            "nullable": true
+          },
+          "WheelChairFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否設身障旅客專用座位車 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "PackageServiceFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否提供行李服務 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "DiningFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否提供訂便當服務 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "DiningFlagSections": {
+            "title": "DiningFlagSection[]",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.DiningFlagSection"
+            },
+            "description": "提供訂便當服務之車站區間",
+            "nullable": true,
+            "xml": {
+              "name": "DiningFlagSection[]"
+            }
+          },
+          "BreastFeedFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否設有哺(集)乳室車廂 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "BikeFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否人車同行班次(置於攜車袋之自行車各級列車均可乘車) : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "CarFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否提供小汽車上火車服務 : [0:'否',1:'是']",
+            "format": "int32",
+            "nullable": true
+          },
+          "DailyFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否每日行駛 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "ExtraTrainFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "是否為加班車 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "SuspendedFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "列車是否停駛 : [0:'正常行駛',1:'停駛',2:'部份停駛']",
+            "format": "int32"
+          },
+          "ServiceType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "列車服務類型 : [1:'定期',2:'加開',3:'郵輪',4:'專列']",
+            "format": "int32",
+            "nullable": true
+          },
+          "Note": {
+            "title": "String",
+            "type": "string",
+            "description": "附註說明",
+            "nullable": true,
+            "xml": {
+              "name": "Note"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "TrainInfo"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.DiningFlagSection": {
+        "title": "DiningFlagSection",
+        "required": [
+          "EndSection",
+          "StartSection"
+        ],
+        "type": "object",
+        "properties": {
+          "StartSection": {
+            "title": "SectionAmong",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.SectionAmong"
+              }
+            ],
+            "description": "乘客出發站所屬區間",
+            "xml": {
+              "name": "SectionAmong"
+            }
+          },
+          "EndSection": {
+            "title": "SectionAmong",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.SectionAmong"
+              }
+            ],
+            "description": "乘客目的站所屬區間",
+            "xml": {
+              "name": "SectionAmong"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "DiningFlagSection"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.DailyTrainTimeTable.SectionAmong": {
+        "title": "SectionAmong",
+        "required": [
+          "EndStationID",
+          "StartStationID"
+        ],
+        "type": "object",
+        "properties": {
+          "StartStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "起站車站代碼",
+            "xml": {
+              "name": "StartStationID"
+            }
+          },
+          "EndStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "迄站車站代碼",
+            "xml": {
+              "name": "EndStationID"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "SectionAmong"
         }
       },
       "PTX.API.Rail.Model.TrainDateList": {
@@ -7168,6 +9535,7 @@
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "StationTimetables",
           "TrainDate",
           "UpdateInterval",
           "UpdateTime"
@@ -7215,6 +9583,17 @@
               "name": "TrainDate"
             }
           },
+          "StationTimetables": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.DailyStationTimeTable.StationTimetable"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "List`1"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -7228,12 +9607,188 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.DailyStationTimeTable.StationTimetable": {
+        "title": "StationTimetable",
+        "required": [
+          "TimeTables"
+        ],
+        "type": "object",
+        "properties": {
+          "RouteID": {
+            "title": "String",
+            "type": "string",
+            "description": "營運路線代碼",
+            "nullable": true,
+            "xml": {
+              "name": "RouteID"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "type": "string",
+            "description": "車站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "行駛方向 : [0:'順行',1:'逆行']",
+            "format": "int32",
+            "nullable": true
+          },
+          "TimeTables": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.DailyStationTimeTable.TimeTable"
+            },
+            "description": "目的站車站名稱",
+            "xml": {
+              "name": "List`1"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "StationTimetable"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.DailyStationTimeTable.TimeTable": {
+        "title": "TimeTable",
+        "required": [
+          "Sequence",
+          "SuspendedFlag"
+        ],
+        "type": "object",
+        "properties": {
+          "Sequence": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "發車順序",
+            "format": "int32"
+          },
+          "TrainNo": {
+            "title": "String",
+            "type": "string",
+            "description": "車次代碼",
+            "nullable": true,
+            "xml": {
+              "name": "TrainNo"
+            }
+          },
+          "DestinationStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "目的站車站代號",
+            "nullable": true,
+            "xml": {
+              "name": "DestinationStationID"
+            }
+          },
+          "DestinationStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "目的站車站名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "TrainTypeID": {
+            "title": "String",
+            "type": "string",
+            "description": "車種代嗎",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeID"
+            }
+          },
+          "TrainTypeCode": {
+            "title": "String",
+            "type": "string",
+            "description": "車種簡碼 = ['1: 太魯閣', '2: 普悠瑪', '3: 自強', '4: 莒光', '5: 復興', '6: 區間', '7: 普快', '10: 區間快']",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeCode"
+            }
+          },
+          "TrainTypeName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車種名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "ArrivalTime": {
+            "title": "String",
+            "type": "string",
+            "description": "到站時刻",
+            "nullable": true,
+            "xml": {
+              "name": "ArrivalTime"
+            }
+          },
+          "DepartureTime": {
+            "title": "String",
+            "type": "string",
+            "description": "發車時刻",
+            "nullable": true,
+            "xml": {
+              "name": "DepartureTime"
+            }
+          },
+          "SuspendedFlag": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "列車於本站停駛 : [0:'否',1:'是']",
+            "format": "int32"
+          },
+          "ServiceType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "列車服務類型 : [1:'定期',2:'加開',3:'郵輪',4:'專列']",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "TimeTable"
+        }
+      },
       "PTX.API.Rail.Model.TRARealTimeWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.TRAStationLiveBoardList.StationLiveBoard]": {
         "title": "TRAStationLiveBoardList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "StationLiveBoards",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -7269,6 +9824,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "StationLiveBoards": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRAStationLiveBoardList.StationLiveBoard"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "StationLiveBoards"
             }
           },
           "Count": {
@@ -7284,12 +9850,173 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRAStationLiveBoardList.StationLiveBoard": {
+        "title": "StationLiveBoard",
+        "required": [
+          "DelayTime",
+          "EndingStationName",
+          "StationID",
+          "StationName",
+          "TrainNo",
+          "TrainTypeName",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代號",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "TrainNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車次代碼",
+            "xml": {
+              "name": "TrainNo"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "行駛方向 : [0:'順行',1:'逆行']",
+            "format": "int32",
+            "nullable": true
+          },
+          "TrainTypeID": {
+            "title": "String",
+            "type": "string",
+            "description": "車種代嗎",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeID"
+            }
+          },
+          "TrainTypeCode": {
+            "title": "String",
+            "type": "string",
+            "description": "車種簡碼 = ['1: 太魯閣', '2: 普悠瑪', '3: 自強', '4: 莒光', '5: 復興', '6: 區間', '7: 普快', '10: 區間快']",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeCode"
+            }
+          },
+          "TrainTypeName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車種名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "EndingStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "終點站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "EndingStationID"
+            }
+          },
+          "EndingStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "終點站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "TripLine": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "山海線類型 : [0:'不經山海線',1:'山線',2:'海線',3:'成追線']",
+            "format": "int32",
+            "nullable": true
+          },
+          "Platform": {
+            "title": "String",
+            "type": "string",
+            "description": "停靠月台(00代表當時尚未確定停靠的月台，待確定好停靠的月台後，就會更新Platfrom。)",
+            "nullable": true,
+            "xml": {
+              "name": "Platform"
+            }
+          },
+          "ScheduleArrivalTime": {
+            "title": "String",
+            "type": "string",
+            "description": "表訂到站時刻",
+            "nullable": true,
+            "xml": {
+              "name": "ScheduleArrivalTime"
+            }
+          },
+          "ScheduleDepartureTime": {
+            "title": "String",
+            "type": "string",
+            "description": "表定離站時刻",
+            "nullable": true,
+            "xml": {
+              "name": "ScheduleDepartureTime"
+            }
+          },
+          "DelayTime": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "延誤分鐘",
+            "format": "int32"
+          },
+          "RunningStatus": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "列車狀態 : [0:'準點',1:'誤點',2:'取消']",
+            "format": "int32",
+            "nullable": true
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "本筆資料之更新日期時間",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "StationLiveBoard"
+        }
+      },
       "PTX.API.Rail.Model.TRARealTimeWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.TRATrainLiveBoardList.TrainLiveBoard]": {
         "title": "TRATrainLiveBoardList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "TrainLiveBoards",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -7325,6 +10052,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "TrainLiveBoards": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRATrainLiveBoardList.TrainLiveBoard"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "TrainLiveBoards"
             }
           },
           "Count": {
@@ -7340,10 +10078,106 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRATrainLiveBoardList.TrainLiveBoard": {
+        "title": "TrainLiveBoard",
+        "required": [
+          "DelayTime",
+          "StationName",
+          "TrainTypeName",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "TrainNo": {
+            "title": "String",
+            "type": "string",
+            "description": "車次代碼",
+            "nullable": true,
+            "xml": {
+              "name": "TrainNo"
+            }
+          },
+          "TrainTypeID": {
+            "title": "String",
+            "type": "string",
+            "description": "車種代嗎",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeID"
+            }
+          },
+          "TrainTypeCode": {
+            "title": "String",
+            "type": "string",
+            "description": "車種簡碼 = ['1: 太魯閣', '2: 普悠瑪', '3: 自強', '4: 莒光', '5: 復興', '6: 區間', '7: 普快', '10: 區間快']",
+            "nullable": true,
+            "xml": {
+              "name": "TrainTypeCode"
+            }
+          },
+          "TrainTypeName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車種名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "type": "string",
+            "description": "車站代號",
+            "nullable": true,
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "TrainStationStatus": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "列車目前所在之車站狀態 : [0:'進站中',1:'在站上',2:'已離站']",
+            "format": "int32",
+            "nullable": true
+          },
+          "DelayTime": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "延誤分鐘",
+            "format": "int32"
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "本筆位置資料之更新日期時間",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "TrainLiveBoard"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.LineTransfer]": {
         "title": "TRALineTransferList",
         "required": [
           "AuthorityCode",
+          "LineTransfers",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -7381,6 +10215,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "LineTransfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.LineTransfer"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "LineTransfers"
             }
           },
           "Count": {
@@ -7396,12 +10241,135 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.LineTransfer": {
+        "title": "LineTransfer",
+        "required": [
+          "FromLineID",
+          "FromLineName",
+          "FromStationID",
+          "FromStationName",
+          "MinTransferTime",
+          "ToLineID",
+          "ToLineName",
+          "ToStationID",
+          "ToStationName",
+          "TransferDescription"
+        ],
+        "type": "object",
+        "properties": {
+          "FromLineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線間轉乘(起)之路線代碼",
+            "xml": {
+              "name": "FromLineID"
+            }
+          },
+          "FromLineName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線間轉乘(起)之路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "FromStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線間轉乘(起)之車站代碼",
+            "xml": {
+              "name": "FromStationID"
+            }
+          },
+          "FromStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線間轉乘(起)之車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "ToLineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線間轉乘(迄)之路線代碼",
+            "xml": {
+              "name": "ToLineID"
+            }
+          },
+          "ToLineName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線間轉乘(迄)之路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "ToStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線間轉乘(迄)之車站代碼",
+            "xml": {
+              "name": "ToStationID"
+            }
+          },
+          "ToStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線間轉乘(迄)之車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "MinTransferTime": {
+            "title": "Double",
+            "type": "number",
+            "description": "轉乘耗時參考時間(分)",
+            "format": "double"
+          },
+          "TransferDescription": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "轉乘方式文字描述",
+            "xml": {
+              "name": "TransferDescription"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線站間轉乘基本資料",
+        "xml": {
+          "name": "LineTransfer"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.StationTransfer]": {
         "title": "TRAStationTransferList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "StationTransfers",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -7437,6 +10405,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "StationTransfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.StationTransfer"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "StationTransfers"
             }
           },
           "Count": {
@@ -7452,10 +10431,931 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.StationTransfer": {
+        "title": "StationTransfer",
+        "required": [
+          "ExteriorMapURLs",
+          "InteriorMapURLs",
+          "StationID",
+          "StationName",
+          "Transfers"
+        ],
+        "type": "object",
+        "properties": {
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "TransferDescription": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘文字描述",
+            "nullable": true,
+            "xml": {
+              "name": "TransferDescription"
+            }
+          },
+          "InteriorMapURLs": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.MapURL"
+            },
+            "description": "車站內部地圖簡圖連結資訊",
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "ExteriorMapURLs": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.MapURL"
+            },
+            "description": "外部轉乘地圖簡圖連結資訊",
+            "xml": {
+              "name": "List`1"
+            }
+          },
+          "Transfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.Transfer"
+            },
+            "description": "跨運具轉乘資訊",
+            "xml": {
+              "name": "Transfer"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "車站跨運具轉乘資訊",
+        "xml": {
+          "name": "StationTransfer"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.MapURL": {
+        "title": "MapURL",
+        "required": [
+          "MapName",
+          "MapURL"
+        ],
+        "type": "object",
+        "properties": {
+          "MapName": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "地圖名稱",
+            "xml": {
+              "name": "MapName"
+            }
+          },
+          "MapURL": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "地圖簡圖連結",
+            "xml": {
+              "name": "MapUrl"
+            }
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "轉乘地圖簡圖連結資訊",
+        "xml": {
+          "name": "MapURL"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.Transfer": {
+        "title": "Transfer",
+        "required": [
+          "AirportTransfers",
+          "BikeTransfers",
+          "BusTransfers",
+          "ExitID",
+          "ExitName",
+          "FerryTransfers",
+          "ParkingTransfers",
+          "RailTransfers",
+          "TaxiTransfers"
+        ],
+        "type": "object",
+        "properties": {
+          "ExitID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "出口代碼",
+            "xml": {
+              "name": "ExitID"
+            }
+          },
+          "ExitName": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "出口名稱",
+            "xml": {
+              "name": "ExitName"
+            }
+          },
+          "RailTransfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.RailTransfer"
+            },
+            "description": "軌道轉乘資訊",
+            "xml": {
+              "name": "RailTransfer"
+            }
+          },
+          "BusTransfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.BusTransfer"
+            },
+            "description": "公車運具轉乘資訊",
+            "xml": {
+              "name": "BusTransfer"
+            }
+          },
+          "AirportTransfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.AirportTransfer"
+            },
+            "description": "航空運具轉乘資訊",
+            "xml": {
+              "name": "AirportTransfer"
+            }
+          },
+          "BikeTransfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.BikeTransfer"
+            },
+            "description": "公共自行車轉乘資訊",
+            "xml": {
+              "name": "BikeTransfer"
+            }
+          },
+          "ParkingTransfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.ParkingTransfer"
+            },
+            "description": "停車場轉乘資訊",
+            "xml": {
+              "name": "ParkingTransfer"
+            }
+          },
+          "TaxiTransfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.TaxiTransfer"
+            },
+            "description": "計程車轉乘資訊",
+            "xml": {
+              "name": "TaxiTransfer"
+            }
+          },
+          "FerryTransfers": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.FerryTransfer"
+            },
+            "description": "航運轉乘資訊",
+            "xml": {
+              "name": "FerryTransfer"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "跨運具轉乘資訊",
+        "xml": {
+          "name": "Transfer"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.RailTransfer": {
+        "title": "RailTransfer",
+        "required": [
+          "Mode",
+          "OperatorCode",
+          "OperatorName",
+          "StationID",
+          "StationName"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "運具種類代碼",
+            "xml": {
+              "name": "Mode"
+            }
+          },
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "軌道營運業者簡碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "軌道營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "軌道場站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "軌道場站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "MinTransferTime": {
+            "type": "number",
+            "description": "最短轉乘時間",
+            "format": "double",
+            "nullable": true
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘描述",
+            "nullable": true,
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "IsOnSiteTransfer": {
+            "type": "boolean",
+            "description": "是否為站內或站外轉乘",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "軌道轉乘資訊",
+        "xml": {
+          "name": "RailTransfer"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.BusTransfer": {
+        "title": "BusTransfer",
+        "required": [
+          "Destination",
+          "Mode",
+          "OperatorCode",
+          "OperatorName",
+          "RouteID",
+          "RouteName",
+          "StopID",
+          "StopName"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "運具種類代碼",
+            "xml": {
+              "name": "Mode"
+            }
+          },
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "公車營運業者簡碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "公車營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "RouteID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "轉乘公車路線代碼",
+            "xml": {
+              "name": "RouteID"
+            }
+          },
+          "RouteName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "轉乘公車路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "StopID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "轉乘公車站牌代碼",
+            "xml": {
+              "name": "StopID"
+            }
+          },
+          "StopName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "轉乘公車站牌名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "Destination": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "轉乘公車開往方向",
+            "xml": {
+              "name": "Destination"
+            }
+          },
+          "MinTransferTime": {
+            "type": "number",
+            "description": "最短轉乘時間",
+            "format": "double",
+            "nullable": true
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘描述",
+            "nullable": true,
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "IsOnSiteTransfer": {
+            "type": "boolean",
+            "description": "是否為站內或站外轉乘",
+            "nullable": true
+          },
+          "Platform": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘公車所在月台",
+            "nullable": true,
+            "xml": {
+              "name": "Platform"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "公車運具轉乘資訊",
+        "xml": {
+          "name": "BusTransfer"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.AirportTransfer": {
+        "title": "AirportTransfer",
+        "required": [
+          "AirportID",
+          "AirportName",
+          "Mode",
+          "OperatorCode",
+          "OperatorName"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "運具種類代碼",
+            "xml": {
+              "name": "Mode"
+            }
+          },
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "機場營運業者簡碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "機場營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "AirportID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "機場代碼",
+            "xml": {
+              "name": "AirportID"
+            }
+          },
+          "AirportName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "機場名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "MinTransferTime": {
+            "type": "number",
+            "description": "最短轉乘時間",
+            "format": "double",
+            "nullable": true
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘描述",
+            "nullable": true,
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "IsOnSiteTransfer": {
+            "type": "boolean",
+            "description": "是否為站內或站外轉乘",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "航空運具轉乘資訊",
+        "xml": {
+          "name": "AirportTransfer"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.BikeTransfer": {
+        "title": "BikeTransfer",
+        "required": [
+          "Mode",
+          "OperatorCode",
+          "OperatorName",
+          "StationID",
+          "StationName"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "運具種類代碼",
+            "xml": {
+              "name": "Mode"
+            }
+          },
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "公共自行車營運業者簡碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "公共自行車營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "公共自行車租借站位代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "公共自行車租借站位名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "MinTransferTime": {
+            "type": "number",
+            "description": "最短轉乘時間",
+            "format": "double",
+            "nullable": true
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘描述",
+            "nullable": true,
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "IsOnSiteTransfer": {
+            "type": "boolean",
+            "description": "是否為站內或站外轉乘",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "公共自行車轉乘資訊",
+        "xml": {
+          "name": "BikeTransfer"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.ParkingTransfer": {
+        "title": "ParkingTransfer",
+        "required": [
+          "CarParkID",
+          "CarParkName",
+          "Mode"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "運具種類代碼",
+            "xml": {
+              "name": "Mode"
+            }
+          },
+          "CarParkID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "停車場代碼",
+            "xml": {
+              "name": "CarParkID"
+            }
+          },
+          "CarParkName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "停車場名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "MinTransferTime": {
+            "type": "number",
+            "description": "最短轉乘時間",
+            "format": "double",
+            "nullable": true
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘描述",
+            "nullable": true,
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "IsOnSiteTransfer": {
+            "type": "boolean",
+            "description": "是否為站內或站外轉乘",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "停車場轉乘資訊",
+        "xml": {
+          "name": "ParkingTransfer"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.TaxiTransfer": {
+        "title": "TaxiTransfer",
+        "required": [
+          "Mode",
+          "TaxiStopName"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "運具種類代碼",
+            "xml": {
+              "name": "Mode"
+            }
+          },
+          "TaxiStopID": {
+            "title": "String",
+            "type": "string",
+            "description": "計程車招呼站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "TaxiStopID"
+            }
+          },
+          "TaxiStopName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "計程車招呼站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "MinTransferTime": {
+            "type": "number",
+            "description": "最短轉乘時間",
+            "format": "double",
+            "nullable": true
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘描述",
+            "nullable": true,
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "IsOnSiteTransfer": {
+            "type": "boolean",
+            "description": "是否為站內或站外轉乘",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "計程車轉乘資訊",
+        "xml": {
+          "name": "TaxiTransfer"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.StationTransfer.FerryTransfer": {
+        "title": "FerryTransfer",
+        "required": [
+          "FerryStationName",
+          "Mode",
+          "OperatorCode",
+          "OperatorName"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "運具種類代碼",
+            "xml": {
+              "name": "Mode"
+            }
+          },
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "航運營運業者簡碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "航運營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "FerryStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "計程車招呼站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "FerryStationID"
+            }
+          },
+          "FerryStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "計程車招呼站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "MinTransferTime": {
+            "type": "number",
+            "description": "最短轉乘時間",
+            "format": "double",
+            "nullable": true
+          },
+          "FloorLevel": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘樓層",
+            "nullable": true,
+            "xml": {
+              "name": "FloorLevel"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "description": "轉乘描述",
+            "nullable": true,
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "IsOnSiteTransfer": {
+            "type": "boolean",
+            "description": "是否為站內或站外轉乘",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "航運轉乘資訊",
+        "xml": {
+          "name": "FerryTransfer"
+        }
+      },
       "PTX.API.Rail.Model.TRARealTimeWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.TRANewsList.News]": {
         "title": "TRANewsList",
         "required": [
           "AuthorityCode",
+          "Newses",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -7493,6 +11393,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Newses": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRANewsList.News"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Newses"
             }
           },
           "Count": {
@@ -7508,9 +11419,119 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRANewsList.News": {
+        "title": "News",
+        "required": [
+          "Description",
+          "Language",
+          "NewsCategory",
+          "NewsID",
+          "PublishTime",
+          "Title",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "NewsID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "消息代碼",
+            "xml": {
+              "name": "NewsID"
+            }
+          },
+          "Language": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "語系 : [1:'Zh_tw',2:'En_us',3:'Zh_cn',4:'Ja',5:'Ko',99:'Other']",
+            "format": "int32"
+          },
+          "Department": {
+            "title": "String",
+            "type": "string",
+            "description": "發布單位",
+            "nullable": true,
+            "xml": {
+              "name": "Department"
+            }
+          },
+          "Title": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "消息標題",
+            "xml": {
+              "name": "Title"
+            }
+          },
+          "NewsCategory": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "消息類別 : [1:'最新消息',2:'新聞稿',3:'營運資訊',4:'轉乘資訊',5:'活動訊息',6:'系統公告',7:'新服務上架',8:'API修正',9:'來源異常',99:'其他']",
+            "format": "int32"
+          },
+          "Description": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "內容描述",
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "NewsURL": {
+            "title": "String",
+            "type": "string",
+            "description": "消息網址連結",
+            "nullable": true,
+            "xml": {
+              "name": "NewsURL"
+            }
+          },
+          "AttachmentURL": {
+            "title": "String",
+            "type": "string",
+            "description": "附件網址連結",
+            "nullable": true,
+            "xml": {
+              "name": "AttachmentURL"
+            }
+          },
+          "StartTime": {
+            "type": "string",
+            "description": "消息起始日期時間",
+            "format": "date-time",
+            "nullable": true
+          },
+          "EndTime": {
+            "type": "string",
+            "description": "消息結束日期時間",
+            "format": "date-time",
+            "nullable": true
+          },
+          "PublishTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "消息發佈日期時間",
+            "format": "date-time"
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "本筆資料之更新日期時間",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "News"
+        }
+      },
       "PTX.API.Rail.Model.TRARealTimeWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.Alert]": {
         "title": "TRAAlertList",
         "required": [
+          "Alerts",
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
@@ -7549,6 +11570,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Alerts": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.Alert"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Alerts"
             }
           },
           "Count": {
@@ -7564,10 +11596,417 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.Alert": {
+        "title": "Alert",
+        "required": [
+          "AlertID",
+          "Description",
+          "Status",
+          "Title",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "AlertID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "通阻訊息代碼",
+            "xml": {
+              "name": "AlertID"
+            }
+          },
+          "Title": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "通阻訊息標題",
+            "xml": {
+              "name": "Title"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "通阻訊息說明",
+            "xml": {
+              "name": "Description"
+            }
+          },
+          "Status": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "營運狀況 : [0:'全線營運停止',1:'全線營運正常',2:'有異常狀況']",
+            "format": "int32"
+          },
+          "Scope": {
+            "title": "AlertScope",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScope"
+              }
+            ],
+            "description": "影響範圍",
+            "nullable": true,
+            "xml": {
+              "name": "AlertScope"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "影響方向 : [0:'南下',1:'北上',2:'雙向']",
+            "format": "int32",
+            "nullable": true
+          },
+          "Level": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "影響等級程度 : [1:'重度',2:'中度',3:'輕度']",
+            "format": "int32",
+            "nullable": true
+          },
+          "Effect": {
+            "title": "String",
+            "type": "string",
+            "description": "影響說明",
+            "nullable": true,
+            "xml": {
+              "name": "Effect"
+            }
+          },
+          "Reason": {
+            "title": "String",
+            "type": "string",
+            "description": "影響原因",
+            "nullable": true,
+            "xml": {
+              "name": "Reason"
+            }
+          },
+          "AlertURL": {
+            "title": "String",
+            "type": "string",
+            "description": "通阻訊息網址連結",
+            "nullable": true,
+            "xml": {
+              "name": "AlertURL"
+            }
+          },
+          "StartTime": {
+            "type": "string",
+            "description": "訊息起始日期時間",
+            "format": "date-time",
+            "nullable": true
+          },
+          "EndTime": {
+            "type": "string",
+            "description": "訊息結束日期時間",
+            "format": "date-time",
+            "nullable": true
+          },
+          "PublishTime": {
+            "type": "string",
+            "description": "消息發佈日期時間",
+            "format": "date-time",
+            "nullable": true
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "消息更新日期時間",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "Alert"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScope": {
+        "title": "AlertScope",
+        "type": "object",
+        "properties": {
+          "NetworkList": {
+            "title": "AlertScopeNetwork",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeNetwork"
+              }
+            ],
+            "description": "受影響的路網",
+            "nullable": true,
+            "xml": {
+              "name": "AlertScopeNetwork"
+            }
+          },
+          "Stations": {
+            "title": "AlertScopeStation[]",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeStation"
+            },
+            "description": "受影響的車站",
+            "nullable": true,
+            "xml": {
+              "name": "AlertScopeStation[]"
+            }
+          },
+          "Lines": {
+            "title": "AlertScopeLine[]",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeLine"
+            },
+            "description": "受影響的實體路線",
+            "nullable": true,
+            "xml": {
+              "name": "AlertScopeLine[]"
+            }
+          },
+          "Routes": {
+            "title": "AlertScopeRoute[]",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeRoute"
+            },
+            "description": "受影響的營運路線",
+            "nullable": true,
+            "xml": {
+              "name": "AlertScopeRoute[]"
+            }
+          },
+          "Trains": {
+            "title": "AlertScopeTrain[]",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeTrain"
+            },
+            "description": "受影響的車次",
+            "nullable": true,
+            "xml": {
+              "name": "AlertScopeTrain[]"
+            }
+          },
+          "LineSections": {
+            "title": "AlertScopeLineSection[]",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeLineSection"
+            },
+            "description": "受影響的路線區間",
+            "nullable": true,
+            "xml": {
+              "name": "AlertScopeLineSection[]"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "AlertScope"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeStation": {
+        "title": "AlertScopeStation",
+        "type": "object",
+        "properties": {
+          "StationID": {
+            "title": "String",
+            "type": "string",
+            "description": "車站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "String",
+            "type": "string",
+            "description": "車站名稱",
+            "nullable": true,
+            "xml": {
+              "name": "StationName"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "AlertScopeStation"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeLine": {
+        "title": "AlertScopeLine",
+        "type": "object",
+        "properties": {
+          "LineID": {
+            "title": "String",
+            "type": "string",
+            "description": "實體路線代碼",
+            "nullable": true,
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "LineName": {
+            "title": "String",
+            "type": "string",
+            "description": "實體路線名稱",
+            "nullable": true,
+            "xml": {
+              "name": "LineName"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "AlertScopeLine"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeRoute": {
+        "title": "AlertScopeRoute",
+        "type": "object",
+        "properties": {
+          "RouteID": {
+            "title": "String",
+            "type": "string",
+            "description": "營運路線代碼",
+            "nullable": true,
+            "xml": {
+              "name": "RouteID"
+            }
+          },
+          "RouteName": {
+            "title": "String",
+            "type": "string",
+            "description": "營運路線名稱",
+            "nullable": true,
+            "xml": {
+              "name": "RouteName"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "AlertScopeRoute"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeTrain": {
+        "title": "AlertScopeTrain",
+        "type": "object",
+        "properties": {
+          "TrainNo": {
+            "title": "String",
+            "type": "string",
+            "description": "受影響的車次",
+            "nullable": true,
+            "xml": {
+              "name": "TrainNo"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "AlertScopeTrain"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeLineSection": {
+        "title": "AlertScopeLineSection",
+        "type": "object",
+        "properties": {
+          "LineID": {
+            "title": "String",
+            "type": "string",
+            "description": "路線區間所在路線代碼",
+            "nullable": true,
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "StartingStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "區間起站車站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "StartingStationID"
+            }
+          },
+          "StartingStationName": {
+            "title": "String",
+            "type": "string",
+            "description": "區間起站車站名稱",
+            "nullable": true,
+            "xml": {
+              "name": "StartingStationName"
+            }
+          },
+          "EndingStationID": {
+            "title": "String",
+            "type": "string",
+            "description": "區間迄站車站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "EndingStationID"
+            }
+          },
+          "EndingStationName": {
+            "title": "String",
+            "type": "string",
+            "description": "區間迄站車站名稱",
+            "nullable": true,
+            "xml": {
+              "name": "EndingStationName"
+            }
+          },
+          "Description": {
+            "title": "String",
+            "type": "string",
+            "description": "影響區間輔助描述",
+            "nullable": true,
+            "xml": {
+              "name": "Description"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "AlertScopeLineSection"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.TRAAlertList.AlertScopeNetwork": {
+        "title": "AlertScopeNetwork",
+        "type": "object",
+        "properties": {
+          "NetworkID": {
+            "title": "String",
+            "type": "string",
+            "description": "路網代碼",
+            "nullable": true,
+            "xml": {
+              "name": "NetworkID"
+            }
+          },
+          "NetworkName": {
+            "title": "String",
+            "type": "string",
+            "description": "路網名稱",
+            "nullable": true,
+            "xml": {
+              "name": "NetworkName"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "AlertScopeNetwork"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.Shape]": {
         "title": "TRAShapeList",
         "required": [
           "AuthorityCode",
+          "Shapes",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -7605,6 +12044,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Shapes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Shape"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Shapes"
             }
           },
           "Count": {
@@ -7620,10 +12070,74 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Shape": {
+        "title": "Shape",
+        "required": [
+          "Geometry",
+          "LineID",
+          "LineName",
+          "LineNo",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "LineNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線編號",
+            "xml": {
+              "name": "LineNo"
+            }
+          },
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線代碼",
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "LineName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "Geometry": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "well-known text，為路線軌跡資料",
+            "xml": {
+              "name": "Geometry"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "線型資料",
+        "xml": {
+          "name": "Shape"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.Operator]": {
         "title": "TRAOperatorList",
         "required": [
           "AuthorityCode",
+          "Operators",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -7661,6 +12175,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Operators": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Operator"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Operators"
             }
           },
           "Count": {
@@ -7676,10 +12201,110 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.Operator": {
+        "title": "Operator",
+        "required": [
+          "OperatorCode",
+          "OperatorName"
+        ],
+        "type": "object",
+        "properties": {
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運業者簡碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "OperatorPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者連絡電話",
+            "nullable": true,
+            "xml": {
+              "name": "OperatorPhone"
+            }
+          },
+          "OperatorEmail": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者電子信箱",
+            "nullable": true,
+            "xml": {
+              "name": "OperatorEmail"
+            }
+          },
+          "OperatorURL": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者網址連結",
+            "nullable": true,
+            "xml": {
+              "name": "OperatorURL"
+            }
+          },
+          "FareURL": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者票價查詢網站連結",
+            "nullable": true,
+            "xml": {
+              "name": "FareURL"
+            }
+          },
+          "ReservationURL": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者訂票網站",
+            "nullable": true,
+            "xml": {
+              "name": "ReservationURL"
+            }
+          },
+          "ReservationPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者訂票電話",
+            "nullable": true,
+            "xml": {
+              "name": "ReservationPhone"
+            }
+          },
+          "OperatorLogoURL": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者Logo網址",
+            "nullable": true,
+            "xml": {
+              "name": "OperatorLogoURL"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "營運業者基本資料",
+        "xml": {
+          "name": "Operator"
+        }
+      },
       "PTX.API.Rail.Model.TRABaseWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.LineNetwork.LineNetwork]": {
         "title": "TRALineNetworkList",
         "required": [
           "AuthorityCode",
+          "LineNetworks",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -7717,6 +12342,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "LineNetworks": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.LineNetwork.LineNetwork"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "LineNetworks"
             }
           },
           "Count": {
@@ -7732,10 +12368,132 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.LineNetwork.LineNetwork": {
+        "title": "LineNetwork",
+        "required": [
+          "LineID",
+          "LineName"
+        ],
+        "type": "object",
+        "properties": {
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線編號",
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "LineName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "LineSegments": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.LineNetwork.LineSegment"
+            },
+            "description": "路線站點間線段資訊",
+            "nullable": true,
+            "xml": {
+              "name": "List`1"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線網路拓撲基本資料",
+        "xml": {
+          "name": "LineNetwork"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.TRA.LineNetwork.LineSegment": {
+        "title": "LineSegment",
+        "required": [
+          "Distance",
+          "FromStationID",
+          "LineSegmentID",
+          "LineSegmentName",
+          "SegmentType",
+          "ToStationID"
+        ],
+        "type": "object",
+        "properties": {
+          "LineSegmentID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "線段代碼",
+            "xml": {
+              "name": "LineSegmentID"
+            }
+          },
+          "LineSegmentName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路段名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "FromStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "線段起點站代碼",
+            "xml": {
+              "name": "FromStationID"
+            }
+          },
+          "ToStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "線段迄點站代碼",
+            "xml": {
+              "name": "ToStationID"
+            }
+          },
+          "SegmentType": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "線段種類 = ['M: 主路線', 'B: 分支路線']",
+            "xml": {
+              "name": "SegmentType"
+            }
+          },
+          "Distance": {
+            "title": "Single",
+            "type": "number",
+            "description": "站間距離",
+            "format": "float"
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線站點間線段資料",
+        "xml": {
+          "name": "LineSegment"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainBaseWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Network.Network]": {
         "title": "LiteTrainNetworkList",
         "required": [
           "AuthorityCode",
+          "Networks",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -7773,6 +12531,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Networks": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Network.Network"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Networks"
             }
           },
           "Count": {
@@ -7788,12 +12557,97 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Network.Network": {
+        "title": "Network",
+        "required": [
+          "Lines",
+          "NetworkID",
+          "NetworkMapURL",
+          "NetworkName",
+          "OperatorCode",
+          "OperatorName"
+        ],
+        "type": "object",
+        "properties": {
+          "NetworkID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路網代碼",
+            "xml": {
+              "name": "NetworkID"
+            }
+          },
+          "NetworkName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路網名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運業者代碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "NetworkMapURL": {
+            "title": "MapNameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Network.MapNameType"
+              }
+            ],
+            "description": "路網圖網址URL",
+            "xml": {
+              "name": "MapNameType"
+            }
+          },
+          "Lines": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Network.Line"
+            },
+            "description": "路線資訊",
+            "xml": {
+              "name": "List`1"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "小火車路網資料",
+        "xml": {
+          "name": "Network"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainBaseWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Station]": {
         "title": "LiteTrainStationList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "Stations",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -7829,6 +12683,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Stations": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Station"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Stations"
             }
           },
           "Count": {
@@ -7844,10 +12709,116 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Station": {
+        "title": "Station",
+        "required": [
+          "StationClass",
+          "StationID",
+          "StationName",
+          "StationPosition",
+          "StationUID"
+        ],
+        "type": "object",
+        "properties": {
+          "StationUID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站唯一識別代碼",
+            "xml": {
+              "name": "StationUID"
+            }
+          },
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "ReservationCode": {
+            "title": "String",
+            "type": "string",
+            "description": "訂票車站代碼",
+            "nullable": true,
+            "xml": {
+              "name": "ReservationCode"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "StationPosition": {
+            "title": "PointType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.PointType"
+              }
+            ],
+            "description": "車站座標(WGS84)",
+            "xml": {
+              "name": "PointType"
+            }
+          },
+          "StationAddress": {
+            "title": "String",
+            "type": "string",
+            "description": "車站地址",
+            "nullable": true,
+            "xml": {
+              "name": "StationAddress"
+            }
+          },
+          "StationPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "車站聯絡電話",
+            "nullable": true,
+            "xml": {
+              "name": "StationPhone"
+            }
+          },
+          "StationURL": {
+            "title": "String",
+            "type": "string",
+            "description": "車站資訊說明網址",
+            "nullable": true,
+            "xml": {
+              "name": "StationURL"
+            }
+          },
+          "StationClass": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站級別 = ['0: 特等', '1: 一等', '2: 二等', '3: 三等', '4: 簡易', '5: 招呼', '6: 號誌', '7:其他']",
+            "xml": {
+              "name": "StationClass"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "小火車車站資料",
+        "xml": {
+          "name": "Station"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainBaseWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Line]": {
         "title": "LiteTrainLineList",
         "required": [
           "AuthorityCode",
+          "Lines",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -7885,6 +12856,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Lines": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Line"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Lines"
             }
           },
           "Count": {
@@ -7900,10 +12882,103 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Line": {
+        "title": "Line",
+        "required": [
+          "IsBranch",
+          "LineID",
+          "LineName",
+          "LineNo",
+          "LineSectionName"
+        ],
+        "type": "object",
+        "properties": {
+          "LineNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線編號",
+            "xml": {
+              "name": "LineNo"
+            }
+          },
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線代碼",
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "LineName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "LineSectionName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線區間名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "LineColor": {
+            "title": "String",
+            "type": "string",
+            "description": "路線顏色",
+            "nullable": true,
+            "xml": {
+              "name": "LineColor"
+            }
+          },
+          "IsBranch": {
+            "title": "Boolean",
+            "type": "boolean",
+            "description": "是否位於支線"
+          },
+          "LineGroup": {
+            "title": "String",
+            "type": "string",
+            "description": "路線群組",
+            "nullable": true,
+            "xml": {
+              "name": "LineGroup"
+            }
+          },
+          "LineURL": {
+            "title": "String",
+            "type": "string",
+            "description": "路線群組",
+            "nullable": true,
+            "xml": {
+              "name": "LineURL"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線基本資料",
+        "xml": {
+          "name": "Line"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainBaseWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Operator]": {
         "title": "LiteTrainOperatorList",
         "required": [
           "AuthorityCode",
+          "Operators",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -7943,6 +13018,17 @@
               "name": "AuthorityCode"
             }
           },
+          "Operators": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Operator"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Operators"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -7956,6 +13042,105 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Operator": {
+        "title": "Operator",
+        "required": [
+          "OperatorCode",
+          "OperatorName"
+        ],
+        "type": "object",
+        "properties": {
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運業者簡碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "OperatorName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "營運業者名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "OperatorPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者連絡電話",
+            "nullable": true,
+            "xml": {
+              "name": "OperatorPhone"
+            }
+          },
+          "OperatorEmail": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者電子信箱",
+            "nullable": true,
+            "xml": {
+              "name": "OperatorEmail"
+            }
+          },
+          "OperatorURL": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者網址連結",
+            "nullable": true,
+            "xml": {
+              "name": "OperatorURL"
+            }
+          },
+          "FareURL": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者票價查詢網站連結",
+            "nullable": true,
+            "xml": {
+              "name": "FareURL"
+            }
+          },
+          "ReservationURL": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者訂票網站",
+            "nullable": true,
+            "xml": {
+              "name": "ReservationURL"
+            }
+          },
+          "ReservationPhone": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者訂票電話",
+            "nullable": true,
+            "xml": {
+              "name": "ReservationPhone"
+            }
+          },
+          "OperatorLogoURL": {
+            "title": "String",
+            "type": "string",
+            "description": "營運業者Logo網址",
+            "nullable": true,
+            "xml": {
+              "name": "OperatorLogoURL"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "小火車者營運業者基本資料",
+        "xml": {
+          "name": "Operator"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainGeneralTrainWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.GeneralTrainTimetable]": {
         "title": "LiteTrainGeneralTrainTimetableList",
         "required": [
@@ -7963,6 +13148,7 @@
           "EffectiveDate",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "TrainTimetables",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -8039,6 +13225,17 @@
               "name": "ValidityDesciption"
             }
           },
+          "TrainTimetables": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.GeneralTrainTimetable"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "List`1"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -8052,10 +13249,62 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.GeneralTrainTimetable": {
+        "title": "GeneralTrainTimetable",
+        "required": [
+          "ServiceDay",
+          "StopTimes",
+          "TrainInfo"
+        ],
+        "type": "object",
+        "properties": {
+          "TrainInfo": {
+            "title": "TrainInfo",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Common.TrainInfo"
+              }
+            ],
+            "description": "定期車次資料",
+            "xml": {
+              "name": "TrainInfo"
+            }
+          },
+          "StopTimes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Common.StopTime"
+            },
+            "description": "停靠時間資料",
+            "xml": {
+              "name": "StopTime"
+            }
+          },
+          "ServiceDay": {
+            "title": "ServiceDay",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.Common.ServiceDay"
+              }
+            ],
+            "description": "營運日型態",
+            "xml": {
+              "name": "ServiceDay"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "小火車定期時刻表資料型別",
+        "xml": {
+          "name": "GeneralTrainTimetable"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainODFareWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.ODFare.ODFare]": {
         "title": "LiteTrainODFareList",
         "required": [
           "AuthorityCode",
+          "ODFares",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -8122,6 +13371,17 @@
               "name": "SrcVersion"
             }
           },
+          "ODFares": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.ODFare.ODFare"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "List`1"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -8135,10 +13395,101 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.ODFare.ODFare": {
+        "title": "ODFare",
+        "required": [
+          "DestinationStationID",
+          "DestinationStationName",
+          "Fares",
+          "OriginStationID",
+          "OriginStationName",
+          "TrainType"
+        ],
+        "type": "object",
+        "properties": {
+          "OriginStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "起點車站代碼",
+            "xml": {
+              "name": "OriginStationID"
+            }
+          },
+          "OriginStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "起點車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "DestinationStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "迄點車站代碼",
+            "xml": {
+              "name": "DestinationStationID"
+            }
+          },
+          "DestinationStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "迄點車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "方向 : [0:'順行',1:'逆行']",
+            "format": "int32",
+            "nullable": true
+          },
+          "TrainType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "車種簡碼 = ['1: 太魯閣', '2: 普悠瑪', '3: 自強', '4: 莒光', '5: 復興', '6: 區間', '7: 普快', '10: 區間快']",
+            "format": "int32"
+          },
+          "Fares": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.ODFare.Fare"
+            },
+            "description": "票價",
+            "xml": {
+              "name": "Fare"
+            }
+          },
+          "TravelDistance": {
+            "type": "number",
+            "description": "起迄站間乘車距離",
+            "format": "float",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "ODFare"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainBaseWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Route]": {
         "title": "LiteTrainRouteList",
         "required": [
           "AuthorityCode",
+          "Routes",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -8176,6 +13527,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "Routes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Route"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Routes"
             }
           },
           "Count": {
@@ -8191,12 +13553,147 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Route": {
+        "title": "Route",
+        "required": [
+          "EndStationID",
+          "EndStationName",
+          "LineID",
+          "OperatorCode",
+          "RouteID",
+          "RouteName",
+          "RouteType",
+          "RouteURL",
+          "StartStationID",
+          "StartStationName"
+        ],
+        "type": "object",
+        "properties": {
+          "LineNo": {
+            "title": "String",
+            "type": "string",
+            "description": "營運路線所屬之路線編號",
+            "nullable": true,
+            "xml": {
+              "name": "LineNo"
+            }
+          },
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運路線所屬之路線代碼",
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "RouteID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運路線代碼",
+            "xml": {
+              "name": "RouteID"
+            }
+          },
+          "OperatorCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運業者代碼",
+            "xml": {
+              "name": "OperatorCode"
+            }
+          },
+          "RouteName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "營運路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "RouteType": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "營運路線種類",
+            "format": "int32"
+          },
+          "StartStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運路線起站代號",
+            "xml": {
+              "name": "StartStationID"
+            }
+          },
+          "StartStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "營運路線起站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "EndStationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運路線迄站代號",
+            "xml": {
+              "name": "EndStationID"
+            }
+          },
+          "EndStationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "營運路線迄站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "RouteURL": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運路線來源網址",
+            "xml": {
+              "name": "RouteURL"
+            }
+          },
+          "RouteDistance": {
+            "type": "number",
+            "description": "路線旅行長度",
+            "format": "float",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "營運路線基本資料",
+        "xml": {
+          "name": "Route"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainBaseWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.StationOfLine.StationOfLine]": {
         "title": "LiteTrainStationOfLineList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "StationOfLines",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -8232,6 +13729,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "StationOfLines": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.StationOfLine.StationOfLine"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "StationOfLines"
             }
           },
           "Count": {
@@ -8247,12 +13755,58 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.StationOfLine.StationOfLine": {
+        "title": "StationOfLine",
+        "required": [
+          "LineID",
+          "LineNo",
+          "Stations"
+        ],
+        "type": "object",
+        "properties": {
+          "LineNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線編號",
+            "xml": {
+              "name": "LineNo"
+            }
+          },
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線代碼",
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "Stations": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.StationOfLine.LineStation"
+            },
+            "description": "路線車站資訊",
+            "xml": {
+              "name": "Station"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線車站基本資料",
+        "xml": {
+          "name": "StationOfLine"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainBaseWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.TrainType]": {
         "title": "LiteTrainTrainTypeList",
         "required": [
           "AuthorityCode",
           "SrcUpdateInterval",
           "SrcUpdateTime",
+          "TrainTypes",
           "UpdateInterval",
           "UpdateTime"
         ],
@@ -8288,6 +13842,17 @@
             "description": "業管機關簡碼",
             "xml": {
               "name": "AuthorityCode"
+            }
+          },
+          "TrainTypes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.TrainType"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "TrainTypes"
             }
           },
           "Count": {
@@ -8303,10 +13868,250 @@
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
         }
       },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.TrainType": {
+        "title": "TrainType",
+        "required": [
+          "TrainTypeCode",
+          "TrainTypeID",
+          "TrainTypeName"
+        ],
+        "type": "object",
+        "properties": {
+          "TrainTypeID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "列車車種代碼",
+            "xml": {
+              "name": "TrainTypeID"
+            }
+          },
+          "TrainTypeName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "列車車種名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "TrainTypeCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車種簡碼 = ['1: 中興號', '2: 區間', '3: 主題式列車', '5: 阿里山號', '6: 祝客', '7: 祝客(祝山線)', '8: 檜木車廂']",
+            "xml": {
+              "name": "TrainTypeCode"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "小火車列車車種資料",
+        "xml": {
+          "name": "TrainType"
+        }
+      },
       "PTX.API.Rail.Model.LiteTrain.LiteTrainBaseWrapper[PTX.Service.DTO.Rail.Specification.V3.LiteTrain.StationOfRoute.StationOfRoute]": {
         "title": "LiteTrainStationOfRouteList",
         "required": [
           "AuthorityCode",
+          "SrcUpdateInterval",
+          "SrcUpdateTime",
+          "StationOfRoutes",
+          "UpdateInterval",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "UpdateTime": {
+            "type": "string",
+            "description": "本平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "UpdateInterval": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "本平台資料更新週期(秒)",
+            "format": "int32"
+          },
+          "SrcUpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "來源端平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          },
+          "SrcUpdateInterval": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "來源端平台資料更新週期(秒)['-1: 不定期更新']",
+            "format": "int32"
+          },
+          "AuthorityCode": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "業管機關簡碼",
+            "xml": {
+              "name": "AuthorityCode"
+            }
+          },
+          "StationOfRoutes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.StationOfRoute.StationOfRoute"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "StationOfRoutes"
+            }
+          },
+          "Count": {
+            "type": "integer",
+            "description": "資料總筆數",
+            "format": "int64",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "xml": {
+          "name": "LiteTrainBaseWrapperOfStationOfRoute",
+          "namespace": "https://ptx.transportdata.tw/standard/schema/"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.StationOfRoute.StationOfRoute": {
+        "title": "StationOfRoute",
+        "required": [
+          "Direction",
+          "LineID",
+          "LineNo",
+          "RouteID",
+          "RouteName",
+          "Stations"
+        ],
+        "type": "object",
+        "properties": {
+          "LineNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運路線所屬之路線編號",
+            "xml": {
+              "name": "LineNo"
+            }
+          },
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運路線所屬之路線代碼",
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "RouteID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "營運路線代碼",
+            "xml": {
+              "name": "RouteID"
+            }
+          },
+          "RouteName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "營運路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "Direction": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "營運路線方向描述(0:去程,1:返程)",
+            "format": "int32"
+          },
+          "Stations": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.StationOfRoute.RouteStation"
+            },
+            "description": "營運路線車站資訊",
+            "xml": {
+              "name": "Station"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "營運路線車站基本資料",
+        "xml": {
+          "name": "StationOfRoute"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.StationOfRoute.RouteStation": {
+        "title": "RouteStation",
+        "required": [
+          "CumulativeDistance",
+          "Sequence",
+          "StationID",
+          "StationName"
+        ],
+        "type": "object",
+        "properties": {
+          "Sequence": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "站序",
+            "format": "int32"
+          },
+          "StationID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "車站代碼",
+            "xml": {
+              "name": "StationID"
+            }
+          },
+          "StationName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "車站名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "CumulativeDistance": {
+            "title": "Single",
+            "type": "number",
+            "description": "已累積之里程距離(公里)",
+            "format": "float"
+          }
+        },
+        "additionalProperties": false,
+        "description": "路線車站資訊",
+        "xml": {
+          "name": "RouteStation"
+        }
+      },
+      "PTX.API.Rail.Model.LiteTrain.LiteTrainRealTimeWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.TRANewsList.News]": {
+        "title": "LiteTrainNewsList",
+        "required": [
+          "AuthorityCode",
+          "Newses",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -8346,60 +14151,15 @@
               "name": "AuthorityCode"
             }
           },
-          "Count": {
-            "type": "integer",
-            "description": "資料總筆數",
-            "format": "int64",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "xml": {
-          "name": "LiteTrainBaseWrapperOfStationOfRoute",
-          "namespace": "https://ptx.transportdata.tw/standard/schema/"
-        }
-      },
-      "PTX.API.Rail.Model.LiteTrain.LiteTrainRealTimeWrapper[PTX.Service.DTO.Rail.Specification.V3.TRA.TRANewsList.News]": {
-        "title": "LiteTrainNewsList",
-        "required": [
-          "AuthorityCode",
-          "SrcUpdateInterval",
-          "SrcUpdateTime",
-          "UpdateInterval",
-          "UpdateTime"
-        ],
-        "type": "object",
-        "properties": {
-          "UpdateTime": {
-            "type": "string",
-            "description": "本平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
-            "format": "date-time"
-          },
-          "UpdateInterval": {
-            "title": "Int32",
-            "type": "integer",
-            "description": "本平台資料更新週期(秒)",
-            "format": "int32"
-          },
-          "SrcUpdateTime": {
-            "title": "DateTime",
-            "type": "string",
-            "description": "來源端平台資料更新時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
-            "format": "date-time"
-          },
-          "SrcUpdateInterval": {
-            "title": "Int32",
-            "type": "integer",
-            "description": "來源端平台資料更新週期(秒)['-1: 不定期更新']",
-            "format": "int32"
-          },
-          "AuthorityCode": {
-            "title": "String",
-            "minLength": 1,
-            "type": "string",
-            "description": "業管機關簡碼",
+          "Newses": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.TRA.TRANewsList.News"
+            },
+            "description": "資料(陣列)",
             "xml": {
-              "name": "AuthorityCode"
+              "name": "Newses"
             }
           },
           "Count": {
@@ -8419,6 +14179,7 @@
         "title": "LiteTrainShapeList",
         "required": [
           "AuthorityCode",
+          "Shapes",
           "SrcUpdateInterval",
           "SrcUpdateTime",
           "UpdateInterval",
@@ -8458,6 +14219,17 @@
               "name": "AuthorityCode"
             }
           },
+          "Shapes": {
+            "title": "Array",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Shape"
+            },
+            "description": "資料(陣列)",
+            "xml": {
+              "name": "Shapes"
+            }
+          },
           "Count": {
             "type": "integer",
             "description": "資料總筆數",
@@ -8469,6 +14241,69 @@
         "xml": {
           "name": "LiteTrainBaseWrapperOfShape",
           "namespace": "https://ptx.transportdata.tw/standard/schema/"
+        }
+      },
+      "PTX.Service.DTO.Rail.Specification.V3.LiteTrain.Shape": {
+        "title": "Shape",
+        "required": [
+          "Geometry",
+          "LineID",
+          "LineName",
+          "LineNo",
+          "UpdateTime"
+        ],
+        "type": "object",
+        "properties": {
+          "LineNo": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線編號",
+            "xml": {
+              "name": "LineNo"
+            }
+          },
+          "LineID": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "路線代碼",
+            "xml": {
+              "name": "LineID"
+            }
+          },
+          "LineName": {
+            "title": "NameType",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PTX.Service.DTO.Shared.Specification.V3.Base.NameType"
+              }
+            ],
+            "description": "路線名稱",
+            "xml": {
+              "name": "NameType"
+            }
+          },
+          "Geometry": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string",
+            "description": "well-known text，為路線軌跡資料",
+            "xml": {
+              "name": "Geometry"
+            }
+          },
+          "UpdateTime": {
+            "title": "DateTime",
+            "type": "string",
+            "description": "資料更新日期時間(ISO8601格式:yyyy-MM-ddTHH:mm:sszzz)",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "小火車線型資料",
+        "xml": {
+          "name": "Shape"
         }
       }
     },

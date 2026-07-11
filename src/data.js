@@ -336,8 +336,125 @@ var pData = {
     },
     ntmc: {
         sect_ary: ['newtaipei'],
-        station_ary: [],
-        line: []
+        station_ary: [
+            //Circular Line（環狀線，2023 年由北捷移交新北捷運，TDX 資料歸屬 NTMC）
+            { id: "ntmc_y07", StationID: ["Y07"], name: "大坪林", estring: "dapinglin", sect: 'newtaipei' },
+            { id: "ntmc_y08", StationID: ["Y08"], name: "十四張", estring: "shisizhang", sect: 'newtaipei' },
+            { id: "ntmc_y09", StationID: ["Y09"], name: "秀朗橋", estring: "xiulangqiao", sect: 'newtaipei' },
+            { id: "ntmc_y10", StationID: ["Y10"], name: "景平", estring: "jingping", sect: 'newtaipei' },
+            { id: "ntmc_y11", StationID: ["Y11"], name: "景安", estring: "jingan", sect: 'newtaipei' },
+            { id: "ntmc_y12", StationID: ["Y12"], name: "中和", estring: "zhonghe", sect: 'newtaipei' },
+            { id: "ntmc_y13", StationID: ["Y13"], name: "橋和", estring: "qiaohe", sect: 'newtaipei' },
+            { id: "ntmc_y14", StationID: ["Y14"], name: "中原", estring: "zhongyuan", sect: 'newtaipei' },
+            { id: "ntmc_y15", StationID: ["Y15"], name: "板新", estring: "banxin", sect: 'newtaipei' },
+            { id: "ntmc_y16", StationID: ["Y16"], name: "板橋", estring: "banqiaobanciao", sect: 'newtaipei' },
+            { id: "ntmc_y17", StationID: ["Y17"], name: "新埔民生", estring: "xinpuminsheng", sect: 'newtaipei' },
+            { id: "ntmc_y18", StationID: ["Y18"], name: "頭前庄", estring: "touqianzhuang", sect: 'newtaipei' },
+            { id: "ntmc_y19", StationID: ["Y19"], name: "幸福", estring: "xingfu", sect: 'newtaipei' },
+            { id: "ntmc_y20", StationID: ["Y20"], name: "新北產業園區", estring: "xinbeichanyeyuanqui", sect: 'newtaipei' }
+        ],
+        line: [
+            {
+                id: "ntmc_1",
+                LineID: "Y",
+                route: [{
+                    dir: 0,
+                    Direction: 0,
+                    work: [{ RouteID: 'Y-1', from: 'Y07', to: 'Y20' }]
+                }, {
+                    dir: 1,
+                    Direction: 1,
+                    work: [{ RouteID: 'Y-1', from: 'Y20', to: 'Y07' }]
+                }],
+                name: "環狀線",
+                trainSect: ["newtaipei"],
+                color: "#fedb00",
+                dir: "0",
+                station: ["Y07", "Y08", "Y09", "Y10", "Y11", "Y12", "Y13", "Y14", "Y15", "Y16", "Y17", "Y18", "Y19", "Y20"]
+            }
+        ]
+    },
+    krtc: {
+        sect_ary: ['kaohsiung'],
+        station_ary: [
+            //Red Line
+            { id: "krtc_r03", StationID: ["R3"], name: "小港", estring: "siaogang", sect: 'kaohsiung' },
+            { id: "krtc_r04", StationID: ["R4"], name: "高雄國際機場", estring: "kaohsiunginternationalairport", sect: 'kaohsiung', big: 'd' },
+            { id: "krtc_r04a", StationID: ["R4A"], name: "草衙", estring: "caoya", sect: 'kaohsiung' },
+            { id: "krtc_r05", StationID: ["R5"], name: "前鎮高中", estring: "cianjhenseniorhighschool", sect: 'kaohsiung' },
+            { id: "krtc_r06", StationID: ["R6"], name: "凱旋", estring: "kaisyuan", sect: 'kaohsiung' },
+            { id: "krtc_r07", StationID: ["R7"], name: "獅甲", estring: "shihjia", sect: 'kaohsiung' },
+            { id: "krtc_r08", StationID: ["R8"], name: "三多商圈", estring: "sanduoshoppingdistrict", sect: 'kaohsiung' },
+            { id: "krtc_r09", StationID: ["R9"], name: "中央公園", estring: "centralpark", sect: 'kaohsiung' },
+            { id: "krtc_r10", StationID: ["R10", "O5"], name: "美麗島", estring: "meilidaoformosaboulevard", sect: 'kaohsiung', big: 'd' },
+            { id: "krtc_r11", StationID: ["R11"], name: "高雄車站", estring: "kaohsiungmainstation", sect: 'kaohsiung', big: 'd' },
+            { id: "krtc_r12", StationID: ["R12"], name: "後驛", estring: "houyi", sect: 'kaohsiung' },
+            { id: "krtc_r13", StationID: ["R13"], name: "凹子底", estring: "aozihdi", sect: 'kaohsiung' },
+            { id: "krtc_r14", StationID: ["R14"], name: "巨蛋", estring: "kaohsiungarena", sect: 'kaohsiung' },
+            { id: "krtc_r15", StationID: ["R15"], name: "生態園區", estring: "ecologicaldistrict", sect: 'kaohsiung' },
+            { id: "krtc_r16", StationID: ["R16"], name: "左營", estring: "zuoying", sect: 'kaohsiung', big: 'd' },
+            { id: "krtc_r17", StationID: ["R17"], name: "世運", estring: "worldgames", sect: 'kaohsiung' },
+            { id: "krtc_r18", StationID: ["R18"], name: "油廠國小", estring: "oilrefineryelementaryschool", sect: 'kaohsiung' },
+            { id: "krtc_r19", StationID: ["R19"], name: "楠梓加工區", estring: "nanzihexportprocessingzone", sect: 'kaohsiung' },
+            { id: "krtc_r20", StationID: ["R20"], name: "後勁", estring: "houjing", sect: 'kaohsiung' },
+            { id: "krtc_r21", StationID: ["R21"], name: "都會公園", estring: "metropolitanpark", sect: 'kaohsiung' },
+            { id: "krtc_r22", StationID: ["R22"], name: "青埔", estring: "cingpu", sect: 'kaohsiung' },
+            { id: "krtc_r22a", StationID: ["R22A"], name: "橋頭糖廠", estring: "ciaotousugarrefinery", sect: 'kaohsiung' },
+            { id: "krtc_r23", StationID: ["R23"], name: "橋頭火車站", estring: "ciaotoustation", sect: 'kaohsiung' },
+            { id: "krtc_r24", StationID: ["R24"], name: "南岡山", estring: "gangshansouth", sect: 'kaohsiung' },
+            //Orange Line (O5 美麗島與 R10 同站，收在 krtc_r10)
+            { id: "krtc_o01", StationID: ["O1"], name: "西子灣", estring: "sizihwan", sect: 'kaohsiung' },
+            { id: "krtc_o02", StationID: ["O2"], name: "鹽埕埔", estring: "yanchengpu", sect: 'kaohsiung' },
+            { id: "krtc_o04", StationID: ["O4"], name: "市議會", estring: "citycouncil", sect: 'kaohsiung' },
+            { id: "krtc_o06", StationID: ["O6"], name: "信義國小", estring: "sinyielementaryschool", sect: 'kaohsiung' },
+            { id: "krtc_o07", StationID: ["O7"], name: "文化中心", estring: "culturalcenter", sect: 'kaohsiung' },
+            { id: "krtc_o08", StationID: ["O8"], name: "五塊厝", estring: "wukuaicuo", sect: 'kaohsiung' },
+            { id: "krtc_o09", StationID: ["O9"], name: "技擊館", estring: "martialartsstadium", sect: 'kaohsiung' },
+            { id: "krtc_o10", StationID: ["O10"], name: "衛武營", estring: "weiwuying", sect: 'kaohsiung' },
+            { id: "krtc_o11", StationID: ["O11"], name: "鳳山西站", estring: "fongshanwest", sect: 'kaohsiung' },
+            { id: "krtc_o12", StationID: ["O12"], name: "鳳山", estring: "fongshan", sect: 'kaohsiung' },
+            { id: "krtc_o13", StationID: ["O13"], name: "大東", estring: "dadong", sect: 'kaohsiung' },
+            { id: "krtc_o14", StationID: ["O14"], name: "鳳山國中", estring: "fongshanjuniorhighschool", sect: 'kaohsiung' },
+            { id: "krtc_ot1", StationID: ["OT1"], name: "大寮", estring: "daliao", sect: 'kaohsiung' }
+        ],
+        line: [
+            {
+                id: 'krtc_r',
+                LineID: 'R',
+                route: [{
+                    dir: 0,
+                    Direction: 0,
+                    work: [{ RouteID: 'R', from: 'R3', to: 'R24' }]
+                }, {
+                    dir: 1,
+                    Direction: 1,
+                    work: [{ RouteID: 'R', from: 'R24', to: 'R3' }]
+                }],
+                name: "紅線",
+                trainSect: ["kaohsiung"],
+                color: "#d30547",
+                dir: "0",
+                station: ["R3", "R4", "R4A", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13", "R14", "R15", "R16", "R17", "R18", "R19", "R20", "R21", "R22", "R22A", "R23", "R24"]
+            },
+            {
+                id: 'krtc_o',
+                LineID: 'O',
+                route: [{
+                    dir: 0,
+                    Direction: 0,
+                    work: [{ RouteID: 'O', from: 'O1', to: 'OT1' }]
+                }, {
+                    dir: 1,
+                    Direction: 1,
+                    work: [{ RouteID: 'O', from: 'OT1', to: 'O1' }]
+                }],
+                name: "橘線",
+                trainSect: ["kaohsiung"],
+                color: "#f77f00",
+                dir: "0",
+                station: ["O1", "O2", "O4", "O5", "O6", "O7", "O8", "O9", "O10", "O11", "O12", "O13", "O14", "OT1"]
+            }
+        ]
     },
     tmrt: {
         sect_ary: ['taichung'],
@@ -1302,6 +1419,11 @@ var pData = {
             changeLine: ["tymc_1", "tymc_1"],
             changeStation: ['tymc_a08', 'tymc_a08'],
             walkMinute: 0
+        }, {
+            id: 'meilidao1', name: "美麗島",//高捷紅橘線
+            changeLine: ["krtc_r", "krtc_o"],
+            changeStation: ['krtc_r10', 'krtc_r10'],
+            walkMinute: 2
         }
     ],
     routeMap: [

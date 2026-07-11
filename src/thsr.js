@@ -11,6 +11,7 @@ const v2urls = {
     GeneralTimetable: thsrV2URL + '/GeneralTimetable', //取得所有車次的定期時刻表資料
     DailyTrainInfo_Today: thsrV2URL + '/DailyTrainInfo/Today', //取得當天所有車次的車次資料
     DailyTimetable_Today: thsrV2URL + '/DailyTimetable/Today', //取得當天所有車次的時刻表資料
+    DailyTimetable_TrainDates: thsrV2URL + '/DailyTimetable/TrainDates', //取得高鐵每日時刻表所有供應的日期資料
     AlertInfo: thsrV2URL + '/AlertInfo', //取得即時通阻事件資料
     News: thsrV2URL + '/News', //取得高鐵最新消息資料
     Shape: thsrV2URL + '/Shape', //取得指定營運業者之軌道路網實體路線圖資資料
@@ -22,6 +23,7 @@ const v2urls = {
     ODFareFromTo: thsrV2URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
     GeneralTimetable_TrainNo: thsrV2URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料
     DailyTrainInfo_Today_TrainNo: thsrV2URL + '/DailyTrainInfo/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的車次資料
+    DailyTrainInfo_TrainDate: thsrV2URL + '/DailyTrainInfo/TrainDate/{TrainDate}', //取得指定[日期]所有車次的車次資料 yyyy-MM-dd
     DailyTrainInfo_TrainNo_TrainDate: thsrV2URL + '/DailyTrainInfo/TrainNo/{TrainNo}/TrainDate/{TrainDate}', //取得指定[日期]與[車次]的車次資料
     DailyTimetable_Today_TrainNo: thsrV2URL + '/DailyTimetable/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的時刻表資料
     DailyTimetable_TrainDate_TrainDate: thsrV2URL + '/DailyTimetable/TrainDate/{TrainDate}', //取得指定[日期]所有車次的時刻表資料
@@ -138,6 +140,12 @@ thsr.v2 = {
     },
     getDailyFreeSeatingCarByDate: function(TrainDate, cfg={}){
         return thsr.v2._DailyFreeSeatingCar_TrainDate(TrainDate, cfg);
+    },
+    getDailyTimetableDates: function(cfg={}){
+        return thsr.v2._DailyTimetable_TrainDates(cfg);
+    },
+    getDailyTrainInfoByDate: function(TrainDate, cfg={}){
+        return thsr.v2._DailyTrainInfo_TrainDate(TrainDate, cfg);
     }
 }
 

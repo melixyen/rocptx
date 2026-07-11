@@ -111,7 +111,7 @@ node catch.js --urls ODFareFromTo $OriginStationID=0920 $DestinationStationID=09
 
 查詢台鐵 V3 指定車次的時刻表（直接印出 JSON）：
 ```bash
-node catch.js --urls GeneralTimetable_TrainNo $TrainNo=110 --company tra --ver 3
+node catch.js --urls GeneralTrainTimetable_TrainNo $TrainNo=110 --company tra --ver 3
 ```
 
 查詢高鐵指定起訖站票價並存檔：

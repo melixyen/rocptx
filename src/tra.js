@@ -58,7 +58,7 @@ const v3urls = {
     Shape: traV3URL + '/Shape', //取得線型基本資料
     //以下為帶有變數的 API
     ODFareFromTo: traV3URL + '/ODFare/{OriginStationID}/to/{DestinationStationID}', //取得指定[起訖站間]之票價資料
-    GeneralTimetable_TrainNo: traV3URL + '/GeneralTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料
+    GeneralTrainTimetable_TrainNo: traV3URL + '/GeneralTrainTimetable/TrainNo/{TrainNo}', //取得指定[車次]的定期時刻表資料(v3 為 GeneralTrainTimetable，舊 GeneralTimetable_TrainNo 路徑有誤已更名修正)
     GeneralStationTimetable_Station: traV3URL + '/GeneralStationTimetable/Station/{StationID}', //取得指定[車站]的定期站別時刻表資料
     SpecificTrainTimetable_TrainNo : traV3URL + '/SpecificTrainTimetable/TrainNo/{TrainNo}', //取得指定[車次]的特殊車次時刻表資料
     DailyTrainTimetable_Today_TrainNo: traV3URL + '/DailyTrainTimetable/Today/TrainNo/{TrainNo}', //取得當天指定[車次]的時刻表資料
@@ -262,9 +262,14 @@ let catchData = {
         return rt;
     },
     getDataXStationData: function(StationID){
-        var rt = ptx.datax['tra'].station.find((c)=>{return !!(c.StationID==StationID)})
+        var findFn = function(sid){ return ptx.datax['tra'].station.find((c)=>{return !!(c.StationID==sid)}) };
+        var rt = findFn(StationID);
+        if(!rt){//2026-07 起 TDX 的 TRA v2 API 已改回傳 v3 站 ID，datax 亦為 v3 ID；傳入 v2 ID 查無時自動轉 v3 相容舊用法
+            var v3id = idFn.tra.getPTXV3byV2(StationID);
+            if(v3id) rt = findFn(v3id);
+        }
         if(rt){
-            var dt = ptx.data.tra.station_ary.find(c=> !!(idFn.tra.getPTXV2(c.id)==StationID))
+            var dt = ptx.data.tra.station_ary.find(c=> !!(idFn.tra.getPTXV2(c.id)==StationID || c.v3id==rt.StationID))
             for(var k in dt){
                 if(k=='id'){
                     rt['id'] = dt[k];
@@ -363,8 +368,9 @@ let catchData = {
     SimpleLine: function(progressFn){
         if(typeof(progressFn)!='function') progressFn = (msg)=>{};
         //區分要抓的 line 在資料中是順時針或逆時針方向
-        let recordLineDir0 = ['CZ','YL','NL','TT','PX','NW','LJ'];
-        let recordLineDir1 = ['TL-N','TL-M','TL-C','TL-S','PL','SL','SA','JJ','SH'];
+        //2026-07 更新：TDX 現行 v2 LineID 與 v3 相同（舊 YL/NL/TT/TL-* 等已不存在），清單同步 v3 版
+        let recordLineDir0 = ['CZ','EL','SU','PX','NW','LJ'];
+        let recordLineDir1 = ['WL','WL-C','SL','SA','JJ','SH'];
         let lineCfg = {
             filterBy: ptx.filterParam('LineID', '==', recordLineDir0.concat(recordLineDir1), 'or')
         }

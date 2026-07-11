@@ -1,8 +1,13 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.0.4",
   "info": {
     "title": "道路事件",
     "description": "本平臺提供涵蓋全國尺度之道路事件服務API，歡迎各產政學單位介接使用。\n<br><span class=swagger-description-indicatation>利用本平臺開放資料進行各項應用服務開發時，請考量不同特性使用者(如：性別/身心障礙/老幼等)的需求，並歡迎回饋寶貴意見。</span>\n<br>計費方式：\n<br>計次：1,500次/1點\n<br>計量：150MB/1點\n---\n##### API使用說明與注意事項：\n1. 如您尚未註冊平臺會員帳號，或未以帳號登入，您將僅能以「訪客模式」使用平臺服務，包含：限以瀏覽器存取，限使用`【基礎服務】`，且限制每個呼叫來源端IP每日存取至多20次。。\n2. 如您已註冊平臺會員帳號，請務必確保在存取服務(包含瀏覽器、程式呼叫API)時帶入您的API金鑰，方能以「會員模式」使用完整平臺服務，包含平臺各類資料服務，如`【基礎服務】`、`【進階服務】`、`【加值服務】`、`【歷史服務】`、`【圖資服務】`、`【第三方服務】`等。\n3. 建議您立即[註冊平臺會員帳號](/register)，依您用量需求訂閱服務方案，並於[【會員中心->資料服務->API金鑰】](/user/dataservice/key)取得API金鑰(即Client Id和Client Secret資訊)。\n4. 會員訂閱服務方案之級別不同，將決定其API金鑰之存取頻率有不同限制，各個方案的存取頻率限制說明請參考[訂閱收費](/pricing)。\n5. 以瀏覽器帶入API金鑰之操作方式：請點選Swagger UI上的Authorize按鈕，依指示填入Client Id和Client Secret資訊並進行驗證，驗證完成後可開始於Swagger UI使用API。\n6. 以程式呼叫API帶入API金鑰之操作方式：請參考[範例程式](https://github.com/tdxmotc/SampleCode)。\n7. 不論您是以瀏覽器或是以程式呼叫API，所有服務存取行為均將被記錄並定期檢視，以確保系統資源使用的合理分配與避免遭受濫用。\n\nAPI OAS文本 :[請點我](https://tdx.transportdata.tw/webapi/File/Swagger/V3/60abfa19-ffe3-4eef-a4b1-0539435dfca9)",
+    "termsOfService": "https://tdx.transportdata.tw/term",
+    "contact": {
+      "name": "TDX客服信箱",
+      "email": "tdx@motc.gov.tw"
+    },
     "version": "v1"
   },
   "servers": [
@@ -11,12 +16,108 @@
     }
   ],
   "paths": {
+    "/v1/Traffic/RoadEvent/Event/Highway": {
+      "get": {
+        "tags": [
+          "Highway"
+        ],
+        "summary": "取得省道之預告性道路事件",
+        "description": "涵蓋施工、活動、天氣等事件類型與子類別，並包含里程、匝道等空間資訊，及影響程度、道路通阻、交管期間、網址連結等附加資訊，以呈現完整即時交通事件明細。",
+        "operationId": "TrafficEvent_API_THB_Event",
+        "parameters": [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "挑選",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "排序",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "取前幾筆",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "跳過前幾筆",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$count",
+            "in": "query",
+            "description": "查詢數量",
+            "schema": {
+              "enum": [
+                true,
+                false
+              ],
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$format",
+            "in": "query",
+            "description": "指定來源格式",
+            "required": true,
+            "schema": {
+              "enum": [
+                "JSON",
+                "XML"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Static.Event]"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/PTX.Service.DTO.DataMarket.Specification.EventWrapper[PTX.Model.DataMarket.POCO.Event.Static.Event]"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/Traffic/RoadEvent/Event/City/{City}": {
       "get": {
         "tags": [
           "City"
         ],
         "summary": "取得指定[縣市]的預告性事件資料",
+        "description": "涵蓋施工、活動、天氣等事件類型與子類別，並包含城鎮、道路與地點等空間資訊，及影響程度、道路通阻、交管期間、網址連結等附加資訊，以呈現完整即時交通事件明細。",
         "operationId": "TrafficEvent_API_Event",
         "parameters": [
           {
@@ -32,6 +133,8 @@
                 "Taichung",
                 "Tainan",
                 "Keelung",
+                "MiaoliCounty",
+                "ChiayiCounty",
                 "YilanCounty",
                 "KinmenCounty"
               ],
@@ -44,19 +147,19 @@
               "ChanghuaCounty": "彰化縣",
               "Chiayi": "嘉義市",
               "Keelung": "基隆市",
-              "MiaoliCounty": "苗栗縣",
               "LienchiangCounty": "連江縣",
               "TaitungCounty": "臺東縣",
               "KinmenCounty": "金門縣",
               "HualienCounty": "花蓮縣",
               "HsinchuCounty": "新竹縣",
               "PingtungCounty": "屏東縣",
-              "ChiayiCounty": "嘉義縣",
               "Taichung": "臺中市",
               "Hsinchu": "新竹市",
               "YunlinCounty": "雲林縣",
               "Tainan": "臺南市",
+              "ChiayiCounty": "嘉義縣",
               "NantouCounty": "南投縣",
+              "MiaoliCounty": "苗栗縣",
               "Taoyuan": "桃園市",
               "NewTaipei": "新北市",
               "Kaohsiung": "高雄市"
@@ -154,6 +257,7 @@
           "Highway"
         ],
         "summary": "取得省道之即時性道路事件",
+        "description": "涵蓋交通事故、施工及災害等事件類型與子類別，並包含里程、匝道等空間資訊，及影響程度、道路通阻、交管期間、網址連結等附加資訊，以呈現完整即時交通事件明細。",
         "operationId": "TrafficEvent_API_THB_LiveEvent",
         "parameters": [
           {
@@ -248,6 +352,7 @@
           "Freeway"
         ],
         "summary": "取得高速公路之即時性道路事件",
+        "description": "涵蓋交通事故、施工及災害等事件類型與子類別，並包含里程、交流道與匝道等空間資訊，及影響程度、道路通阻、交管期間、網址連結等附加資訊，以呈現完整即時交通事件明細。",
         "operationId": "TrafficEvent_API_NFB_LiveEvent",
         "parameters": [
           {
@@ -342,6 +447,7 @@
           "City"
         ],
         "summary": "取得指定[縣市]的即時性事件資料",
+        "description": "涵蓋交通事故、施工及災害等事件類型與子類別，並包含城鎮、道路與地點等空間資訊，及影響程度、道路通阻、交管期間、網址連結等附加資訊，以呈現完整即時交通事件明細。",
         "operationId": "TrafficEvent_API_LiveEvent",
         "parameters": [
           {
@@ -358,16 +464,18 @@
                 "Tainan",
                 "Kaohsiung",
                 "Keelung",
+                "ChiayiCounty",
                 "YilanCounty",
                 "KinmenCounty"
               ],
               "type": "string"
             },
             "x-enum": {
+              "Keelung": "基隆市",
+              "ChiayiCounty": "嘉義縣",
               "TaitungCounty": "臺東縣",
               "Kaohsiung": "高雄市",
               "PenghuCounty": "澎湖縣",
-              "ChiayiCounty": "嘉義縣",
               "KinmenCounty": "金門縣",
               "YilanCounty": "宜蘭縣",
               "LienchiangCounty": "連江縣",
@@ -384,7 +492,6 @@
               "ChanghuaCounty": "彰化縣",
               "Hsinchu": "新竹市",
               "Chiayi": "嘉義市",
-              "Keelung": "基隆市",
               "Tainan": "臺南市"
             }
           },
@@ -480,6 +587,7 @@
           "Common"
         ],
         "summary": "取得業管機關資料",
+        "description": "包含機關簡碼、名稱、識別代碼、聯絡電話、信箱、地址及官網連結等資訊。",
         "operationId": "TrafficEvent_API_Authority",
         "parameters": [
           {
@@ -659,6 +767,7 @@
           "EventID": {
             "title": "String",
             "type": "string",
+            "description": "事件代碼",
             "xml": {
               "name": "EventID"
             }
@@ -666,6 +775,7 @@
           "EventTitle": {
             "title": "String",
             "type": "string",
+            "description": "事件名稱",
             "xml": {
               "name": "EventTitle"
             }
@@ -673,6 +783,7 @@
           "Description": {
             "title": "String",
             "type": "string",
+            "description": "事件說明",
             "xml": {
               "name": "Description"
             }
@@ -680,31 +791,35 @@
           "EventType": {
             "title": "Int32",
             "type": "integer",
-            "description": "[1:'交通事故',2:'施工',3:'壅塞',4:'特殊管制',5:'天氣',6:'災害',7:'活動',8:'其它異常告警']"
+            "description": "事件類別(代碼) : [1:'交通事故',2:'施工',3:'壅塞',4:'特殊管制',5:'天氣',6:'災害',7:'活動',8:'其它異常告警']"
           },
           "EventSubType": {
             "title": "Int32",
             "type": "integer",
-            "description": "[101:'人與汽機車事故',102:'車與車事故',103:'汽機車本身事故',104:'平交道事故',105:'火燒車事故',106:'危險原物料事故',198:'其他的交通事故',199:'未知的交通事故',201:'橋梁施工',202:'爆破施工',203:'設施施工',204:'拆除施工',205:'挖掘施工',206:'管線施工',207:'道路或鋪面施工',208:'移動或清掃施工',209:'拓寬施工',210:'隧道施工',211:'匝道施工',298:'其他的施工',299:'未知的施工',301:'車多',302:'壅塞',303:'嚴重壅塞',304:'極度壅塞',401:'疏運',402:'預警性封閉',403:'演習',404:'維安',498:'其他的特殊管制',499:'未知的特殊管制',501:'濃霧',502:'豪雨',503:'強風',504:'高溫',505:'低溫',506:'颱風的天氣',507:'冰雹',508:'下雪',509:'塵霾',598:'其他的天氣',599:'未知的天氣',601:'地震',602:'海嘯',603:'落石',604:'坍方',605:'淹水',606:'山崩',607:'土石流',608:'火災',609:'煙塵',610:'危險物品洩漏',611:'颱風的災害',698:'其他的災害',699:'未知的災害',701:'學術',702:'藝文',703:'旅遊',704:'公益',705:'體育',706:'婚喪喜慶',707:'集會遊行',708:'宗教活動',709:'節慶',798:'其他的活動',799:'未知的活動',801:'散落物',802:'路面損毀',803:'路面坑洞',804:'路面積水',805:'號誌故障',806:'路燈故障',807:'故障車',808:'車輛逆行',809:'機車誤闖',810:'自行車誤闖',811:'行人誤闖',812:'動物闖入',813:'隧道照明設備故障',814:'隧道機電設備故障',898:'其他的異常',899:'未知的異常']"
+            "description": "事件次類別(代碼) : [101:'人與汽機車事故',102:'車與車事故',103:'汽機車本身事故',104:'平交道事故',105:'火燒車事故',106:'危險原物料事故',198:'其他的交通事故',199:'未知的交通事故',201:'橋梁施工',202:'爆破施工',203:'設施施工',204:'拆除施工',205:'挖掘施工',206:'管線施工',207:'道路或鋪面施工',208:'移動或清掃施工',209:'拓寬施工',210:'隧道施工',211:'匝道施工',298:'其他的施工',299:'未知的施工',301:'車多',302:'壅塞',303:'嚴重壅塞',304:'極度壅塞',401:'疏運',402:'預警性封閉',403:'演習',404:'維安',498:'其他的特殊管制',499:'未知的特殊管制',501:'濃霧',502:'豪雨',503:'強風',504:'高溫',505:'低溫',506:'颱風的天氣',507:'冰雹',508:'下雪',509:'塵霾',598:'其他的天氣',599:'未知的天氣',601:'地震',602:'海嘯',603:'落石',604:'坍方',605:'淹水',606:'山崩',607:'土石流',608:'火災',609:'煙塵',610:'危險物品洩漏',611:'颱風的災害',698:'其他的災害',699:'未知的災害',701:'學術',702:'藝文',703:'旅遊',704:'公益',705:'體育',706:'婚喪喜慶',707:'集會遊行',708:'宗教活動',709:'節慶',798:'其他的活動',799:'未知的活動',801:'散落物',802:'路面損毀',803:'路面坑洞',804:'路面積水',805:'號誌故障',806:'路燈故障',807:'故障車',808:'車輛逆行',809:'機車誤闖',810:'自行車誤闖',811:'行人誤闖',812:'動物闖入',813:'隧道照明設備故障',814:'隧道機電設備故障',898:'其他的異常',899:'未知的異常']"
           },
           "EventStep": {
             "title": "Int32",
             "type": "integer",
+            "description": "事件積報序號",
             "format": "int32"
           },
           "EffectiveTime": {
             "title": "DateTime",
             "type": "string",
+            "description": "事件起始時間",
             "format": "date-time"
           },
           "ExpireTime": {
             "title": "DateTime",
             "type": "string",
+            "description": "事件結束時間",
             "format": "date-time"
           },
           "Positions": {
             "title": "String",
             "type": "string",
+            "description": "事件代表點位坐標",
             "xml": {
               "name": "Positions"
             }
@@ -712,6 +827,7 @@
           "Geometry": {
             "title": "String",
             "type": "string",
+            "description": "事件代表空間範圍",
             "xml": {
               "name": "Geometry"
             }
@@ -719,7 +835,7 @@
           "LocationType": {
             "title": "Int32",
             "type": "integer",
-            "description": "[0:'道路主線',1:'交流道或匝道',2:'匝道出入口',3:'交叉路口',254:'其他',255:'未知']"
+            "description": "事件空間發生位置 : [0:'道路主線',1:'交流道或匝道',2:'匝道出入口',3:'交叉路口',254:'其他',255:'未知']"
           },
           "Location": {
             "title": "Location",
@@ -728,6 +844,7 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Location"
               }
             ],
+            "description": "事件空間位置資訊",
             "xml": {
               "name": "Location"
             }
@@ -739,6 +856,7 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Impact[PTX.Model.DataMarket.POCO.Event.Static.EventDuration]"
               }
             ],
+            "description": "事件對道路交通之衝擊影響",
             "xml": {
               "name": "Impact`1"
             }
@@ -746,6 +864,7 @@
           "WebURL": {
             "title": "String",
             "type": "string",
+            "description": "事件資訊網址",
             "xml": {
               "name": "WebURL"
             }
@@ -758,6 +877,7 @@
               "type": "string",
               "xml": { }
             },
+            "description": "事件資訊補充附件",
             "xml": {
               "name": "List`1"
             }
@@ -765,6 +885,7 @@
           "Source": {
             "title": "String",
             "type": "string",
+            "description": "事件資訊通報來源",
             "xml": {
               "name": "Source"
             }
@@ -772,14 +893,17 @@
           "PublishTime": {
             "title": "DateTime",
             "type": "string",
+            "description": "事件資訊發布時間",
             "format": "date-time"
           },
           "LastUpdateTime": {
             "title": "DateTime",
             "type": "string",
+            "description": "事件資訊最新更新時間",
             "format": "date-time"
           }
         },
+        "description": "預告性事件資訊",
         "xml": {
           "name": "Event"
         }
@@ -795,6 +919,7 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.FreeExpressHighway"
               }
             ],
+            "description": "國快省縣道路",
             "xml": {
               "name": "FreeExpressHighway"
             }
@@ -806,6 +931,7 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.CityRoad"
               }
             ],
+            "description": "市區道路",
             "xml": {
               "name": "CityRoad"
             }
@@ -817,6 +943,7 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Intersection"
               }
             ],
+            "description": "交叉路口",
             "xml": {
               "name": "Intersection"
             }
@@ -828,6 +955,7 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Address"
               }
             ],
+            "description": "地址",
             "xml": {
               "name": "Address"
             }
@@ -839,6 +967,7 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Place"
               }
             ],
+            "description": "地點",
             "xml": {
               "name": "Place"
             }
@@ -846,11 +975,13 @@
           "Other": {
             "title": "String",
             "type": "string",
+            "description": "其它",
             "xml": {
               "name": "Other"
             }
           }
         },
+        "description": "事件空間位置資訊",
         "xml": {
           "name": "Location"
         }
@@ -868,6 +999,7 @@
           "Road": {
             "title": "String",
             "type": "string",
+            "description": "路名",
             "xml": {
               "name": "Road"
             }
@@ -875,11 +1007,12 @@
           "Direction": {
             "title": "Int32",
             "type": "integer",
-            "description": "[0:'東向',1:'西向',2:'南向',3:'北向',4:'雙向']"
+            "description": "道路方向 : [0:'東向',1:'西向',2:'南向',3:'北向',4:'雙向']"
           },
           "StartKM": {
             "title": "String",
             "type": "string",
+            "description": "里程區間(起點公里數)",
             "xml": {
               "name": "StartKM"
             }
@@ -887,6 +1020,7 @@
           "EndKM": {
             "title": "String",
             "type": "string",
+            "description": "里程區間(迄點公里數)",
             "xml": {
               "name": "EndKM"
             }
@@ -894,6 +1028,7 @@
           "SectionStart": {
             "title": "String",
             "type": "string",
+            "description": "路段區間描述(起)",
             "xml": {
               "name": "SectionStart"
             }
@@ -901,6 +1036,7 @@
           "SectionEnd": {
             "title": "String",
             "type": "string",
+            "description": "路段區間描述(迄)",
             "xml": {
               "name": "SectionEnd"
             }
@@ -908,6 +1044,7 @@
           "Interchange": {
             "title": "String",
             "type": "string",
+            "description": "交流道名稱",
             "xml": {
               "name": "Interchange"
             }
@@ -919,11 +1056,13 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Ramp"
               }
             ],
+            "description": "匝道位置",
             "xml": {
               "name": "Ramp"
             }
           }
         },
+        "description": "國快省縣道路",
         "xml": {
           "name": "FreeExpressHighway"
         }
@@ -939,12 +1078,12 @@
           "Direction": {
             "title": "Int32",
             "type": "integer",
-            "description": "[0:'東向',1:'西向',2:'南向',3:'北向']"
+            "description": "匝道出入口方向 : [0:'東向',1:'西向',2:'南向',3:'北向']"
           },
           "EntryExit": {
             "title": "Int32",
             "type": "integer",
-            "description": "[0:'出口',1:'入口']"
+            "description": "匝道出入口 : [0:'出口',1:'入口']"
           }
         },
         "xml": {
@@ -961,11 +1100,13 @@
             "items": {
               "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Roadway"
             },
+            "description": "行政區名",
             "xml": {
               "name": "List`1"
             }
           }
         },
+        "description": "市區道路",
         "xml": {
           "name": "CityRoad"
         }
@@ -983,6 +1124,7 @@
           "City": {
             "title": "String",
             "type": "string",
+            "description": "縣市名",
             "xml": {
               "name": "City"
             }
@@ -990,6 +1132,7 @@
           "Town": {
             "title": "String",
             "type": "string",
+            "description": "行政區名",
             "xml": {
               "name": "Town"
             }
@@ -997,6 +1140,7 @@
           "Road": {
             "title": "String",
             "type": "string",
+            "description": "路名",
             "xml": {
               "name": "Road"
             }
@@ -1004,11 +1148,12 @@
           "Direction": {
             "title": "Int32",
             "type": "integer",
-            "description": "[0:'東向',1:'西向',2:'南向',3:'北向',4:'東北向',5:'東南向',6:'西南向',7:'西北向',8:'雙向']"
+            "description": "道路方向 : [0:'東向',1:'西向',2:'南向',3:'北向',4:'東北向',5:'東南向',6:'西南向',7:'西北向',8:'雙向']"
           },
           "SectionStart": {
             "title": "String",
             "type": "string",
+            "description": "道路街廊(起)",
             "xml": {
               "name": "SectionStart"
             }
@@ -1016,11 +1161,13 @@
           "SectionEnd": {
             "title": "String",
             "type": "string",
+            "description": "道路街廊(迄)",
             "xml": {
               "name": "SectionEnd"
             }
           }
         },
+        "description": "道路資料",
         "xml": {
           "name": "Roadway"
         }
@@ -1036,6 +1183,7 @@
           "City": {
             "title": "String",
             "type": "string",
+            "description": "縣市名",
             "xml": {
               "name": "City"
             }
@@ -1048,11 +1196,13 @@
               "type": "string",
               "xml": { }
             },
+            "description": "路名資訊",
             "xml": {
               "name": "List`1"
             }
           }
         },
+        "description": "交叉路口",
         "xml": {
           "name": "Intersection"
         }
@@ -1071,6 +1221,7 @@
           "City": {
             "title": "String",
             "type": "string",
+            "description": "縣市名",
             "xml": {
               "name": "City"
             }
@@ -1078,6 +1229,7 @@
           "Town": {
             "title": "String",
             "type": "string",
+            "description": "行政區名",
             "xml": {
               "name": "Town"
             }
@@ -1085,6 +1237,7 @@
           "Road": {
             "title": "String",
             "type": "string",
+            "description": "路名",
             "xml": {
               "name": "Road"
             }
@@ -1092,6 +1245,7 @@
           "Lane": {
             "title": "String",
             "type": "string",
+            "description": "巷名",
             "xml": {
               "name": "Lane"
             }
@@ -1099,6 +1253,7 @@
           "Alley": {
             "title": "String",
             "type": "string",
+            "description": "弄名",
             "xml": {
               "name": "Alley"
             }
@@ -1106,6 +1261,7 @@
           "StartNo": {
             "title": "String",
             "type": "string",
+            "description": "號(起)",
             "xml": {
               "name": "StartNo"
             }
@@ -1113,11 +1269,13 @@
           "EndNo": {
             "title": "String",
             "type": "string",
+            "description": "號(迄)",
             "xml": {
               "name": "EndNo"
             }
           }
         },
+        "description": "地址",
         "xml": {
           "name": "Address"
         }
@@ -1132,11 +1290,13 @@
           "POI": {
             "title": "String",
             "type": "string",
+            "description": "地標POI",
             "xml": {
               "name": "POI"
             }
           }
         },
+        "description": "地點",
         "xml": {
           "name": "Place"
         }
@@ -1155,6 +1315,7 @@
           "Description": {
             "title": "String",
             "type": "string",
+            "description": "道路受影響描述",
             "xml": {
               "name": "Description"
             }
@@ -1162,7 +1323,7 @@
           "Severity": {
             "title": "Int32",
             "type": "integer",
-            "description": "[-99:'來源未提供',0:'無影響',1:'部分阻斷交通',2:'完全阻斷交通',254:'其他',255:'未知']"
+            "description": "對交通影響的嚴重程度 : [-99:'來源未提供',0:'無影響',1:'部分阻斷交通',2:'完全阻斷交通',254:'其他',255:'未知']"
           },
           "Regulations": {
             "title": "Array",
@@ -1170,10 +1331,24 @@
             "items": {
               "title": "Int32",
               "type": "integer",
-              "description": "[-99:'來源未提供',0:'無管制',1:'全封閉',2:'部分封閉',3:'高乘載管制',4:'調撥車道',5:'開放路肩',6:'匝道儀控',7:'號誌管控',8:'交管人員現場指揮',9:'特定車種管制需求',254:'其他',255:'未知']"
+              "description": "道路交通管制措施 : [-99:'來源未提供',0:'無管制',1:'全封閉',2:'部分封閉',3:'高乘載管制',4:'調撥車道',5:'開放路肩',6:'匝道儀控',7:'號誌管控',8:'交管人員現場指揮',9:'特定車種管制需求',254:'其他',255:'未知']"
             },
+            "description": "道路交通管制措施資訊",
             "xml": {
               "name": "List`1"
+            }
+          },
+          "BlockWay": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "受阻斷方向 : [-99:'來源未提供',0:'無阻斷',1:'僅單向',2:'雙向',254:'其他',255:'未知']"
+          },
+          "BlockedLanes": {
+            "title": "String",
+            "type": "string",
+            "description": "受阻斷車道",
+            "xml": {
+              "name": "BlockedLanes"
             }
           },
           "Duration": {
@@ -1183,20 +1358,9 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Static.EventDuration"
               }
             ],
+            "description": "道路交管期間",
             "xml": {
               "name": "EventDuration"
-            }
-          },
-          "BlockWay": {
-            "title": "Int32",
-            "type": "integer",
-            "description": "[-99:'來源未提供',0:'無阻斷',1:'僅單向',2:'雙向',254:'其他',255:'未知']"
-          },
-          "BlockedLanes": {
-            "title": "String",
-            "type": "string",
-            "xml": {
-              "name": "BlockedLanes"
             }
           },
           "Detour": {
@@ -1206,11 +1370,13 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Detour"
               }
             ],
+            "description": "替代道路路線資訊",
             "xml": {
               "name": "Detour"
             }
           }
         },
+        "description": "事件對道路交通之衝擊影響",
         "xml": {
           "name": "Impact`1"
         }
@@ -1222,7 +1388,7 @@
           "OccurType": {
             "title": "Int32",
             "type": "integer",
-            "description": "[0:'Successive',1:'Daily',2:'Weekdays',3:'Weekends',4:'WeekendsAndHoildays',5:'Others']"
+            "description": "發生期間類型 : [0:'Successive',1:'Daily',2:'Weekdays',3:'Weekends',4:'WeekendsAndHoildays',5:'Others']"
           },
           "OccurDays": {
             "title": "Array",
@@ -1232,6 +1398,7 @@
               "type": "integer",
               "description": "[0:'SunDay',1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thurday',5:'Friday',6:'Saturday',7:'Hoildays']"
             },
+            "description": "發生於指定週間日",
             "xml": {
               "name": "List`1"
             }
@@ -1244,6 +1411,7 @@
               "type": "string",
               "xml": { }
             },
+            "description": "發生於指定日",
             "xml": {
               "name": "List`1"
             }
@@ -1251,6 +1419,7 @@
           "StartTime": {
             "title": "String",
             "type": "string",
+            "description": "起始時間",
             "xml": {
               "name": "StartTime"
             }
@@ -1258,11 +1427,13 @@
           "EndTime": {
             "title": "String",
             "type": "string",
+            "description": "結束時間",
             "xml": {
               "name": "EndTime"
             }
           }
         },
+        "description": "預告性事件的Duration",
         "xml": {
           "name": "EventDuration"
         }
@@ -1278,6 +1449,7 @@
           "Description": {
             "title": "String",
             "type": "string",
+            "description": "替代道路路線建議說明",
             "xml": {
               "name": "Description"
             }
@@ -1285,6 +1457,7 @@
           "AttachmentURL": {
             "title": "String",
             "type": "string",
+            "description": "替代道路路線圖網址",
             "xml": {
               "name": "AttachmentURL"
             }
@@ -1292,11 +1465,13 @@
           "Geometry": {
             "title": "String",
             "type": "string",
+            "description": "替代道路路線圖資",
             "xml": {
               "name": "Geometry"
             }
           }
         },
+        "description": "替代道路路線資訊",
         "xml": {
           "name": "Detour"
         }
@@ -1385,6 +1560,7 @@
           "EventID": {
             "title": "String",
             "type": "string",
+            "description": "事件代碼",
             "xml": {
               "name": "EventID"
             }
@@ -1392,6 +1568,7 @@
           "EventTitle": {
             "title": "String",
             "type": "string",
+            "description": "事件名稱",
             "xml": {
               "name": "EventTitle"
             }
@@ -1399,6 +1576,7 @@
           "Description": {
             "title": "String",
             "type": "string",
+            "description": "事件說明",
             "xml": {
               "name": "Description"
             }
@@ -1406,30 +1584,34 @@
           "EventType": {
             "title": "Int32",
             "type": "integer",
-            "description": "[1:'交通事故',2:'施工',3:'壅塞',4:'特殊管制',5:'天氣',6:'災害',7:'活動',8:'其它異常告警']"
+            "description": "事件類別(代碼) : [1:'交通事故',2:'施工',3:'壅塞',4:'特殊管制',5:'天氣',6:'災害',7:'活動',8:'其它異常告警']"
           },
           "EventSubType": {
             "title": "Int32",
             "type": "integer",
-            "description": "[101:'人與汽機車事故',102:'車與車事故',103:'汽機車本身事故',104:'平交道事故',105:'火燒車事故',106:'危險原物料事故',198:'其他的交通事故',199:'未知的交通事故',201:'橋梁施工',202:'爆破施工',203:'設施施工',204:'拆除施工',205:'挖掘施工',206:'管線施工',207:'道路或鋪面施工',208:'移動或清掃施工',209:'拓寬施工',210:'隧道施工',211:'匝道施工',298:'其他的施工',299:'未知的施工',301:'車多',302:'壅塞',303:'嚴重壅塞',304:'極度壅塞',401:'疏運',402:'預警性封閉',403:'演習',404:'維安',498:'其他的特殊管制',499:'未知的特殊管制',501:'濃霧',502:'豪雨',503:'強風',504:'高溫',505:'低溫',506:'颱風的天氣',507:'冰雹',508:'下雪',509:'塵霾',598:'其他的天氣',599:'未知的天氣',601:'地震',602:'海嘯',603:'落石',604:'坍方',605:'淹水',606:'山崩',607:'土石流',608:'火災',609:'煙塵',610:'危險物品洩漏',611:'颱風的災害',698:'其他的災害',699:'未知的災害',701:'學術',702:'藝文',703:'旅遊',704:'公益',705:'體育',706:'婚喪喜慶',707:'集會遊行',708:'宗教活動',709:'節慶',798:'其他的活動',799:'未知的活動',801:'散落物',802:'路面損毀',803:'路面坑洞',804:'路面積水',805:'號誌故障',806:'路燈故障',807:'故障車',808:'車輛逆行',809:'機車誤闖',810:'自行車誤闖',811:'行人誤闖',812:'動物闖入',813:'隧道照明設備故障',814:'隧道機電設備故障',898:'其他的異常',899:'未知的異常']"
+            "description": "事件次類別(代碼) : [101:'人與汽機車事故',102:'車與車事故',103:'汽機車本身事故',104:'平交道事故',105:'火燒車事故',106:'危險原物料事故',198:'其他的交通事故',199:'未知的交通事故',201:'橋梁施工',202:'爆破施工',203:'設施施工',204:'拆除施工',205:'挖掘施工',206:'管線施工',207:'道路或鋪面施工',208:'移動或清掃施工',209:'拓寬施工',210:'隧道施工',211:'匝道施工',298:'其他的施工',299:'未知的施工',301:'車多',302:'壅塞',303:'嚴重壅塞',304:'極度壅塞',401:'疏運',402:'預警性封閉',403:'演習',404:'維安',498:'其他的特殊管制',499:'未知的特殊管制',501:'濃霧',502:'豪雨',503:'強風',504:'高溫',505:'低溫',506:'颱風的天氣',507:'冰雹',508:'下雪',509:'塵霾',598:'其他的天氣',599:'未知的天氣',601:'地震',602:'海嘯',603:'落石',604:'坍方',605:'淹水',606:'山崩',607:'土石流',608:'火災',609:'煙塵',610:'危險物品洩漏',611:'颱風的災害',698:'其他的災害',699:'未知的災害',701:'學術',702:'藝文',703:'旅遊',704:'公益',705:'體育',706:'婚喪喜慶',707:'集會遊行',708:'宗教活動',709:'節慶',798:'其他的活動',799:'未知的活動',801:'散落物',802:'路面損毀',803:'路面坑洞',804:'路面積水',805:'號誌故障',806:'路燈故障',807:'故障車',808:'車輛逆行',809:'機車誤闖',810:'自行車誤闖',811:'行人誤闖',812:'動物闖入',813:'隧道照明設備故障',814:'隧道機電設備故障',898:'其他的異常',899:'未知的異常']"
           },
           "EventStep": {
             "title": "Int32",
             "type": "integer",
+            "description": "事件積報序號",
             "format": "int32"
           },
           "EffectiveTime": {
             "title": "DateTime",
             "type": "string",
+            "description": "事件起始時間",
             "format": "date-time"
           },
           "ExpireTime": {
             "type": "string",
+            "description": "事件結束時間",
             "format": "date-time"
           },
           "Positions": {
             "title": "String",
             "type": "string",
+            "description": "事件代表點位坐標",
             "xml": {
               "name": "Positions"
             }
@@ -1437,6 +1619,7 @@
           "Geometry": {
             "title": "String",
             "type": "string",
+            "description": "事件代表空間範圍",
             "xml": {
               "name": "Geometry"
             }
@@ -1444,7 +1627,7 @@
           "LocationType": {
             "title": "Int32",
             "type": "integer",
-            "description": "[0:'道路主線',1:'交流道或匝道',2:'匝道出入口',3:'交叉路口',254:'其他',255:'未知']"
+            "description": "事件空間發生位置 : [0:'道路主線',1:'交流道或匝道',2:'匝道出入口',3:'交叉路口',254:'其他',255:'未知']"
           },
           "Location": {
             "title": "Location",
@@ -1453,6 +1636,7 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Location"
               }
             ],
+            "description": "事件空間位置資訊",
             "xml": {
               "name": "Location"
             }
@@ -1464,6 +1648,7 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Impact[PTX.Model.DataMarket.POCO.Event.Realtime.LiveEventDuration]"
               }
             ],
+            "description": "事件對道路交通之衝擊影響",
             "xml": {
               "name": "Impact`1"
             }
@@ -1476,6 +1661,7 @@
               "type": "string",
               "xml": { }
             },
+            "description": "事件資訊補充附件",
             "xml": {
               "name": "List`1"
             }
@@ -1483,6 +1669,7 @@
           "Source": {
             "title": "String",
             "type": "string",
+            "description": "事件資訊通報來源",
             "xml": {
               "name": "Source"
             }
@@ -1490,14 +1677,17 @@
           "PublishTime": {
             "title": "DateTime",
             "type": "string",
+            "description": "事件資訊發布時間",
             "format": "date-time"
           },
           "LastUpdateTime": {
             "title": "DateTime",
             "type": "string",
+            "description": "事件資訊最新更新時間",
             "format": "date-time"
           }
         },
+        "description": "即時性事件資訊",
         "xml": {
           "name": "LiveEvent"
         }
@@ -1516,6 +1706,7 @@
           "Description": {
             "title": "String",
             "type": "string",
+            "description": "道路受影響描述",
             "xml": {
               "name": "Description"
             }
@@ -1523,7 +1714,7 @@
           "Severity": {
             "title": "Int32",
             "type": "integer",
-            "description": "[-99:'來源未提供',0:'無影響',1:'部分阻斷交通',2:'完全阻斷交通',254:'其他',255:'未知']"
+            "description": "對交通影響的嚴重程度 : [-99:'來源未提供',0:'無影響',1:'部分阻斷交通',2:'完全阻斷交通',254:'其他',255:'未知']"
           },
           "Regulations": {
             "title": "Array",
@@ -1531,10 +1722,24 @@
             "items": {
               "title": "Int32",
               "type": "integer",
-              "description": "[-99:'來源未提供',0:'無管制',1:'全封閉',2:'部分封閉',3:'高乘載管制',4:'調撥車道',5:'開放路肩',6:'匝道儀控',7:'號誌管控',8:'交管人員現場指揮',9:'特定車種管制需求',254:'其他',255:'未知']"
+              "description": "道路交通管制措施 : [-99:'來源未提供',0:'無管制',1:'全封閉',2:'部分封閉',3:'高乘載管制',4:'調撥車道',5:'開放路肩',6:'匝道儀控',7:'號誌管控',8:'交管人員現場指揮',9:'特定車種管制需求',254:'其他',255:'未知']"
             },
+            "description": "道路交通管制措施資訊",
             "xml": {
               "name": "List`1"
+            }
+          },
+          "BlockWay": {
+            "title": "Int32",
+            "type": "integer",
+            "description": "受阻斷方向 : [-99:'來源未提供',0:'無阻斷',1:'僅單向',2:'雙向',254:'其他',255:'未知']"
+          },
+          "BlockedLanes": {
+            "title": "String",
+            "type": "string",
+            "description": "受阻斷車道",
+            "xml": {
+              "name": "BlockedLanes"
             }
           },
           "Duration": {
@@ -1544,20 +1749,9 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Realtime.LiveEventDuration"
               }
             ],
+            "description": "道路交管期間",
             "xml": {
               "name": "LiveEventDuration"
-            }
-          },
-          "BlockWay": {
-            "title": "Int32",
-            "type": "integer",
-            "description": "[-99:'來源未提供',0:'無阻斷',1:'僅單向',2:'雙向',254:'其他',255:'未知']"
-          },
-          "BlockedLanes": {
-            "title": "String",
-            "type": "string",
-            "xml": {
-              "name": "BlockedLanes"
             }
           },
           "Detour": {
@@ -1567,11 +1761,13 @@
                 "$ref": "#/components/schemas/PTX.Model.DataMarket.POCO.Event.Base.Detour"
               }
             ],
+            "description": "替代道路路線資訊",
             "xml": {
               "name": "Detour"
             }
           }
         },
+        "description": "事件對道路交通之衝擊影響",
         "xml": {
           "name": "Impact`1"
         }
@@ -1583,14 +1779,17 @@
           "DurationStartTime": {
             "title": "DateTime",
             "type": "string",
+            "description": "道路交管起始時間",
             "format": "date-time"
           },
           "DurationEndTime": {
             "title": "DateTime",
             "type": "string",
+            "description": "道路交管結束時間",
             "format": "date-time"
           }
         },
+        "description": "即時性事件的Duration",
         "xml": {
           "name": "LiveEventDuration"
         }
@@ -1742,12 +1941,12 @@
   ],
   "tags": [
     {
-      "name": "City",
-      "description": "縣市道路事件資訊"
-    },
-    {
       "name": "Highway",
       "description": "省道道路事件資訊"
+    },
+    {
+      "name": "City",
+      "description": "縣市道路事件資訊"
     },
     {
       "name": "Freeway",

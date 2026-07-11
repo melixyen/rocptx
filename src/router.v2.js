@@ -201,17 +201,19 @@ function getMRTThrough(from, to) {
 
 var findMapBlock = {};
 function findBlock(BlockID) {
-    if (findMapBlock[BlockID]) return findMapBlock[BlockID];
+    //快取 key 需帶公司別：不同公司的 LineID 會撞名（如北捷與高捷都有 R / O 線），BlockID 單獨使用會互相污染
+    let mapKey = this.company + ',' + BlockID;
+    if (findMapBlock[mapKey]) return findMapBlock[mapKey];
     let blockData = this.getBlockData();
     let aryBlock = blockData.reduce((c, n) => c.concat(n), []);
     for (var i = 0; i < aryBlock.length; i++) {
         if (aryBlock[i].BlockID == BlockID) {
-            findMapBlock[BlockID] = aryBlock[i];
+            findMapBlock[mapKey] = aryBlock[i];
             return common.assign({}, aryBlock[i]);
         }
     }
 }
-s
+
 function getAllLineRoute(from, to, maxCnt = 100) {
     var me = this;
     var company = me.company;
@@ -246,7 +248,9 @@ function getAllLineRoute(from, to, maxCnt = 100) {
                 })
                 if (bObj.toIDList) {
                     bObj.toIDList.map(function (trans) {
-                        var tmpBlockID = me.getStationBlockByID(trans).BlockID;
+                        var transBlock = me.getStationBlockByID(trans);
+                        if (!transBlock) return;//跨公司轉乘目標（如環狀線轉北捷）不在本公司 block 內
+                        var tmpBlockID = transBlock.BlockID;
                         if (stAry.indexOf(tmpBlockID) == -1) {
                             linkTarget.push(tmpBlockID);
                             if (tmpBlockID == toObj.BlockID) {

@@ -1,8 +1,13 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.0.4",
   "info": {
     "title": "公共運輸-公車",
     "description": "本平臺提供涵蓋全國尺度之交通旅運資料服務API，歡迎各產政學單位介接使用。\n<br><span class=swagger-description-indicatation>利用本平臺開放資料進行各項應用服務開發時，請考量不同特性使用者(如：性別/身心障礙/老幼等)的需求，並歡迎回饋寶貴意見。</span>\n<br>計費方式：\n<br>計次：1,500次/1點\n<br>計量：150MB/1點\n---\n##### API使用說明與注意事項：\n1. 如您尚未註冊平臺會員帳號，或未以帳號登入，您將僅能以「訪客模式」使用平臺服務，包含：限以瀏覽器存取，限使用`【基礎服務】`，且限制每個呼叫來源端IP每日存取至多20次。。\n2. 如您已註冊平臺會員帳號，請務必確保在存取服務(包含瀏覽器、程式呼叫API)時帶入您的API金鑰，方能以「會員模式」使用完整平臺服務，包含平臺各類資料服務，如`【基礎服務】`、`【進階服務】`、`【加值服務】`、`【歷史服務】`、`【圖資服務】`、`【第三方服務】`等。\n3. 建議您立即[註冊平臺會員帳號](/register)，依您用量需求訂閱服務方案，並於[【會員中心->資料服務->API金鑰】](/user/dataservice/key)取得API金鑰(即Client Id和Client Secret資訊)。\n4. 會員訂閱服務方案之級別不同，將決定其API金鑰之存取頻率有不同限制，各個方案的存取頻率限制說明請參考[訂閱收費](/pricing)。\n5. 以瀏覽器帶入API金鑰之操作方式：請點選Swagger UI上的Authorize按鈕，依指示填入Client Id和Client Secret資訊並進行驗證，驗證完成後可開始於Swagger UI使用API。\n6. 以程式呼叫API帶入API金鑰之操作方式：請參考[範例程式](https://github.com/tdxmotc/SampleCode)。\n7. 不論您是以瀏覽器或是以程式呼叫API，所有服務存取行為均將被記錄並定期檢視，以確保系統資源使用的合理分配與避免遭受濫用。\n\nAPI OAS文本 :[請點我](https://tdx.transportdata.tw/webapi/File/Swagger/V3/2998e851-81d0-40f5-b26d-77e2f5ac4118)",
+    "termsOfService": "https://tdx.transportdata.tw/term",
+    "contact": {
+      "name": "TDX客服信箱",
+      "email": "tdx@motc.gov.tw"
+    },
     "version": "v2"
   },
   "servers": [
@@ -17,7 +22,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市]的公車動態定時資料(A1)[逐筆更新]",
-        "description": "### 市區公車之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 市區公車之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_RealTimeByFrequency_UDP_2046",
         "parameters": [
           {
@@ -170,7 +175,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市],[路線名稱]的公車動態定時資料(A1)[逐筆更新]",
-        "description": "### 市區公車之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 市區公車之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_RealTimeByFrequency_UDP_2046_1",
         "parameters": [
           {
@@ -334,7 +339,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市]的公車動態定點資料(A2)[逐筆更新]",
-        "description": "### 市區公車之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 市區公車之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_RealTimeNearStop_UDP_2047",
         "parameters": [
           {
@@ -487,7 +492,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市],[路線名稱]的公車動態定點資料(A2)[逐筆更新]",
-        "description": "### 市區公車之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 市區公車之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_RealTimeNearStop_UDP_2047_1",
         "parameters": [
           {
@@ -651,7 +656,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市]的公車預估到站資料(N1)[逐筆更新]",
-        "description": "### 市區公車之預估到站資料(N1) ###\n- [部分縣市] 當 StopStatus = 1(尚未發車) 且 EstimateTime > 0 (有值) 的情形, 屬正常情形, 雖目前尚未發車, 但提供EstimateTime值為預計多久後開始發車之時間。\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))\n- N1僅於該路線上有任一車輛離站時，來源端才會重新計算並發佈，因此使用者需自行處理時間遞減機制，或以EstimateTime-(收到資料時間-SrcTrasTime)(秒)作為實際預估抵達時間。",
+        "description": "### 市區公車之預估到站資料(N1) ###\n- [部分縣市] 當 StopStatus = 1(尚未發車) 且 EstimateTime > 0 (有值) 的情形, 屬正常情形, 雖目前尚未發車, 但提供EstimateTime值為預計多久後開始發車之時間。\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))\n- N1僅於該路線上有任一車輛離站時，來源端才會重新計算並發佈，因此使用者需自行處理時間遞減機制，或以EstimateTime-(收到資料時間-SrcTrasTime)(秒)作為實際預估抵達時間。",
         "operationId": "CityBusApi_EstimatedTimeOfArrival_UDP_2048",
         "parameters": [
           {
@@ -804,7 +809,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市],[路線名稱]的公車預估到站資料(N1)[逐筆更新]",
-        "description": "### 市區公車之預估到站資料(N1) ###\n- [部分縣市] 當 StopStatus = 1(尚未發車) 且 EstimateTime > 0 (有值) 的情形, 屬正常情形, 雖目前尚未發車, 但提供EstimateTime值為預計多久後開始發車之時間。\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))\n- N1僅於該路線上有任一車輛離站時，來源端才會重新計算並發佈，因此使用者需自行處理時間遞減機制，或以EstimateTime-(收到資料時間-SrcTrasTime)(秒)作為實際預估抵達時間。",
+        "description": "### 市區公車之預估到站資料(N1) ###\n- [部分縣市] 當 StopStatus = 1(尚未發車) 且 EstimateTime > 0 (有值) 的情形, 屬正常情形, 雖目前尚未發車, 但提供EstimateTime值為預計多久後開始發車之時間。\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))\n- N1僅於該路線上有任一車輛離站時，來源端才會重新計算並發佈，因此使用者需自行處理時間遞減機制，或以EstimateTime-(收到資料時間-SrcTrasTime)(秒)作為實際預估抵達時間。",
         "operationId": "CityBusApi_EstimatedTimeOfArrival_UDP_2048_1",
         "parameters": [
           {
@@ -968,7 +973,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市]的公車動態定時資料(A1)[批次更新]",
-        "description": "### 市區公車之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 市區公車之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_RealTimeByFrequency_2030",
         "parameters": [
           {
@@ -1129,7 +1134,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市],[路線名稱]的公車動態定時資料(A1)[批次更新]",
-        "description": "### 市區公車之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 市區公車之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_RealTimeByFrequency_2030_1",
         "parameters": [
           {
@@ -1301,7 +1306,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市]的公車動態定點資料(A2)[批次更新]",
-        "description": "### 市區公車之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 市區公車之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_RealTimeNearStop_2031",
         "parameters": [
           {
@@ -1462,7 +1467,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市],[路線名稱]的公車動態定點資料(A2)[批次更新]",
-        "description": "### 市區公車之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 市區公車之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_RealTimeNearStop_2031_1",
         "parameters": [
           {
@@ -1634,7 +1639,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市]的公車預估到站資料(N1)[批次更新]",
-        "description": " ### 市區公車之預估到站資料(N1) ###\n- [部分縣市] 當 StopStatus = 1(尚未發車) 且 EstimateTime > 0 (有值) 的情形, 屬正常情形, 雖目前尚未發車, 但提供EstimateTime值為預計多久後開始發車之時間。\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": " ### 市區公車之預估到站資料(N1) ###\n- [部分縣市] 當 StopStatus = 1(尚未發車) 且 EstimateTime > 0 (有值) 的情形, 屬正常情形, 雖目前尚未發車, 但提供EstimateTime值為預計多久後開始發車之時間。\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_EstimatedTimeOfArrival_2032",
         "parameters": [
           {
@@ -1795,7 +1800,7 @@
           "CityBus"
         ],
         "summary": "取得指定[縣市],[路線名稱]的公車預估到站資料(N1)[批次更新]",
-        "description": " ### 市區公車之預估到站資料(N1) ###\n- [部分縣市] 當 StopStatus = 1(尚未發車) 且 EstimateTime > 0 (有值) 的情形, 屬正常情形, 雖目前尚未發車, 但提供EstimateTime值為預計多久後開始發車之時間。\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": " ### 市區公車之預估到站資料(N1) ###\n- [部分縣市] 當 StopStatus = 1(尚未發車) 且 EstimateTime > 0 (有值) 的情形, 屬正常情形, 雖目前尚未發車, 但提供EstimateTime值為預計多久後開始發車之時間。\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "CityBusApi_EstimatedTimeOfArrival_2032_1",
         "parameters": [
           {
@@ -5913,7 +5918,7 @@
           "InterCityBus"
         ],
         "summary": "取得公路客運的動態定時資料(A1)[逐筆更新]",
-        "description": "### 公路客運之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 公路客運之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_RealTimeByFrequency_UDP_2057",
         "parameters": [
           {
@@ -6039,7 +6044,7 @@
           "InterCityBus"
         ],
         "summary": "取得指定[路線名稱]的公路客運動態定時資料(A1)[逐筆更新]",
-        "description": "### 公路客運之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 公路客運之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_RealTimeByFrequency_UDP_2057_1",
         "parameters": [
           {
@@ -6176,7 +6181,7 @@
           "InterCityBus"
         ],
         "summary": "取得公路客運的動態定點資料(A2)[逐筆更新]",
-        "description": "### 公路客運之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 公路客運之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_RealTimeNearStop_UDP_2058",
         "parameters": [
           {
@@ -6302,7 +6307,7 @@
           "InterCityBus"
         ],
         "summary": "取得指定[路線名稱]的公路客運動態定點資料(A2)[逐筆更新]",
-        "description": "### 公路客運之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 公路客運之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_RealTimeNearStop_UDP_2058_1",
         "parameters": [
           {
@@ -6439,7 +6444,7 @@
           "InterCityBus"
         ],
         "summary": "取得公路客運的預估到站資料(N1)[逐筆更新]",
-        "description": "### 公路客運之預估到站資料(N1) ###\n- 不保留[現在時間]超過[本平台資料更新時間]兩分鐘的資料\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))\n- N1僅於該路線上有任一車輛離站時，來源端才會重新計算並發佈，因此使用者需自行處理時間遞減機制，或以EstimateTime-(收到資料時間-SrcTrasTime)(秒)作為實際預估抵達時間。",
+        "description": "### 公路客運之預估到站資料(N1) ###\n- 不保留[現在時間]超過[本平台資料更新時間]兩分鐘的資料\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))\n- N1僅於該路線上有任一車輛離站時，來源端才會重新計算並發佈，因此使用者需自行處理時間遞減機制，或以EstimateTime-(收到資料時間-SrcTrasTime)(秒)作為實際預估抵達時間。",
         "operationId": "InterCityBusApi_EstimatedTimeOfArrival_UDP_2059",
         "parameters": [
           {
@@ -6565,7 +6570,7 @@
           "InterCityBus"
         ],
         "summary": "取得指定[路線名稱]的公路客運預估到站資料(N1)[逐筆更新]",
-        "description": "### 公路客運之預估到站資料(N1) ###\n- 不保留[現在時間]超過[本平台資料更新時間]兩分鐘的資料\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))\n- N1僅於該路線上有任一車輛離站時，來源端才會重新計算並發佈，因此使用者需自行處理時間遞減機制，或以EstimateTime-(收到資料時間-SrcTrasTime)(秒)作為實際預估抵達時間。",
+        "description": "### 公路客運之預估到站資料(N1) ###\n- 不保留[現在時間]超過[本平台資料更新時間]兩分鐘的資料\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))\n- N1僅於該路線上有任一車輛離站時，來源端才會重新計算並發佈，因此使用者需自行處理時間遞減機制，或以EstimateTime-(收到資料時間-SrcTrasTime)(秒)作為實際預估抵達時間。",
         "operationId": "InterCityBusApi_EstimatedTimeOfArrival_UDP_2059_1",
         "parameters": [
           {
@@ -6702,7 +6707,7 @@
           "InterCityBus"
         ],
         "summary": "取得公路客運的動態定時資料(A1)[批次更新]",
-        "description": "### 公路客運之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 公路客運之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_RealTimeByFrequency_2060",
         "parameters": [
           {
@@ -6828,7 +6833,7 @@
           "InterCityBus"
         ],
         "summary": "取得指定[路線名稱]的公路客運動態定時資料(A1)[批次更新]",
-        "description": "### 公路客運之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 公路客運之定時資料(A1) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_RealTimeByFrequency_2060_1",
         "parameters": [
           {
@@ -6965,7 +6970,7 @@
           "InterCityBus"
         ],
         "summary": "取得公路客運的動態定點資料(A2)[批次更新]",
-        "description": "### 公路客運之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 公路客運之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_RealTimeNearStop_2061",
         "parameters": [
           {
@@ -7091,7 +7096,7 @@
           "InterCityBus"
         ],
         "summary": "取得指定[路線名稱]的公路客運動態定點資料(A2)[批次更新]",
-        "description": "### 公路客運之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 公路客運之定點資料(A2) ###\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_RealTimeNearStop_2061_1",
         "parameters": [
           {
@@ -7228,7 +7233,7 @@
           "InterCityBus"
         ],
         "summary": "取得公路客運的預估到站資料(N1)[批次更新]",
-        "description": "###公路客運之預估到站資料(N1)###\n- 不保留[現在時間]超過[本平台資料更新時間]兩分鐘的資料\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "###公路客運之預估到站資料(N1)###\n- 不保留[現在時間]超過[本平台資料更新時間]兩分鐘的資料\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_EstimatedTimeOfArrival_2062",
         "parameters": [
           {
@@ -7354,7 +7359,7 @@
           "InterCityBus"
         ],
         "summary": "取得指定[路線名稱]的公路客運預估到站資料(N1)[批次更新]",
-        "description": "### 公路客運之預估到站資料(N1) ###\n- 不保留[現在時間]超過[本平台資料更新時間]兩分鐘的資料\n- [逐筆更新]與[批次更新]之差異請詳見資料使用葵花寶典([連結](https://ptxmotc.gitbooks.io/ptx-api-documentation/content/api-zi-liao-shi-yong-zhu-yi-shi-xiang/buslive.html))",
+        "description": "### 公路客運之預估到站資料(N1) ###\n- 不保留[現在時間]超過[本平台資料更新時間]兩分鐘的資料\n- [逐筆更新]與[批次更新]之差異請詳見運輸資料使用指引([連結](https://motc-ptx.gitbook.io/tdx-zi-liao-shi-yong-kui-hua-bao-dian/data_notice/public_transportation_data/bus_dynamic_data))",
         "operationId": "InterCityBusApi_EstimatedTimeOfArrival_2062_1",
         "parameters": [
           {
@@ -11668,13 +11673,16 @@
       },
       "PTX.Service.DTO.Shared.Specification.V2.Base.NameType": {
         "title": "NameType",
+        "required": [
+          "Zh_tw"
+        ],
         "type": "object",
         "properties": {
           "Zh_tw": {
             "title": "String",
+            "minLength": 1,
             "type": "string",
             "description": "中文繁體名稱",
-            "nullable": true,
             "xml": {
               "name": "Zh_tw"
             }
@@ -11686,6 +11694,24 @@
             "nullable": true,
             "xml": {
               "name": "En"
+            }
+          },
+          "Ja": {
+            "title": "String",
+            "type": "string",
+            "description": "日文名稱",
+            "nullable": true,
+            "xml": {
+              "name": "Ja"
+            }
+          },
+          "Ko": {
+            "title": "String",
+            "type": "string",
+            "description": "韓文名稱",
+            "nullable": true,
+            "xml": {
+              "name": "Ko"
             }
           }
         },

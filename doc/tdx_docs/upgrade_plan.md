@@ -18,7 +18,7 @@
 
 ### 3. 目前 SDK API 模組與數量
 
-`src/main.js` 目前對外匯出共 **16** 個鍵：
+`src/main.js` 目前對外匯出共 **18** 個鍵：
 
 - `data`
 - `datax`
@@ -29,15 +29,17 @@
 - `krtc`
 - `tymc`
 - `klrt`
+- `ntmc`
 - `thsr`
 - `tra`
 - `afr`
+- `rail`
 - `router`
 - `jsSHA`
 - `id`
 - `common`
 
-若只計 **直接對應 TDX 運輸 API 的公開模組**，目前共有 **10 個**：
+若只計 **直接對應 TDX 運輸 API 的公開模組**，目前共有 **12 個**：
 
 1. `bus`
 2. `metro`
@@ -46,11 +48,13 @@
 5. `krtc`
 6. `tymc`
 7. `klrt`
-8. `thsr`
-9. `tra`
-10. `afr`
+8. `ntmc`
+9. `thsr`
+10. `tra`
+11. `afr`
+12. `rail`
 
-若把版本化子命名空間也拆開視為主要 API 面，則可視為 **11 個主要 SDK API 面**：
+若把版本化子命名空間也拆開視為主要 API 面，則可視為 **13 個主要 SDK API 面**：
 
 1. `bus`
 2. `metro`
@@ -59,14 +63,16 @@
 5. `krtc`
 6. `tymc`
 7. `klrt`
-8. `thsr.v2`
-9. `tra`（主要對應 v2）
-10. `tra.v3`
-11. `afr.v3`
+8. `ntmc`
+9. `thsr.v2`
+10. `tra`（主要對應 v2）
+11. `tra.v3`
+12. `afr.v3`
+13. `rail.v2`
 
 補充：
 
-- **捷運營運商封裝模組**共 **5 個**：`trtc` / `tmrt` / `krtc` / `tymc` / `klrt`
+- **捷運營運商封裝模組**共 **6 個**：`trtc` / `tmrt` / `krtc` / `tymc` / `klrt` / `ntmc`
 - **明確可辨識的共用 base class** 主要為 **1 個**：`metro.baseMethod`
 
 ### 4. `doc/tdx_docs` 文件與 JSON 資源數量
@@ -88,10 +94,10 @@
 
 | 文件 | 路徑數 | 與目前 SDK 關係 | 判定 |
 |---|---:|---|---|
-| `公共運輸_軌道_v2.json` | 79 | 對應 `metro` / `trtc` / `tmrt` / `krtc` / `tymc` / `klrt` / `thsr.v2` / `tra(v2)` | 部分對應 |
+| `公共運輸_軌道_v2.json` | 84 | 對應 `metro` / 6 個捷運 wrapper / `thsr.v2` / `tra(v2)` / `rail.v2` | 部分對應 |
 | `公共運輸_軌道_v3.json` | 49 | 對應 `tra.v3`、`afr.v3` | 已對應 |
 | `公共運輸_公車_v2.json` | 79 | 對應 `bus`，但僅覆蓋 route / station / ETA / realtime 等核心群組 | 部分對應 |
-| `公共運輸_公車_v3.json` | 55 | 對應 `bus.v3`（一般 `CityBus`、`DRTS`、`Shuttle/Hospital`） | 已對應 |
+| `公共運輸_公車_v3.json` | 75 | 對應 `bus.v3`（一般 `CityBus`、`DRTS`、`Shuttle/Hospital`、`Shuttle/SciencePark`） | 已對應 |
 | `共通資料_公共運輸_v2.json` | 4 | 無對應公開模組 | 未對應 |
 | `共通資料_行政區_v2.json` | 6 | 無對應公開模組 | 未對應 |
 | `共通資料_道路_v2.json` | 10 | 無對應公開模組 | 未對應 |
@@ -99,13 +105,15 @@
 | `公共運輸_航空_v2.json` | 20 | 無對應公開模組 | 未對應 |
 | `公共運輸_航運_v3.json` | 40 | 無對應公開模組 | 未對應 |
 | `GIS圖資_v3.json` | 34 | 無對應公開模組 | 未對應 |
-| `停車資訊_v1.json` | 73 | 無對應公開模組 | 未對應 |
+| `停車資訊_v1.json` | 74 | 無對應公開模組 | 未對應 |
 | `有聲號誌_v1.json` | 2 | 無對應公開模組 | 未對應 |
 | `綠色運輸_充電樁_v1.json` | 49 | 無對應公開模組 | 未對應 |
-| `觀光資訊_v2.json` | 30 | 無對應公開模組 | 未對應 |
+| `觀光資訊_v2.json` | 22 | 無對應公開模組 | 未對應 |
 | `路段編碼_v2.json` | 44 | 無對應公開模組 | 未對應 |
 | `路況資訊_v2.json` | 79 | 無對應公開模組 | 未對應 |
-| `道路事件_v1.json` | 5 | 無對應公開模組 | 未對應 |
+| `道路事件_v1.json` | 6 | 無對應公開模組 | 未對應 |
+
+> 2026-07-10 已將 18 份 Swagger JSON 全數刷新為線上最新版，`tdx.md` 亦已依新規格重新生成。
 
 ### 5. 已對應 / 部分對應 / 未對應
 
@@ -160,13 +168,18 @@ SDK 已涵蓋的主要群組：
 - `StationTimeTable`
 - `StationTransfer`
 
-文件有、SDK 尚未完整建立的群組：
+2026-07 新增已對應：
 
-- `News`
-- `StationPlatform`
-- `StoppingPattern`
+- `TransferStations`（捷運共站站點，`RailSystem` 僅 `TRTC_NTMC`、`KRTC`）
+- `News`（`RailSystem` 支援 `TRTC`、`KRTC`、`TYMC`、`KLRT`、`TMRT`）
+- `StationPlatform`（`RailSystem` 僅 `KLRT`）
+- `StoppingPattern`（`RailSystem` 僅 `TYMC`）
+
+至此 Metro v2 的規格群組已全數對應。
 
 備註：`Network` 雖出現在 `src/metro.js` URL 定義中，但目前不是像其他捷運群組那樣完整封裝成一般對外使用面。
+
+另外 2026-07 起 `公共運輸_軌道_v2.json` 新增 4 條跨軌道系統路徑（`S2SDistance`、`ODDistance` ×2、跨系統 `ODFare`），已由新模組 `rail.v2` 對應。
 
 #### THSR v2
 
@@ -187,7 +200,7 @@ SDK 已涵蓋的主要群組：
 - `AvailableSeatStatusList`
 - `DailyFreeSeatingCar`
 
-目前依 `公共運輸_軌道_v2.json` 的 `THSR` 路徑，SDK 已完成對應。
+2026-07 已補上原缺漏的 `DailyTimetable/TrainDates` 與 `DailyTrainInfo/TrainDate/{TrainDate}`；依 `公共運輸_軌道_v2.json` 的 `THSR` 30 條路徑，SDK 已全數完成對應。
 
 #### TRA v2
 
@@ -299,13 +312,15 @@ SDK 已涵蓋的主要能力：
 文件有、SDK 尚未建立或未完整抽象化的剩餘群組：
 
 - Bus v2 主要規格群組目前已補齊
+- 2026-07：舊核心方法（Route / Station / StopOfRoute / EstimatedTimeOfArrival / RealTimeNearStop 等）的 `InterCity` 路徑組法已修正（原會誤組 `/InterCity/{City}`），並補上 `RealTimeNearStop/Streaming` 與 `EstimatedTimeOfArrival/Streaming` 封裝；35 條 InterCity 路徑已全部可用
 
 另有文件面已擴展，SDK 已先跟進且目前已完成對應的範圍：
 
 - `bus.v3` 一般 `CityBus` 群組：`Network`、`Stop`、`Station`、`Route`、`SubRoute`、`FirstLastTripInfo`、`Depot`、`StopOfRoute`、`DisplayStopOfRoute`、`RouteFare`、`Schedule`、`DailyTimeTable`、`Alert`、`News`、`Operator`、`Vehicle`、`VehicleDepot`、`VehicleRoute`、`Shape`、`RouteNetwork`、`S2STravelTime`
 - 一般 `CityBus` 的 `RealTimeByFrequency`、`RealTimeNearStop`、`EstimatedTimeOfArrival` 已補 route-name 版 helper
-- `bus.v3.drts`：已補 `Stop`、`Station`、`Operator`、`Route`、`BookingRule`、`StopOfRoute`、`RouteFare`、`Schedule`、`Shape`、`S2STravelTime`、`Vehicle`、`Alert` 與 3 組動態資料；支援 Swagger 既有 route-name 變體
+- `bus.v3.drts`：已補 `Stop`、`Station`、`StationGroup`、`Operator`、`Route`、`SubRoute`、`BookingRule`、`StopOfRoute`、`RouteFare`、`Schedule`、`DailyTimeTable`、`GeneralStopTimeTable`、`DailyStopTimeTable`、`Location`、`LocationGroup`、`Shape`、`S2STravelTime`、`Vehicle`、`Alert` 與 3 組動態資料；支援 Swagger 既有 route-name 變體（2026-07 新增 11 條 DRTS 路徑已全數補齊）
 - `bus.v3.shuttleHospital`：已補 `Authority`、`Operator`、`Stop`、`Route`、`StopOfRoute`、`Schedule`
+- `bus.v3.shuttleSciencePark`（2026-07 新增群組）：已補 `Authority`、`Operator`、`Stop`、`Route`、`StopOfRoute`、`Schedule`、`RealTimeByFrequency`、`RealTimeNearStop`、`EstimatedTimeOfArrival` 全部 9 條路徑
 
 #### 5.3 未對應到的文件主題
 
@@ -329,12 +344,14 @@ SDK 已涵蓋的主要能力：
 
 由於本專案目前主要是以模組 / namespace 提供 API，因此「沒創建的類別」更準確地說是**尚未建立的公開模組**。建議清單如下。
 
-#### 6.1 先補齊既有交通主軸
+#### 6.1 先補齊既有交通主軸（已完成）
 
-`afr` 已於本輪建立為 `rocptx.afr.v3`；目前同主軸剩餘建議為：
+`afr` 已建立為 `rocptx.afr.v3`；`rail.v2` 已於 2026-07 建立（對應跨系統 `S2SDistance` / `ODDistance` / `ODFare`）。原剩餘項目已於 2026-07 完成：
 
-1. `rail.common` 或 `railOperator`
-   - 對應 `v2/Rail/Operator`
+1. `v2/Rail/Operator` 已封裝為 `rail.v2.getOperator` / `rail.v2._Operator`
+2. Metro 的 `News`、`StationPlatform`、`StoppingPattern` 已封裝為自動產生的 `_Xxx`
+
+既有交通主軸（Bus / Metro / THSR / TRA / AFR / Rail 共用）與 TDX 規格已無已知缺口。
 
 #### 6.2 新增缺漏的領域模組
 
@@ -391,10 +408,23 @@ SDK 已涵蓋的主要能力：
 1. Swagger 文件已涵蓋大量非目前 SDK 範圍的主題：
    - Basic / District / Road / GIS / Parking / Bike / Air / Ship / Tourism / EV / Traffic / RoadEvent
 
-2. 既有主題中，文件仍有部分版本 / 群組超前於 SDK：
-   - Metro 仍有少數舊文件描述待再確認
+2. 既有主題中，文件超前於 SDK 的缺口已於 2026-07 全數補齊（Metro 三群組、Rail Operator、THSR 2 條、Bus InterCity / Streaming）
 
-#### 7.3 關於「刪除」
+#### 7.3 2026-07 規格刷新盤點到的格式 / 參數變更
+
+與 2026-03 版規格相比，SDK 涵蓋範圍內的變更如下（既有路徑無任何移除）：
+
+1. **THSR 回應格式更名**：`AvailableSeatStatus*` 系列 payload 由 `Items` → `AvailableSeats`；`DailyFreeSeatingCar*` 由 `Items` → `FreeSeatingCars`。SDK 回傳原始 JSON 不受影響，使用端需留意
+2. **THSR `DailyTrainInfo` / `GeneralTrainInfo` 新增 `Overnight` 欄位**（跨夜車班標記）
+3. **v2 共用 `NameType` 新增 `Ja`、`Ko`** 多語名稱欄位
+4. **Metro `StationTimeTable` 的 `RailSystem` enum 加入 `NTMC`**；NTMC 已支援絕大多數 Metro v2 端點，`LiveBoard`、`News`、`Alert`、`LivePosition` 除外
+5. **DRTS 營運城市擴充**：由 `NewTaipei`、`Tainan` 擴為 `Taipei`、`NewTaipei`、`Taichung`、`Tainan`
+6. **醫院接駁車 `Schedule` 回應的 `Frequencies` 移除 `OperatorID`、`RouteID`、`Direction`** 3 個欄位
+7. 軌道 v3 全部 wrapper schema 補上 payload 陣列屬性名（`Stations`、`TrainTimetables` 等），屬文件補齊，實際 API 行為未變
+8. 新增路徑：公車 v3 +20（`Shuttle/SciencePark` 9、DRTS 11）、軌道 v2 +5（`Metro/TransferStations`、跨系統 `S2SDistance` / `ODDistance` ×2 / `ODFare`），SDK 已全數跟進
+9. **公車 v3 實測發現（Swagger 未反映）**：一般 `CityBus` v3 實際回應 payload 為語意化名稱（如 `Routes`），與 Swagger schema 的 `Items` 不一致；且 City enum 僅 `Tainan`（實測其他城市回 400）。live 測試已加哨兵監控
+
+#### 7.4 關於「刪除」
 
 本次比對中，**沒有看到明確證據顯示某個既有公開 SDK 模組已被程式刪除、但文件仍保留**。目前的主要問題比較像是：
 
@@ -458,11 +488,12 @@ SDK 已涵蓋的主要能力：
 
 目前 `rocptx` 的 SDK 核心已集中在：
 
-- Metro v2
-- Bus v2 / v3（其中 `bus.v3` 已對齊 `公共運輸_公車_v3.json`）
-- THSR v2（已對齊 `公共運輸_軌道_v2.json` 的 THSR 路徑）
+- Metro v2（含 NTMC、`TransferStations`、`News`、`StationPlatform`、`StoppingPattern`，規格群組全數對應）
+- Bus v2 / v3（`bus.v3` 已對齊 2026-07 版全部 75 條路徑；v2 的 City / InterCity / Streaming 已全面可用）
+- THSR v2（30 條路徑全數對應）
 - TRA v2 / v3
 - AFR v3
+- Rail v2 跨系統查詢（`rail.v2`，含 `Operator`，2026-07 新增）
 
 相對地，`doc/tdx_docs/` 所代表的 TDX 文件版圖遠大於目前 SDK 範圍。整體關係可簡化成：
 

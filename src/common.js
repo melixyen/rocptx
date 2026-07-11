@@ -116,6 +116,7 @@ CM.CONST_TDX_LEVEL_MAAS = '/maas';
 // CM.ptxV3URL = CM.v3url;
 // === Basic ===
 const basicAPI = CM.CONST_TDX_API_URL + CM.CONST_TDX_LEVEL_BASIC;
+CM.railV2URL = basicAPI + '/v2/Rail';
 CM.metroURL = basicAPI + '/v2/Rail/Metro';
 CM.busURL = basicAPI + '/v2/Bus'
 CM.busV3URL = basicAPI + '/v3/Bus';

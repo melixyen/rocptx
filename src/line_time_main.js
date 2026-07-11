@@ -1,7 +1,7 @@
 import trtc_time from './datax/trtc.time.json';
 import krtc_time from './datax/krtc.time.json';
 import tymc_time from './datax/tymc.time.json';
-import tra_time from './datax/tra.time.json';
+import tra_time from '../out_data/tra.time.json';
 
 
 let lineTime = {

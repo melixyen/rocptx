@@ -38,8 +38,11 @@ const v3urls = {
 const drtsV3urls = {
     Stop: busV3URL + '/DRTS/Stop/City/{City}',
     Station: busV3URL + '/DRTS/Station/City/{City}',
+    StationGroup: busV3URL + '/DRTS/StationGroup/City/{City}',
     Operator: busV3URL + '/DRTS/Operator/City/{City}',
     Route: busV3URL + '/DRTS/Route/City/{City}',
+    SubRoute: busV3URL + '/DRTS/SubRoute/City/{City}',
+    SubRoute_RouteName: busV3URL + '/DRTS/SubRoute/City/{City}/{RouteName}',
     BookingRule: busV3URL + '/DRTS/BookingRule/City/{City}',
     StopOfRoute: busV3URL + '/DRTS/StopOfRoute/City/{City}',
     StopOfRoute_RouteName: busV3URL + '/DRTS/StopOfRoute/City/{City}/{RouteName}',
@@ -47,6 +50,14 @@ const drtsV3urls = {
     RouteFare_RouteName: busV3URL + '/DRTS/RouteFare/City/{City}/{RouteName}',
     Schedule: busV3URL + '/DRTS/Schedule/City/{City}',
     Schedule_RouteName: busV3URL + '/DRTS/Schedule/City/{City}/{RouteName}',
+    DailyTimeTable: busV3URL + '/DRTS/DailyTimeTable/City/{City}',
+    DailyTimeTable_RouteName: busV3URL + '/DRTS/DailyTimeTable/City/{City}/{RouteName}',
+    GeneralStopTimeTable: busV3URL + '/DRTS/GeneralStopTimeTable/City/{City}',
+    GeneralStopTimeTable_RouteName: busV3URL + '/DRTS/GeneralStopTimeTable/City/{City}/{RouteName}',
+    DailyStopTimeTable: busV3URL + '/DRTS/DailyStopTimeTable/City/{City}',
+    DailyStopTimeTable_RouteName: busV3URL + '/DRTS/DailyStopTimeTable/City/{City}/{RouteName}',
+    Location: busV3URL + '/DRTS/Location/City/{City}',
+    LocationGroup: busV3URL + '/DRTS/LocationGroup/City/{City}',
     Shape: busV3URL + '/DRTS/Shape/City/{City}',
     Shape_RouteName: busV3URL + '/DRTS/Shape/City/{City}/{RouteName}',
     S2STravelTime: busV3URL + '/DRTS/S2STravelTime/City/{City}',
@@ -67,6 +78,18 @@ const shuttleHospitalV3urls = {
     Route: busV3URL + '/Shuttle/Hospital/Route/Authority/{AuthorityCode}',
     StopOfRoute: busV3URL + '/Shuttle/Hospital/StopOfRoute/Authority/{AuthorityCode}',
     Schedule: busV3URL + '/Shuttle/Hospital/Schedule/Authority/{AuthorityCode}'
+};
+
+const shuttleScienceParkV3urls = {
+    Authority: busV3URL + '/Shuttle/SciencePark/Authority',
+    Operator: busV3URL + '/Shuttle/SciencePark/Operator/Authority/{AuthorityCode}',
+    Stop: busV3URL + '/Shuttle/SciencePark/Stop/Authority/{AuthorityCode}',
+    Route: busV3URL + '/Shuttle/SciencePark/Route/Authority/{AuthorityCode}',
+    StopOfRoute: busV3URL + '/Shuttle/SciencePark/StopOfRoute/Authority/{AuthorityCode}',
+    Schedule: busV3URL + '/Shuttle/SciencePark/Schedule/Authority/{AuthorityCode}',
+    RealTimeByFrequency: busV3URL + '/Shuttle/SciencePark/RealTimeByFrequency/Authority/{AuthorityCode}',
+    RealTimeNearStop: busV3URL + '/Shuttle/SciencePark/RealTimeNearStop/Authority/{AuthorityCode}',
+    EstimatedTimeOfArrival: busV3URL + '/Shuttle/SciencePark/EstimatedTimeOfArrival/Authority/{AuthorityCode}'
 };
 
 function findBusCity(str){
@@ -181,23 +204,24 @@ var fnBUS = {
     getBusRouteInfo: function(RouteUID, cfg){
         cfg = this.setDefaultCfg(cfg);
         var city = RouteUID.substr(0,3);
-        var myURL = busURL + '/Route/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-        myURL += ptx.filterFn(ptx.filterParam('RouteUID','==',RouteUID) + '&' + ptx.topFn());
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        var myURL = buildBusURL('Route', city, cfg);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam('RouteUID','==',RouteUID))]);
         ptx.getURL(myURL, cfg.cbFn);
     },
     getBusRealtimeNearStop: function(RouteUID, dir, cfg){
         cfg = this.setDefaultCfg(cfg);
         var city = RouteUID.substr(0,3);
+        var myURL = buildBusURL('RealTimeNearStop', city, cfg);
+        if(!myURL) return false;
+        var filterStr;
         if(/string|number/.test(typeof(dir))){
             dir = dir.toString();
-            var myURL = busURL + '/RealTimeNearStop/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-            myURL += ptx.filterFn(ptx.filterParam(['RouteUID', 'Direction'],'==',[RouteUID, dir],'and')) + '&' + ptx.topFn();
+            filterStr = ptx.filterFn(ptx.filterParam(['RouteUID', 'Direction'],'==',[RouteUID, dir],'and'));
         }else{
-            var myURL = busURL + '/RealTimeNearStop/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-            myURL += ptx.filterFn(ptx.filterParam(['RouteUID'],'==',[RouteUID],'and')) + '&' + ptx.topFn();
+            filterStr = ptx.filterFn(ptx.filterParam(['RouteUID'],'==',[RouteUID],'and'));
         }
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        myURL += buildBusQuery(cfg, [filterStr]);
         ptx.getURL(myURL, cfg.cbFn);
     },
     getBusRoute: function(RouteUID, cfg, city){
@@ -206,23 +230,23 @@ var fnBUS = {
             if(typeof(RouteUID)=='string'){city = RouteUID.substr(0,3);}
             else{city = RouteUID[0].substr(0,3);}
         }
-        var myURL = busURL + '/Route/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-        myURL += ptx.filterFn(ptx.filterParam('RouteUID','==',RouteUID),'or') + '&' + ptx.topFn();
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        var myURL = buildBusURL('Route', city, cfg);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam('RouteUID','==',RouteUID))]);
         ptx.getURL(myURL, cfg.cbFn);
     },
     getBusStation: function(StationID, city, cfg){
         cfg = this.setDefaultCfg(cfg);
-        var myURL = busURL + '/Station/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-        myURL += ptx.filterFn(ptx.filterParam('StationID','==',StationID.toString())) + '&' + ptx.topFn();
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        var myURL = buildBusURL('Station', city, cfg);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam('StationID','==',StationID.toString()))]);
         ptx.getURL(myURL, cfg.cbFn);
     },
     getPositionBusStation: function(city, lat, lng, cfg){
         cfg = this.setDefaultCfg(cfg);
-        var myURL = busURL + '/Station/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-        myURL += ptx.spatialFilterFn(lat, lng, cfg.far, cfg.field) + '&' + ptx.topFn();
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        var myURL = buildBusURL('Station', city, cfg);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg, [ptx.spatialFilterFn(lat, lng, cfg.far, cfg.field)]);
         ptx.getURL(myURL, cfg.cbFn);
     },
     getPromisePositionBusStation: function(city, lat, lng, cfg = {}){
@@ -233,10 +257,9 @@ var fnBUS = {
     },
     getBusStopRoute: function(RouteUID, city, cfg){
         cfg = this.setDefaultCfg(cfg);
-        var myURL = busURL + '/StopOfRoute/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-        myURL += ptx.filterFn(ptx.filterParam('RouteUID','==',RouteUID.toString())) + '&';
-        myURL += ptx.orderByFn('SubRouteName/Zh_tw', 'asc') + '&' + ptx.topFn();
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        var myURL = buildBusURL('StopOfRoute', city, cfg);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam('RouteUID','==',RouteUID.toString())), ptx.orderByFn('SubRouteName/Zh_tw', 'asc')]);
         ptx.getURL(myURL, cfg.cbFn);
     },
     getPromiseBusStopRoute: function(RouteUID, city, cfg = {}){
@@ -248,35 +271,33 @@ var fnBUS = {
     getPromiseMultiBusStopRoute: function(aryRouteUID, city, cfg = {}){
         var rtuids = aryRouteUID.map((c)=>{ return 'RouteUID'; })
         cfg = this.setDefaultCfg(cfg);
-        var myURL = busURL + '/StopOfRoute/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-        myURL += ptx.filterFn(ptx.filterParam(rtuids,'==',aryRouteUID, 'or')) + '&';
-        myURL += ptx.orderByFn('SubRouteName/Zh_tw', 'asc') + '&' + ptx.topFn();
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
-        
+        var myURL = buildBusURL('StopOfRoute', city, cfg);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg, [ptx.filterFn(ptx.filterParam(rtuids,'==',aryRouteUID, 'or')), ptx.orderByFn('SubRouteName/Zh_tw', 'asc')]);
+
         return new Promise((resolve)=>{
             ptx.getURL(myURL, resolve);
         })
     },
     getBusStopRouteByNumber: function(busNumber, city, cfg){
         cfg = this.setDefaultCfg(cfg);
-        var myURL = busURL + '/StopOfRoute/' + cfg.manageBy + '/' + this.getCityData(city).City + '/' + encodeURI(busNumber) + '?';
-        myURL += ptx.orderByFn('SubRouteName/Zh_tw', 'asc') + '&' + ptx.topFn();
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        var myURL = buildBusURL('StopOfRoute', city, cfg, busNumber);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg, [ptx.orderByFn('SubRouteName/Zh_tw', 'asc')]);
         ptx.getURL(myURL, cfg.cbFn);
     },
     getEstimatedTimeOfArrival: function(filterStr, city, cfg){
-        filterStr = (filterStr) ? filterStr + '&' : '';
         cfg = this.setDefaultCfg(cfg);
-        var myURL = busURL + '/EstimatedTimeOfArrival/' + cfg.manageBy + '/' + this.getCityData(city).City + '?';
-        myURL += filterStr + ptx.topFn();
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        var myURL = buildBusURL('EstimatedTimeOfArrival', city, cfg);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg, [filterStr]);
         ptx.getURL(myURL, cfg.cbFn);
     },
     searchBusByNumber:function(busNumber, city, cfg){
         cfg = this.setDefaultCfg(cfg);
-        var myURL = busURL + '/Route/' + cfg.manageBy + '/' + this.getCityData(city).City + '/' + encodeURI(busNumber) + '?';
-        myURL += ptx.orderByFn('RouteName/Zh_tw', 'asc') + '&' + ptx.topFn();
-        if(cfg.selectField) myURL += '&' + cfg.selectField;
+        var myURL = buildBusURL('Route', city, cfg, busNumber);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg, [ptx.orderByFn('RouteName/Zh_tw', 'asc')]);
         ptx.getURL(myURL, cfg.cbFn);
     },
     getBusOperator: function(city, cfg){
@@ -491,6 +512,38 @@ var fnBUS = {
         myURL += buildBusQuery(cfg);
         ptx.getURL(myURL, cfg.cbFn);
     },
+    getBusRealTimeNearStopStreaming: function(city, cfg){
+        var arg = normalizeCityCfg(city, cfg);
+        cfg = this.setDefaultCfg(arg.cfg);
+        var myURL = buildBusURL('RealTimeNearStop/Streaming', arg.city, cfg);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg);
+        ptx.getURL(myURL, cfg.cbFn);
+    },
+    getBusRealTimeNearStopStreamingByNumber: function(busNumber, city, cfg){
+        var arg = normalizeCityCfg(city, cfg);
+        cfg = this.setDefaultCfg(arg.cfg);
+        var myURL = buildBusURL('RealTimeNearStop/Streaming', arg.city, cfg, busNumber);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg);
+        ptx.getURL(myURL, cfg.cbFn);
+    },
+    getBusEstimatedTimeOfArrivalStreaming: function(city, cfg){
+        var arg = normalizeCityCfg(city, cfg);
+        cfg = this.setDefaultCfg(arg.cfg);
+        var myURL = buildBusURL('EstimatedTimeOfArrival/Streaming', arg.city, cfg);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg);
+        ptx.getURL(myURL, cfg.cbFn);
+    },
+    getBusEstimatedTimeOfArrivalStreamingByNumber: function(busNumber, city, cfg){
+        var arg = normalizeCityCfg(city, cfg);
+        cfg = this.setDefaultCfg(arg.cfg);
+        var myURL = buildBusURL('EstimatedTimeOfArrival/Streaming', arg.city, cfg, busNumber);
+        if(!myURL) return false;
+        myURL += buildBusQuery(cfg);
+        ptx.getURL(myURL, cfg.cbFn);
+    },
     getBusStationGroup: function(city, cfg){
         var arg = normalizeCityCfg(city, cfg);
         cfg = this.setDefaultCfg(arg.cfg);
@@ -564,8 +617,11 @@ fnBUS.v3 = {
         },
         getStop: function(city, cfg={}){return fnBUS.v3.drts._Stop(city, cfg);},
         getStation: function(city, cfg={}){return fnBUS.v3.drts._Station(city, cfg);},
+        getStationGroup: function(city, cfg={}){return fnBUS.v3.drts._StationGroup(city, cfg);},
         getOperator: function(city, cfg={}){return fnBUS.v3.drts._Operator(city, cfg);},
         getRoute: function(city, cfg={}){return fnBUS.v3.drts._Route(city, cfg);},
+        getSubRoute: function(city, cfg={}){return fnBUS.v3.drts._SubRoute(city, cfg);},
+        getSubRouteByRouteName: function(routeName, city, cfg={}){return fnBUS.v3.drts._SubRoute_RouteName(city, routeName, cfg);},
         getBookingRule: function(city, cfg={}){return fnBUS.v3.drts._BookingRule(city, cfg);},
         getStopOfRoute: function(city, cfg={}){return fnBUS.v3.drts._StopOfRoute(city, cfg);},
         getStopOfRouteByRouteName: function(routeName, city, cfg={}){return fnBUS.v3.drts._StopOfRoute_RouteName(city, routeName, cfg);},
@@ -573,6 +629,14 @@ fnBUS.v3 = {
         getRouteFareByRouteName: function(routeName, city, cfg={}){return fnBUS.v3.drts._RouteFare_RouteName(city, routeName, cfg);},
         getSchedule: function(city, cfg={}){return fnBUS.v3.drts._Schedule(city, cfg);},
         getScheduleByRouteName: function(routeName, city, cfg={}){return fnBUS.v3.drts._Schedule_RouteName(city, routeName, cfg);},
+        getDailyTimeTable: function(city, cfg={}){return fnBUS.v3.drts._DailyTimeTable(city, cfg);},
+        getDailyTimeTableByRouteName: function(routeName, city, cfg={}){return fnBUS.v3.drts._DailyTimeTable_RouteName(city, routeName, cfg);},
+        getGeneralStopTimeTable: function(city, cfg={}){return fnBUS.v3.drts._GeneralStopTimeTable(city, cfg);},
+        getGeneralStopTimeTableByRouteName: function(routeName, city, cfg={}){return fnBUS.v3.drts._GeneralStopTimeTable_RouteName(city, routeName, cfg);},
+        getDailyStopTimeTable: function(city, cfg={}){return fnBUS.v3.drts._DailyStopTimeTable(city, cfg);},
+        getDailyStopTimeTableByRouteName: function(routeName, city, cfg={}){return fnBUS.v3.drts._DailyStopTimeTable_RouteName(city, routeName, cfg);},
+        getLocation: function(city, cfg={}){return fnBUS.v3.drts._Location(city, cfg);},
+        getLocationGroup: function(city, cfg={}){return fnBUS.v3.drts._LocationGroup(city, cfg);},
         getShape: function(city, cfg={}){return fnBUS.v3.drts._Shape(city, cfg);},
         getShapeByRouteName: function(routeName, city, cfg={}){return fnBUS.v3.drts._Shape_RouteName(city, routeName, cfg);},
         getS2STravelTime: function(city, cfg={}){return fnBUS.v3.drts._S2STravelTime(city, cfg);},
@@ -593,6 +657,18 @@ fnBUS.v3 = {
         getRoute: function(authorityCode, cfg={}){return fnBUS.v3.shuttleHospital._Route(authorityCode, cfg);},
         getStopOfRoute: function(authorityCode, cfg={}){return fnBUS.v3.shuttleHospital._StopOfRoute(authorityCode, cfg);},
         getSchedule: function(authorityCode, cfg={}){return fnBUS.v3.shuttleHospital._Schedule(authorityCode, cfg);}
+    },
+    shuttleSciencePark: {
+        urls: shuttleScienceParkV3urls,
+        getAuthority: function(cfg={}){return fnBUS.v3.shuttleSciencePark._Authority(cfg);},
+        getOperator: function(authorityCode, cfg={}){return fnBUS.v3.shuttleSciencePark._Operator(authorityCode, cfg);},
+        getStop: function(authorityCode, cfg={}){return fnBUS.v3.shuttleSciencePark._Stop(authorityCode, cfg);},
+        getRoute: function(authorityCode, cfg={}){return fnBUS.v3.shuttleSciencePark._Route(authorityCode, cfg);},
+        getStopOfRoute: function(authorityCode, cfg={}){return fnBUS.v3.shuttleSciencePark._StopOfRoute(authorityCode, cfg);},
+        getSchedule: function(authorityCode, cfg={}){return fnBUS.v3.shuttleSciencePark._Schedule(authorityCode, cfg);},
+        getRealTimeByFrequency: function(authorityCode, cfg={}){return fnBUS.v3.shuttleSciencePark._RealTimeByFrequency(authorityCode, cfg);},
+        getRealTimeNearStop: function(authorityCode, cfg={}){return fnBUS.v3.shuttleSciencePark._RealTimeNearStop(authorityCode, cfg);},
+        getEstimatedTimeOfArrival: function(authorityCode, cfg={}){return fnBUS.v3.shuttleSciencePark._EstimatedTimeOfArrival(authorityCode, cfg);}
     }
 }
 
@@ -666,6 +742,7 @@ function attachBusV3Api(target, urlMap, autoKeyName){
 attachBusV3Api(fnBUS.v3, v3urls, 'ptxAutoBusV3FunctionKey');
 attachBusV3Api(fnBUS.v3.drts, drtsV3urls, 'ptxAutoBusV3DRTSFunctionKey');
 attachBusV3Api(fnBUS.v3.shuttleHospital, shuttleHospitalV3urls, 'ptxAutoBusV3ShuttleHospitalFunctionKey');
+attachBusV3Api(fnBUS.v3.shuttleSciencePark, shuttleScienceParkV3urls, 'ptxAutoBusV3ShuttleScienceParkFunctionKey');
 
 
 export default fnBUS;

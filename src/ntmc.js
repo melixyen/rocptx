@@ -7,11 +7,34 @@ const companyTag = metro.getCompanyTag('ntmc');
 var mrtPTXFn = new metro.baseMethod(companyTag);
 //修正新北捷運的 function
 mrtPTXFn.catchData.config.Line_S2STravelTime_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'TravelTimes'];
-mrtPTXFn.catchData.config.Line_Frequency_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'ServiceDays', 'OperationTime', 'Headways'];
+mrtPTXFn.catchData.config.Line_Frequency_BackTag = ['LineID', 'RouteID', 'TrainType', 'LineNo', 'ServiceDay', 'OperationTime', 'Headways'];
 mrtPTXFn.catchData.config.Station_FirstLastTimetable_BackTag = ['LineID', 'StationID', 'TrainType', 'DestinationStaionID', 'FirstTrainTime', 'LastTrainTime'];
 mrtPTXFn.catchData.config.Station_Fare_BackTag = ['OriginStationID', 'DestinationStationID', 'Fares', 'TrainType']
-//Catch Data 資料預處理
+//Catch Data 資料預處理：將站間行駛時間依方向合併進各 Route（同 trtc 格式）
 mrtPTXFn.catchData.config.Line_callback = function (json) {
+    json.forEach((Line) => {
+        let TravelTime = Line.TravelTime, tmpA, tmpB, main = [];
+        Line.Route.forEach((Route) => {
+            if (main.indexOf(Route.RouteID) == -1) main.push(Route.RouteID);
+            tmpA = TravelTime.find((rr) => { return !!(rr.RouteID == Route.RouteID) });
+            if (!tmpA) return;
+            let sameDir = !!(tmpA.TravelTimes[0].FromTo[0] == Route.Stations[0]);
+            let RunTime = [], StopTime = [];
+            for (var i = 0; i < Route.Stations.length; i++) {
+                tmpB = tmpA.TravelTimes[i] || { RunTime: 0, StopTime: 0 }
+                RunTime.push(tmpB.RunTime);
+                StopTime.push(tmpB.StopTime);
+            }
+            if (!sameDir) {//與 Route 同方向時，每一站同一 index , RunTime 儲存本站到下一站要開多久 , StopTime 儲存本站要停多久 ; 不同時反轉陣列，RunTime 位移一站再補終站 0
+                RunTime.reverse().shift();
+                RunTime.push(0);
+                StopTime.reverse();
+            }
+            Route.TravelTime = { RunTime: RunTime, StopTime: StopTime }
+        })
+        delete Line.TravelTime;
+        Line.main = main;
+    })
     return json;
 }
 
