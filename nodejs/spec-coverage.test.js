@@ -25,6 +25,7 @@ test('SDK urls 與 Swagger 規格一致性', async (t) => {
     const railV3Paths = new Set(Object.keys(loadSpec('公共運輸_軌道_v3.json').paths));
     const busV2Paths = new Set(Object.keys(loadSpec('公共運輸_公車_v2.json').paths));
     const busV3Paths = new Set(Object.keys(loadSpec('公共運輸_公車_v3.json').paths));
+    const busAdvV2Paths = new Set(Object.keys(loadSpec('公共運輸_公車_進階_v2.json').paths));
 
     await t.test('metro.urls（含 RailSystem 佔位）', () => {
         assertUrlsInSpec(t, 'metro', ptx.metro.urls, railV2Paths, (url) => {
@@ -94,6 +95,11 @@ test('SDK urls 與 Swagger 規格一致性', async (t) => {
         for (const g of routeNameVariants) {
             assert.ok(busV2Paths.has(`/v2/Bus/${g}/City/{City}/{RouteName}`), `bus v2 ${g} 應有 City RouteName 路徑`);
         }
+    });
+
+    await t.test('bus.nearBy.urls（進階 Advanced 服務）', () => {
+        assertUrlsInSpec(t, 'bus.nearBy', ptx.bus.nearBy.urls, busAdvV2Paths, (url) =>
+            url.replace('https://tdx.transportdata.tw/api/advanced', ''));
     });
 
     await t.test('覆蓋率統計（資訊用，不 fail）', () => {

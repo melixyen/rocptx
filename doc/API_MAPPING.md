@@ -16,10 +16,10 @@
 | 指標 | 數量 | 說明 |
 |---|---:|---|
 | `src/main.js` 公開匯出 | 18 | `rocptx` 預設 export 掛載的模組 / namespace |
-| `rocptx` 根命名空間 helper | 16 | `src/ptx.js` 的認證、查詢與共用工具 |
+| `rocptx` 根命名空間 helper | 17 | `src/ptx.js` 的認證、查詢與共用工具 |
 | transport-facing API surface | 14 | `bus`、`bus.v3`、`metro`、6 個 metro wrapper、`thsr.v2`、`tra`、`tra.v3`、`afr.v3`、`rail.v2` |
 | support-facing surface | 5 | `data`、`datax`、`router`、`id`、`common` |
-| `doc/tdx_docs` 規格來源 | 19 | `tdx.md` 1 份 + Swagger / JSON 18 份 |
+| `doc/tdx_docs` 規格來源 | 20 | `tdx.md` 1 份 + Swagger / JSON 19 份（含公車進階 NearBy） |
 | Bus P1 目前累計新增 | 30 | 已補完 Bus v2 主要 helper：`Operator`、`RouteFare`、`Shape`、`Schedule`、`Vehicle`、`Alert`、`Stop`、`DisplayStopOfRoute`、`DailyTimeTable`、`RouteNetwork`、`DailyStopTimeTable`、`DataVersion`、`FirstLastTripInfo`、`News`、`RealTimeByFrequency`、`RealTimeByFrequency/Streaming`、`StationGroup`、`S2STravelTime`、`RouteTPASS` |
 | Bus v3 規格對應路徑 | 75 | 已補完 `公共運輸_公車_v3.json` 的一般 `CityBus` 27、`DRTS` 33、`Shuttle/Hospital` 6、`Shuttle/SciencePark` 9 |
 
@@ -29,9 +29,9 @@
 
 | 命名空間 / 家族 | 數量 | 計算方式 |
 |---|---:|---|
-| `rocptx` root helper | 16 | `src/ptx.js` 的基礎 helper |
-| `common` | 26 | 工具 12 + TDX 常數 7 + API 根路徑 7 |
-| `bus` | 51 | 50 個 v2 直接公開方法 + `v3` 子命名空間 |
+| `rocptx` root helper | 17 | `src/ptx.js` 的基礎 helper |
+| `common` | 27 | 工具 12 + TDX 常數 7 + API 根路徑 8 |
+| `bus` | 61 | 59 個 v2 直接公開方法 + `nearBy` 與 `v3` 子命名空間 |
 | `bus.v3` | 60 | convenience 27 + `_Xxx` 27 + metadata 6（含 `drts`、`shuttleHospital`、`shuttleSciencePark` 子命名空間） |
 | `bus.v3.drts` | 70 | convenience 34 + `_Xxx` 33 + metadata 3 |
 | `bus.v3.shuttleHospital` | 14 | convenience 6 + `_Xxx` 6 + metadata 2 |
@@ -88,6 +88,7 @@
 - `filterFn`
 - `orderByFn`
 - `spatialFilterFn`
+- `spatialFilterNearByFn`（進階 NearBy 用，不帶欄位名、半徑上限 1000）
 - `topFn`
 - `selectFieldFn`
 - `GetAuthorizationHeaderTDX`
@@ -157,7 +158,7 @@ rocptx.rateLimitRetry.useRetryAfterHeader = true;                  // 是否尊�
 - 工具：`today`、`inBrowser`、`assign`、`assignIf`、`clone`
 - 陣列 / 時間工具：`findArrayTarget`、`findAllArrayarget`、`transTime2Date`、`weekArray2WeekStr`、`appendNumber0`、`transTime2Sec`、`transSec2Time`
 - TDX 常數：`CONST_TDX_GET_TOKEN`、`CONST_TDX_API_URL`、`CONST_TDX_LEVEL_BASIC`、`CONST_TDX_LEVEL_ADVANCED`、`CONST_TDX_LEVEL_PREMIUM`、`CONST_TDX_LEVEL_HISTORICAL`、`CONST_TDX_LEVEL_MAAS`
-- API 根路徑：`railV2URL`、`metroURL`、`busURL`、`busV3URL`、`traURL`、`traV3URL`、`afrV3URL`、`thsrV2URL`
+- API 根路徑：`railV2URL`、`metroURL`、`busURL`、`busV3URL`、`busAdvV2URL`（進階服務）、`traURL`、`traV3URL`、`afrV3URL`、`thsrV2URL`
 
 ### `data` / `datax`
 
@@ -277,7 +278,7 @@ NTMC（新北捷運）依最新 Swagger 已支援絕大多數 Metro v2 端點（
 
 ### `bus`
 
-目前 `bus` v2 直接公開方法（50）：
+目前 `bus` v2 直接公開方法（59）：
 
 - `setDefaultCfg`
 - `getCityData`
@@ -329,6 +330,23 @@ NTMC（新北捷運）依最新 Swagger 已支援絕大多數 Metro v2 端點（
 - `getBusS2STravelTime`
 - `getBusRouteTPASS`
 - `getBusRouteTPASSByNumber`
+- `getBusNearBy`
+- `getPromiseBusNearBy`
+- `getBusStopNearBy`
+- `getBusStationNearBy`
+- `getBusRouteNearBy`
+- `getBusRealTimeByFrequencyNearBy`
+- `getBusRealTimeNearStopNearBy`
+- `getBusEstimatedTimeOfArrivalNearBy`
+- `getBusArriveTimeNearBy`
+
+2026-07 進階(Advanced) NearBy 系列：
+
+- 對應 `doc/tdx_docs/公共運輸_公車_進階_v2.json` 的 6 條 `/v2/Bus/{Group}/NearBy` 端點（服務層級為 `advanced`，base URL `https://tdx.transportdata.tw/api/advanced`），以 `$spatialFilter=nearby({Lat},{Lon},{DistanceInMeters})` 查詢「全臺」資料、**不分縣市**，一次請求即可涵蓋跨縣市生活圈（如臺北/新北）
+- 簽名為 `(lat, lng, cfg)`；`cfg.far` 為搜尋半徑公尺（預設 200，TDX 規格上限 1000，超過自動以 1000 送出）；`cfg.filterBy` 可加上 `$filter` 原始字串縮小結果
+- `getBusNearBy(group, lat, lng, cfg)` 為通用入口（group 為 `Stop`/`Station`/`Route`/`RealTimeByFrequency`/`RealTimeNearStop`/`EstimatedTimeOfArrival`），`getPromiseBusNearBy` 為其 Promise 版
+- `getBusArriveTimeNearBy(lat, lng, StopUID, cfg)` 對應站牌看板情境：一次取回座標周邊全臺預估到站（N1），`StopUID`（字串或陣列）有帶時自動組 `or` filter 僅回傳指定站牌，可取代對多個縣市各打一次 `getBusArriveTime`
+- URL 樣板公開於 `bus.nearBy.urls`，由 `nodejs/spec-coverage.test.js` 對照進階 Swagger 規格
 
 補充：Bus v2 目前主要規格群組已補齊，新增對應 `Operator` / `RouteFare` / `Shape` / `Schedule` / `Vehicle` / `Alert` / `Stop` / `DisplayStopOfRoute` / `DailyTimeTable` / `RouteNetwork` / `DailyStopTimeTable` / `DataVersion` / `FirstLastTripInfo` / `News` / `RealTimeByFrequency` / `RealTimeByFrequency/Streaming` / `StationGroup` / `S2STravelTime` / `RouteTPASS`；其中 `RouteFare`、`Shape`、`Schedule`、`DisplayStopOfRoute`、`DailyTimeTable`、`RouteNetwork`、`DailyStopTimeTable`、`FirstLastTripInfo`、`RealTimeByFrequency`、`RealTimeByFrequency/Streaming`、`RouteTPASS` 另提供 `ByNumber` 版以對應 `{RouteName}` 端點。當 `cfg.manageBy = 'InterCity'` 時，`Alert`、`Stop`、`DailyTimeTable`、`DataVersion`、`FirstLastTripInfo`、`News`、`RealTimeByFrequency`、`RealTimeByFrequency/Streaming`、`StationGroup`、`S2STravelTime`、`RouteTPASS` 會自動切到 `InterCity` 路徑，`getBusVehicle` 則會走通用 `/v2/Bus/Vehicle`；`DisplayStopOfRoute`、`RouteNetwork`、`DailyStopTimeTable` 與 `getBusFirstLastTripInfoByNumber` 目前依 Swagger 僅支援 `City` 版，`getBusS2STravelTime` 依 Swagger 使用 `RouteID` 作為必要參數。另於同一命名空間下新增 `bus.v3` 子模組。
 

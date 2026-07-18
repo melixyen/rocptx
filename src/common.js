@@ -116,6 +116,8 @@ CM.CONST_TDX_LEVEL_MAAS = '/maas';
 // CM.ptxV3URL = CM.v3url;
 // === Basic ===
 const basicAPI = CM.CONST_TDX_API_URL + CM.CONST_TDX_LEVEL_BASIC;
+// === Advanced（進階服務，如全臺 NearBy 查詢） ===
+CM.busAdvV2URL = CM.CONST_TDX_API_URL + CM.CONST_TDX_LEVEL_ADVANCED + '/v2/Bus';
 CM.railV2URL = basicAPI + '/v2/Rail';
 CM.metroURL = basicAPI + '/v2/Rail/Metro';
 CM.busURL = basicAPI + '/v2/Bus'

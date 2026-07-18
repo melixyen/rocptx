@@ -199,6 +199,54 @@ test('bus v2 URL 組合', async (t) => {
         assert.equal(lastPath(), '/v2/Bus/StopOfRoute/City/Taipei');
         assert.ok(/TPE16112/.test(decodeURIComponent(FakeXHR.lastURL)), '應含多個 RouteUID filter');
     });
+
+    await t.test('進階 NearBy 系列（advanced 服務層級，全臺不分縣市）', async () => {
+        const ADV_BASE = 'https://tdx.transportdata.tw/api/advanced';
+        function advPath() { return FakeXHR.lastURL.replace(ADV_BASE, '').split('?')[0]; }
+        function decoded() { return decodeURIComponent(FakeXHR.lastURL); }
+
+        const nearByMethods = [
+            ['getBusStopNearBy', '/v2/Bus/Stop/NearBy'],
+            ['getBusStationNearBy', '/v2/Bus/Station/NearBy'],
+            ['getBusRouteNearBy', '/v2/Bus/Route/NearBy'],
+            ['getBusRealTimeByFrequencyNearBy', '/v2/Bus/RealTimeByFrequency/NearBy'],
+            ['getBusRealTimeNearStopNearBy', '/v2/Bus/RealTimeNearStop/NearBy'],
+            ['getBusEstimatedTimeOfArrivalNearBy', '/v2/Bus/EstimatedTimeOfArrival/NearBy']
+        ];
+        for (const [fn, path] of nearByMethods) {
+            FakeXHR.reset();
+            ptx.bus[fn](25.0023, 121.5045, { cbFn() {} });
+            assert.equal(advPath(), path, `${fn} 路徑`);
+            assert.ok(/\$spatialFilter=nearby\(25.0023, 121.5045, 200\)/.test(decoded()), `${fn} 應帶不含欄位名的 nearby，預設半徑 200`);
+        }
+
+        // cfg.far 自訂半徑，超過 TDX 上限 1000 時應以 1000 送出
+        ptx.bus.getBusStopNearBy(25.0023, 121.5045, { far: 500, cbFn() {} });
+        assert.ok(/nearby\(25.0023, 121.5045, 500\)/.test(decoded()), 'far=500 應原樣送出');
+        ptx.bus.getBusStopNearBy(25.0023, 121.5045, { far: 3000, cbFn() {} });
+        assert.ok(/nearby\(25.0023, 121.5045, 1000\)/.test(decoded()), 'far=3000 應被上限 1000 取代');
+
+        // getBusArriveTimeNearBy：StopUID 陣列轉 or filter，且與 spatialFilter 並存
+        ptx.bus.getBusArriveTimeNearBy(25.0023, 121.5045, ['TPE213833', 'NWT126498'], { cbFn() {} });
+        assert.equal(advPath(), '/v2/Bus/EstimatedTimeOfArrival/NearBy');
+        assert.ok(/\$spatialFilter=nearby\(/.test(decoded()), '應帶 spatialFilter');
+        assert.ok(/StopUID eq 'TPE213833' or StopUID eq 'NWT126498'/.test(decoded()), '應帶 StopUID or filter');
+
+        // 省略 StopUID 時不帶 $filter
+        FakeXHR.reset();
+        ptx.bus.getBusArriveTimeNearBy(25.0023, 121.5045, null, { cbFn() {} });
+        assert.ok(!/\$filter/.test(decoded()), '未帶 StopUID 不應有 $filter');
+
+        // 未知 group 應 throw
+        assert.throws(
+            () => ptx.bus.getBusNearBy('NotExist', 25, 121, { cbFn() {} }),
+            (err) => typeof err === 'string' && /NearBy group not found/.test(err)
+        );
+
+        // Promise 版
+        await ptx.bus.getPromiseBusNearBy('EstimatedTimeOfArrival', 25.0023, 121.5045, {});
+        assert.equal(advPath(), '/v2/Bus/EstimatedTimeOfArrival/NearBy');
+    });
 });
 
 test('convenience getter 參數映射', async (t) => {

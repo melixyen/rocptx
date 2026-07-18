@@ -6395,7 +6395,9 @@
 	// CM.ptxV3URL = CM.v3url;
 	// === Basic ===
 
-	var basicAPI = CM.CONST_TDX_API_URL + CM.CONST_TDX_LEVEL_BASIC;
+	var basicAPI = CM.CONST_TDX_API_URL + CM.CONST_TDX_LEVEL_BASIC; // === Advanced（進階服務，如全臺 NearBy 查詢） ===
+
+	CM.busAdvV2URL = CM.CONST_TDX_API_URL + CM.CONST_TDX_LEVEL_ADVANCED + '/v2/Bus';
 	CM.railV2URL = basicAPI + '/v2/Rail';
 	CM.metroURL = basicAPI + '/v2/Rail/Metro';
 	CM.busURL = basicAPI + '/v2/Bus';
@@ -7309,6 +7311,13 @@
 	    var field = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'StationPosition';
 	    //預設對 PTX 找 200 公尺範圍的
 	    return encodeURI('$spatialFilter=nearby(' + field + ', ' + lat + ', ' + lng + ', ' + far + ')');
+	  },
+	  spatialFilterNearByFn: function spatialFilterNearByFn(lat, lng) {
+	    var far = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 200;
+	    //進階(Advanced) NearBy API 的空間過濾，語法不帶欄位名：nearby({Lat},{Lon},{DistanceInMeters})
+	    //TDX 規格最大搜尋半徑為 1000 公尺，超過時以 1000 送出
+	    if (far > 1000) far = 1000;
+	    return encodeURI('$spatialFilter=nearby(' + lat + ', ' + lng + ', ' + far + ')');
 	  },
 	  topFn: function topFn(top, formatStr) {
 	    top = top || 3000;
@@ -13317,6 +13326,17 @@
 
 	var busURL = CM.busURL;
 	var busV3URL = CM.busV3URL;
+	var busAdvV2URL = CM.busAdvV2URL; //進階(Advanced) NearBy API：以[座標,範圍]查詢「全臺」資料，不分縣市，
+	//一次即可涵蓋跨縣市生活圈（如臺北/新北），對照 doc/tdx_docs/公共運輸_公車_進階_v2.json
+
+	var advNearByUrls = {
+	  Stop: busAdvV2URL + '/Stop/NearBy',
+	  Station: busAdvV2URL + '/Station/NearBy',
+	  Route: busAdvV2URL + '/Route/NearBy',
+	  RealTimeByFrequency: busAdvV2URL + '/RealTimeByFrequency/NearBy',
+	  RealTimeNearStop: busAdvV2URL + '/RealTimeNearStop/NearBy',
+	  EstimatedTimeOfArrival: busAdvV2URL + '/EstimatedTimeOfArrival/NearBy'
+	};
 	var v3urls = {
 	  Network: busV3URL + '/Network/City/{City}',
 	  Stop: busV3URL + '/Stop/City/{City}',
@@ -13591,6 +13611,57 @@
 
 	      fnBUS.getPositionBusStation(city, lat, lng, cfg);
 	    });
+	  },
+	  //===== 進階(Advanced) NearBy：以[座標,範圍]查詢全臺資料，不分縣市 =====
+	  //group 對應 nearBy.urls 的 key；cfg.far 為搜尋半徑公尺（預設 200，TDX 上限 1000），
+	  //cfg.filterBy 可加 $filter 縮小結果（例如只留看板顯示的 StopUID）
+	  getBusNearBy: function getBusNearBy(group, lat, lng, cfg) {
+	    cfg = this.setDefaultCfg(cfg);
+
+	    if (!advNearByUrls[group]) {
+	      ptx.throwError('Bus NearBy group not found: ' + group);
+	      return false;
+	    }
+
+	    var myURL = advNearByUrls[group] + '?';
+	    var filterStr = cfg.filterBy ? ptx.filterFn(cfg.filterBy) : '';
+	    myURL += buildBusQuery(cfg, [ptx.spatialFilterNearByFn(lat, lng, cfg.far), filterStr]);
+	    ptx.getURL(myURL, cfg.cbFn);
+	  },
+	  getPromiseBusNearBy: function getPromiseBusNearBy(group, lat, lng) {
+	    var cfg = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+	    return new Promise(function (resolve) {
+	      cfg.cbFn = function (e) {
+	        resolve(e);
+	      };
+
+	      fnBUS.getBusNearBy(group, lat, lng, cfg);
+	    });
+	  },
+	  getBusStopNearBy: function getBusStopNearBy(lat, lng, cfg) {
+	    return this.getBusNearBy('Stop', lat, lng, cfg);
+	  },
+	  getBusStationNearBy: function getBusStationNearBy(lat, lng, cfg) {
+	    return this.getBusNearBy('Station', lat, lng, cfg);
+	  },
+	  getBusRouteNearBy: function getBusRouteNearBy(lat, lng, cfg) {
+	    return this.getBusNearBy('Route', lat, lng, cfg);
+	  },
+	  getBusRealTimeByFrequencyNearBy: function getBusRealTimeByFrequencyNearBy(lat, lng, cfg) {
+	    return this.getBusNearBy('RealTimeByFrequency', lat, lng, cfg);
+	  },
+	  getBusRealTimeNearStopNearBy: function getBusRealTimeNearStopNearBy(lat, lng, cfg) {
+	    return this.getBusNearBy('RealTimeNearStop', lat, lng, cfg);
+	  },
+	  getBusEstimatedTimeOfArrivalNearBy: function getBusEstimatedTimeOfArrivalNearBy(lat, lng, cfg) {
+	    return this.getBusNearBy('EstimatedTimeOfArrival', lat, lng, cfg);
+	  },
+	  //一次取回座標周邊「全臺」公車預估到站（N1），StopUID 可為字串或陣列，
+	  //有帶時只回傳指定站牌，適合跨縣市站牌看板以單一請求更新到站時間
+	  getBusArriveTimeNearBy: function getBusArriveTimeNearBy(lat, lng, StopUID, cfg) {
+	    cfg = cfg || {};
+	    if (StopUID && StopUID.length) cfg.filterBy = ptx.filterParam('StopUID', '==', StopUID, 'or');
+	    return this.getBusNearBy('EstimatedTimeOfArrival', lat, lng, cfg);
 	  },
 	  getBusStopRoute: function getBusStopRoute(RouteUID, city, cfg) {
 	    cfg = this.setDefaultCfg(cfg);
@@ -13921,6 +13992,9 @@
 	    myURL += buildBusQuery(cfg);
 	    ptx.getURL(myURL, cfg.cbFn);
 	  }
+	};
+	fnBUS.nearBy = {
+	  urls: advNearByUrls
 	};
 	fnBUS.v3 = {
 	  urls: v3urls,

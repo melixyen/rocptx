@@ -241,6 +241,12 @@ var ptx = {
         //預設對 PTX 找 200 公尺範圍的
         return encodeURI('$spatialFilter=nearby(' + field + ', ' + lat + ', ' + lng + ', ' + far + ')');
     },
+    spatialFilterNearByFn: function(lat, lng, far=200){
+        //進階(Advanced) NearBy API 的空間過濾，語法不帶欄位名：nearby({Lat},{Lon},{DistanceInMeters})
+        //TDX 規格最大搜尋半徑為 1000 公尺，超過時以 1000 送出
+        if(far > 1000) far = 1000;
+        return encodeURI('$spatialFilter=nearby(' + lat + ', ' + lng + ', ' + far + ')');
+    },
     topFn: function(top, formatStr){
         top = top || 3000;
         formatStr = formatStr || 'JSON';
