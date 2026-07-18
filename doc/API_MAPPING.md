@@ -137,12 +137,14 @@ const poi = await rocptx.req('/v1/POI', { top: 5 }, { level: 'advanced' });
 TDX 對任一 API 都可能回 `429 API rate limit exceeded`。rocptx 在**底層**（`getURL` 與 `getPromiseURL`）攔截這類回應並自動重試，所以所有模組（`bus` / `metro` / `tra` / `thsr` / `afr` / `rail` / `req` / `catchData` / 資料更新器）都自動受惠，整個重試機制跑完才會 callback 或 resolve / reject——使用端不需要自己處理 429。
 
 - **判斷優先序**：① HTTP status `429` → ② response header 可識別項目（`x-ratelimit-remaining-minute: 0` 或 `ratelimit-remaining: 0`）→ ③ response message 含 `API rate limit exceeded`（瀏覽器 CORS 讀不到 header 時的防線）。只對失敗回應做判斷，成功回應即使配額歸零也不受影響
-- **退避序列**：1s → 2s → 4s → 8s → 16s → 32s（共 6 次重試），32 秒那次仍失敗才回傳失敗；若回應帶 `Retry-After` header 且秒數大於當前退避值，改用 header 值
+- **重試預算**：以 `maxWaitSeconds`（預設 60 秒）為總等待預算持續重試——TDX 配額為固定 60 秒窗口、最慢一分鐘內必恢復，因此預算內重試必可等到窗口重置；預算耗盡仍失敗才回傳失敗
+- **等待間隔**：無 `Retry-After` 時依退避序列 1s → 2s → 4s → 8s → 16s → 32s（序列用完沿用最後一值）；回應帶 `Retry-After` header 且秒數大於當前退避值則改用 header 值；每次等待皆以剩餘預算為上限，不會等超過 `maxWaitSeconds`
 - **設定**（都可在執行期調整）：
 
 ```javascript
 rocptx.rateLimitRetry.enabled = true;                              // 關閉自動重試設 false
-rocptx.rateLimitRetry.delays = [1000,2000,4000,8000,16000,32000]; // 退避序列（毫秒）
+rocptx.rateLimitRetry.maxWaitSeconds = 60;                         // 重試總等待預算（秒），對齊 TDX 60 秒配額窗口
+rocptx.rateLimitRetry.delays = [1000,2000,4000,8000,16000,32000]; // 無 Retry-After 時的退避序列（毫秒），用完沿用最後一值
 rocptx.rateLimitRetry.useRetryAfterHeader = true;                  // 是否尊重 Retry-After header
 ```
 

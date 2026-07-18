@@ -27,16 +27,19 @@ function failThenSucceed(failTimes, failResponse, successData) {
 
 test('TDX rate limit（429）自動重試', async (t) => {
     const originalDelays = ptx.rateLimitRetry.delays;
+    const originalMaxWait = ptx.rateLimitRetry.maxWaitSeconds;
     t.beforeEach(() => {
         FakeXHR.reset();
         ptx.rateLimitRetry.enabled = true;
         ptx.rateLimitRetry.useRetryAfterHeader = false; // 測試中避免 header 秒數拖慢，另有專測
         ptx.rateLimitRetry.delays = [5, 5, 5, 5, 5, 5];
+        ptx.rateLimitRetry.maxWaitSeconds = 0.03; // 30ms 預算：配合 5ms 退避 = 最多 6 次重試（7 次請求）
     });
     t.afterEach(() => {
         ptx.rateLimitRetry.enabled = true;
         ptx.rateLimitRetry.useRetryAfterHeader = true;
         ptx.rateLimitRetry.delays = originalDelays;
+        ptx.rateLimitRetry.maxWaitSeconds = originalMaxWait;
     });
 
     await t.test('429 兩次後成功：自動重試並 resolve', async () => {
@@ -49,13 +52,33 @@ test('TDX rate limit（429）自動重試', async (t) => {
         assert.equal(res.retryCount, 2);
     });
 
-    await t.test('持續 429：跑完 6 段退避（共 7 次請求）才 reject', async () => {
+    await t.test('持續 429：重試到 maxWaitSeconds 預算耗盡（30ms 預算 / 5ms 退避 = 共 7 次請求）才 reject', async () => {
         FakeXHR.handler = () => ({ __http: { status: 429, headers: RATE_LIMIT_HEADERS, body: RATE_LIMIT_BODY } });
         await assert.rejects(
             ptx.getPromiseURL('https://example.com/api'),
             (e) => e.status === ptx.statusCode.FAIL && /rate limit/i.test(e.response)
         );
         assert.equal(FakeXHR.urls.length, 7);
+    });
+
+    await t.test('退避序列用完後沿用最後一值，直到預算耗盡（delays=[5] / 20ms 預算 = 4 次重試）', async () => {
+        ptx.rateLimitRetry.delays = [5];
+        ptx.rateLimitRetry.maxWaitSeconds = 0.02;
+        FakeXHR.handler = () => ({ __http: { status: 429, headers: {}, body: RATE_LIMIT_BODY } });
+        await assert.rejects(ptx.getPromiseURL('https://example.com/api'));
+        assert.equal(FakeXHR.urls.length, 5, '1 次原始請求 + 4 次重試（5ms x 4 = 20ms 預算）');
+    });
+
+    await t.test('Retry-After 大於剩餘預算時以剩餘預算為上限，不會等超過 maxWaitSeconds', async () => {
+        ptx.rateLimitRetry.useRetryAfterHeader = true;
+        ptx.rateLimitRetry.delays = [5];
+        ptx.rateLimitRetry.maxWaitSeconds = 0.05;
+        const t0 = Date.now();
+        FakeXHR.handler = () => ({ __http: { status: 429, headers: { 'retry-after': '30' }, body: RATE_LIMIT_BODY } });
+        await assert.rejects(ptx.getPromiseURL('https://example.com/api'));
+        const elapsed = Date.now() - t0;
+        assert.equal(FakeXHR.urls.length, 2, 'Retry-After 30 秒被剩餘預算 50ms 取代，只重試 1 次');
+        assert.ok(elapsed < 5000, '總耗時應遠小於 Retry-After 的 30 秒，實測 ' + elapsed + 'ms');
     });
 
     await t.test('判斷優先序 2：非 429 但 header remaining=0 也重試', async () => {
@@ -127,6 +150,7 @@ test('TDX rate limit（429）自動重試', async (t) => {
 
     await t.test('退避序列依序遞增（量測實際間隔）', async () => {
         ptx.rateLimitRetry.delays = [20, 40];
+        ptx.rateLimitRetry.maxWaitSeconds = 0.2; // 預算需大於 20+40ms 以免退避被剩餘預算截短
         const timestamps = [];
         FakeXHR.handler = () => {
             timestamps.push(Date.now());
@@ -142,6 +166,7 @@ test('TDX rate limit（429）自動重試', async (t) => {
     await t.test('useRetryAfterHeader：Retry-After 秒數大於退避值時採用 header 值', async () => {
         ptx.rateLimitRetry.useRetryAfterHeader = true;
         ptx.rateLimitRetry.delays = [10];
+        ptx.rateLimitRetry.maxWaitSeconds = 2; // 預算需大於 Retry-After 1 秒以免被截短
         const timestamps = [];
         FakeXHR.handler = () => {
             timestamps.push(Date.now());

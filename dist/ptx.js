@@ -6972,7 +6972,9 @@
 	  maas: CM.CONST_TDX_LEVEL_MAAS
 	}; //========== TDX rate limit（429）自動重試 ==========
 	//TDX 對任一 API 都可能回 429 API rate limit exceeded；底層（getURL / getPromiseURL）
-	//攔截後依 rateLimitRetry.delays 指數退避重試，整個機制跑完才 callback / resolve / reject。
+	//攔截後以 rateLimitRetry.maxWaitSeconds 為總等待預算（TDX 配額為固定 60 秒窗口，最慢 60 秒內必恢復）
+	//持續重試：每次等待依 delays 退避序列（用完後沿用最後一值）、Retry-After header 更長則優先採用，
+	//並以剩餘預算為上限；預算耗盡仍失敗才 callback / resolve / reject。
 	//判斷回應是否為 rate limit（僅在非 200 的失敗回應上呼叫）
 	//優先序：1. HTTP status 429  2. header 可識別項目（remaining=0）  3. response message
 
@@ -6991,11 +6993,14 @@
 
 	  if (typeof target.response == 'string' && /API rate limit exceeded/i.test(target.response)) return true;
 	  return false;
-	} //取得本次重試前的等待毫秒數：以退避序列為基準，若 Retry-After header 更長則採用 header 值
+	} //取得本次重試前的等待毫秒數：以退避序列為基準（序列用完後沿用最後一值），
+	//若 Retry-After header 更長則採用 header 值，最後以剩餘預算 remainMs 為上限
 
 
-	function getRateLimitDelay(target, attemptIdx) {
-	  var delay = ptx.rateLimitRetry.delays[attemptIdx];
+	function getRateLimitDelay(target, attemptIdx, remainMs) {
+	  var delays = ptx.rateLimitRetry.delays || [];
+	  var delay = delays[attemptIdx] !== undefined ? delays[attemptIdx] : delays[delays.length - 1];
+	  if (!(delay >= 0)) delay = 1000;
 
 	  try {
 	    if (ptx.rateLimitRetry.useRetryAfterHeader && typeof target.getResponseHeader == 'function') {
@@ -7006,24 +7011,33 @@
 	    /* header 不可讀時維持退避序列 */
 	  }
 
+	  if (delay > remainMs) delay = remainMs;
+	  if (delay < 1) delay = 1;
 	  return delay;
 	} //共用重試迴圈：sendFn(onDone) 負責發出一次請求並以 xhr target 回呼；
-	//成功（status 200）或非 rate limit 失敗直接結束；rate limit 失敗依序列重試，
-	//序列用完仍失敗才把最後一次的結果交給 finishFn(isSuccess, target, retryCount)
+	//成功（status 200）或非 rate limit 失敗直接結束；rate limit 失敗持續重試，
+	//直到累計等待達 maxWaitSeconds（預設 60 秒 = TDX 配額窗口長度）仍失敗，
+	//才把最後一次的結果交給 finishFn(isSuccess, target, retryCount)
 
 
 	function runWithRateLimitRetry(sendFn, finishFn) {
 	  var attemptIdx = 0;
+	  var waitedMs = 0;
 
 	  function run() {
 	    sendFn(function (target) {
 	      var isSuccess = !!(target.readyState == 4 && target.status == 200);
 
-	      if (!isSuccess && ptx.rateLimitRetry.enabled && attemptIdx < ptx.rateLimitRetry.delays.length && isRateLimitedXHR(target)) {
-	        var delay = getRateLimitDelay(target, attemptIdx);
-	        attemptIdx++;
-	        setTimeout(run, delay);
-	        return;
+	      if (!isSuccess && ptx.rateLimitRetry.enabled && isRateLimitedXHR(target)) {
+	        var remainMs = (ptx.rateLimitRetry.maxWaitSeconds || 0) * 1000 - waitedMs;
+
+	        if (remainMs > 0) {
+	          var delay = getRateLimitDelay(target, attemptIdx, remainMs);
+	          attemptIdx++;
+	          waitedMs += delay;
+	          setTimeout(run, delay);
+	          return;
+	        }
 	      }
 
 	      finishFn(isSuccess, target, attemptIdx);
@@ -7239,10 +7253,13 @@
 	var ptx = {
 	  statusCode: CM.statusCode,
 	  timeout: 30000,
-	  //TDX rate limit（429）自動重試設定：delays 為每次重試前的等待毫秒（指數退避 1s→32s），
-	  //序列用完仍失敗才回傳失敗；useRetryAfterHeader 為 true 時，Retry-After header 秒數大於退避值則採用 header 值
+	  //TDX rate limit（429）自動重試設定：
+	  //maxWaitSeconds 為重試總等待預算秒數（TDX 配額為固定 60 秒窗口，最慢 60 秒內必恢復，故預設 60），
+	  //預算耗盡仍失敗才回傳失敗；delays 為無 Retry-After 時各次重試前的等待毫秒退避序列（用完後沿用最後一值）；
+	  //useRetryAfterHeader 為 true 時，Retry-After header 秒數大於退避值則採用 header 值（仍受剩餘預算上限約束）
 	  rateLimitRetry: {
 	    enabled: true,
+	    maxWaitSeconds: 60,
 	    delays: [1000, 2000, 4000, 8000, 16000, 32000],
 	    useRetryAfterHeader: true
 	  },
