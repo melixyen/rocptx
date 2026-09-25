@@ -11,7 +11,7 @@
         "build:node-lib": "rollup -f cjs --config rollup.config.js -o dist/rocptx.js",
         "tt": "rollup -f umd --config rollup.config.js -o dist/ptx.js -m inline",
         "ttbuild": "rollup -f umd --config rollup.config.js -o dist/ptx.min.js --environment ROCPTX_USE_BANNER,ROCPTX_USE_MINIFY",
-        "test:unit": "npm run build:node-lib && node --test nodejs/url-builder.test.js nodejs/spec-coverage.test.js nodejs/helpers.test.js nodejs/id-data.test.js nodejs/catch-data.test.js nodejs/router.test.js nodejs/datax-contract.test.js nodejs/retry.test.js",
+        "test:unit": "npm run build:node-lib && node --test nodejs/url-builder.test.js nodejs/spec-coverage.test.js nodejs/helpers.test.js nodejs/id-data.test.js nodejs/catch-data.test.js nodejs/router.test.js nodejs/datax-contract.test.js nodejs/retry.test.js nodejs/proxy.test.js",
         "test:nodejs": "npm run build:node-lib && node --test --test-concurrency=1 nodejs/auto-crawler.test.js",
         "test:all": "npm run test:unit && node --test --test-concurrency=1 nodejs/auto-crawler.test.js",
         "datax:update": "node nodejs/update-datax.js",

@@ -21,11 +21,15 @@ class FakeXMLHttpRequest {
     open(method, url) {
         this.method = method;
         this.url = url;
+        this.headers = {};
         FakeXMLHttpRequest.lastURL = url;
         FakeXMLHttpRequest.lastMethod = method;
+        FakeXMLHttpRequest.lastHeaders = this.headers;
         FakeXMLHttpRequest.urls.push(url);
     }
-    setRequestHeader() {}
+    setRequestHeader(name, value) {
+        this.headers[name] = value;
+    }
     getResponseHeader(name) {
         const key = Object.keys(this._responseHeaders).find((k) => k.toLowerCase() === String(name).toLowerCase());
         return key === undefined ? null : this._responseHeaders[key];
@@ -50,12 +54,14 @@ class FakeXMLHttpRequest {
 }
 FakeXMLHttpRequest.lastURL = '';
 FakeXMLHttpRequest.lastMethod = '';
+FakeXMLHttpRequest.lastHeaders = {};
 FakeXMLHttpRequest.urls = [];
 FakeXMLHttpRequest.responseData = [];
 FakeXMLHttpRequest.handler = null; // (url, method) => data，設定後優先於 responseData
 FakeXMLHttpRequest.reset = function () {
     FakeXMLHttpRequest.lastURL = '';
     FakeXMLHttpRequest.lastMethod = '';
+    FakeXMLHttpRequest.lastHeaders = {};
     FakeXMLHttpRequest.urls = [];
     FakeXMLHttpRequest.responseData = [];
     FakeXMLHttpRequest.handler = null;

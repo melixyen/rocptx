@@ -76,6 +76,79 @@ function runWithRateLimitRetry(sendFn, finishFn) {
     run();
 }
 
+//========== 自架 TDX proxy ==========
+//rocptx.proxy.enable(url) 後，getURL / getPromiseURL 在送出請求前把 TDX 官方網域強制換成 proxy 網址
+//（路徑與參數不變），涵蓋所有模組、rocptx.req 與換 token 請求；非 TDX 網域的請求不受影響。
+//library 不內建任何 proxy 網址，啟用時必須由呼叫端提供。
+//proxy.headers 為走 proxy 的請求額外附加的 header（預設為空），在預設 header 之後合併，同名時覆蓋；
+//例如 Node 端沒有 Origin，可由呼叫端自行帶入 proxy 允許的 Origin（瀏覽器會忽略 Origin 等禁止設定的 header）。
+const TDX_ORIGIN = 'https://tdx.transportdata.tw';
+
+function normalizeProxyURL(url, fnName) {
+    if (typeof (url) != 'string' || !/^https?:\/\/[^\/?#]+/i.test(url)) throw 'rocptx.proxy.' + fnName + ': url must be an http(s) URL string';
+    return url.replace(/\/+$/, '');
+}
+
+//是否為 TDX 官方網域的網址（避免誤判 tdx.transportdata.tw.example.com 之類的網域）
+function isTDXURL(url) {
+    if (typeof (url) != 'string') return false;
+    var next = url.charAt(TDX_ORIGIN.length);
+    return url.slice(0, TDX_ORIGIN.length).toLowerCase() == TDX_ORIGIN && (!next || next == '/' || next == '?');
+}
+
+//送出前套用 proxy：以實際網址 open，並回傳要送出的 header（走 proxy 時合併 proxy.headers）。
+//先合併成單一物件再 setRequestHeader，因為瀏覽器 XHR 對同名 header 是串接而非覆蓋；比對名稱不分大小寫
+function openWithProxy(fm, method, url, headerObj) {
+    var merged = Object.assign({}, headerObj);
+    var useProxy = proxy.isActiveFor(url);
+    fm.open(method, useProxy ? proxy.resolveURL(url) : url);
+    if (!useProxy) return merged;
+    var extra = proxy.headers || {};
+    for (var k in extra) {
+        if (extra[k] === undefined || extra[k] === null) continue;
+        for (var m in merged) {
+            if (m.toLowerCase() == k.toLowerCase()) delete merged[m];
+        }
+        merged[k] = extra[k];
+    }
+    return merged;
+}
+
+var proxy = {
+    enabled: false,
+    url: '',
+    headers: {},
+    //啟用 proxy，必須指定 proxy 網址；options.headers 可同時設定 proxy.headers（未提供則保留原設定）
+    enable: function (url, options) {
+        var nextURL = normalizeProxyURL(url, 'enable');
+        if (options && options.headers !== undefined) {
+            if (!options.headers || typeof (options.headers) != 'object' || Array.isArray(options.headers)) throw 'rocptx.proxy.enable: options.headers must be an object';
+            proxy.headers = Object.assign({}, options.headers);
+        }
+        proxy.url = nextURL;
+        proxy.enabled = true;
+        return proxy;
+    },
+    disable: function () {
+        proxy.enabled = false;
+        return proxy;
+    },
+    //更換 proxy 網址，不改變啟用狀態
+    setURL: function (url) {
+        proxy.url = normalizeProxyURL(url, 'setURL');
+        return proxy;
+    },
+    //回傳實際要送出的網址：啟用時把 TDX 官方網域換成 proxy 網址，否則原樣回傳
+    resolveURL: function (url) {
+        if (!proxy.isActiveFor(url)) return url;
+        return String(proxy.url).replace(/\/+$/, '') + url.slice(TDX_ORIGIN.length);
+    },
+    //此網址送出時是否會走 proxy
+    isActiveFor: function (url) {
+        return !!(proxy.enabled && proxy.url && isTDXURL(url));
+    }
+};
+
 //給 rocptx.req 用：若傳入的是字串（例如 CLI 參數、JSON.stringify 過的設定），自動 JSON.parse 成物件；
 //已是物件或未提供（undefined/null）則原樣通過，讓呼叫端可以直接傳 JS 物件或 JSON 字串兩種形式
 function parseIfJSONString(value, label) {
@@ -204,6 +277,7 @@ function defineObj() {
 var ptx = {
     statusCode: common.statusCode,
     timeout: 30000,
+    proxy: proxy,
     //TDX rate limit（429）自動重試設定：
     //maxWaitSeconds 為重試總等待預算秒數（TDX 配額為固定 60 秒窗口，最慢 60 秒內必恢復，故預設 60），
     //預算耗盡仍失敗才回傳失敗；delays 為無 Retry-After 時各次重試前的等待毫秒退避序列（用完後沿用最後一值）；
@@ -331,9 +405,8 @@ var ptx = {
             fm.addEventListener("error", reqListener);
             fm.addEventListener("abort", reqListener);
             fm.addEventListener("timeout", reqListener);
-            fm.open('GET', url);
+            var headerObj = openWithProxy(fm, 'GET', url, ptx.GetAuthorizationHeaderTDX());
             fm.timeout = ptx.timeout;
-            var headerObj = ptx.GetAuthorizationHeaderTDX();
             for(var k in headerObj){
                 fm.setRequestHeader(k, headerObj[k]);
             }
@@ -380,9 +453,8 @@ var ptx = {
                 fm.addEventListener("timeout", reqListener);
 
                 var method = cfg.method || 'GET';
-                fm.open(method, url);
+                var headerObj = openWithProxy(fm, method, url, cfg.head || ptx.GetAuthorizationHeaderTDX());
                 fm.timeout = cfg.timeout || ptx.timeout;
-                var headerObj = cfg.head || ptx.GetAuthorizationHeaderTDX();
                 for(var k in headerObj){
                     fm.setRequestHeader(k, headerObj[k]);
                 }
