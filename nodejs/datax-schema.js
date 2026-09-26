@@ -33,7 +33,7 @@
  * - custom   ：(data) => string[]，回傳錯誤訊息陣列
  */
 
-// noFrequency：KRTC / NTMC / KLRT 的 Frequency 依 API 現況為空陣列（Swagger enum 無或無資料），
+// noFrequency：KRTC / KLRT 的 Frequency 依 API 現況為空陣列（Swagger enum 無或無資料），
 // 僅要求欄位存在；有班距資料的公司則要求至少一條線有 Headways（calcStationTimeByHeadWays 依賴）
 const metroLine = (minItems, opts = {}) => ({
     type: 'array',
@@ -121,8 +121,8 @@ module.exports = {
     'tymc.time.json': metroTime(20),
     'tymc.fare.json': fareMap(20),
 
-    'ntmc.line.json': metroLine(1, { noFrequency: true }),
-    'ntmc.station.json': metroStation(14),
+    'ntmc.line.json': metroLine(2), // 環狀線 Y + 三鶯線 LB
+    'ntmc.station.json': metroStation(26),
     'ntmc.transfer.json': metroTransfer(1),
     'ntmc.fare.json': fareMap(14),
 

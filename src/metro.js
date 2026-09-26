@@ -1,6 +1,7 @@
 import common from './common.js';
 import ptx from './ptx.js';
 import pData from './data.js';
+import datax from './datax.js';
 
 const metroURL = common.metroURL;
 const urls = {
@@ -123,10 +124,72 @@ function promiseCatchStationCombine(json, data, combineName, StationID = 'Statio
     return json;
 }
 
+//========= 補站間行駛時間缺漏 ============
+//TDX 的 S2STravelTime 可能缺新通車區段（如 2026-09 淡水信義線延伸的 R01→R02），Line_callback 會把缺漏段補 0。
+//載入時改以 datax station 的首末班車推算：同一 Route 相鄰兩站往同一終點的首班、末班發車時間差（含下一站停站時間）。
+//終點站沒有往該終點的首末班車，改取反方向 Route 同一區段已有或已推算的值。
+//只補非終點的 0 值，TDX 補上資料後自然改用官方值；推算過的 RunTime index 記在 TravelTime.Estimated。
+function estimateSecByFirstLast(stationAry, fromID, toID, destID) {
+    let getTime = (StationID) => {
+        let st = stationAry.find(c => c.StationID == StationID);
+        let fl = st && st.FirstLast && st.FirstLast.find(c => c.To == destID);
+        return fl && fl.Time;
+    }
+    let a = getTime(fromID), b = getTime(toID);
+    if (!a || !b) return 0;
+    let ary = [];
+    [0, 1].forEach((k) => {//0:首班 1:末班
+        if (!a[k] || !b[k]) return;
+        let diff = (common.transTime2Sec(b[k]) - common.transTime2Sec(a[k]) + 86400) % 86400;//末班可能跨午夜
+        if (diff > 0 && diff <= 900) ary.push(diff);
+    })
+    return ary.length ? Math.round(ary.reduce((s, c) => s + c, 0) / ary.length) : 0;
+}
+function fillMissingTravelTime(compData) {
+    if (!compData || !compData.line || !compData.station) return;
+    compData.line.forEach((line) => {
+        let aryRoute = (line.Route || []).filter(r => r.TravelTime && Array.isArray(r.TravelTime.RunTime));
+        let isMissing = (r, i) => (i < r.Stations.length - 1 && !r.TravelTime.RunTime[i]);
+        let setEstimated = (r, i, sec) => {
+            r.TravelTime.RunTime[i] = sec;
+            if (!r.TravelTime.Estimated) r.TravelTime.Estimated = [];
+            r.TravelTime.Estimated.push(i);
+        }
+        //1.首末班車推算
+        aryRoute.forEach((r) => {
+            let destID = r.Stations[r.Stations.length - 1];
+            r.Stations.forEach((st, i) => {
+                if (!isMissing(r, i)) return;
+                let sec = estimateSecByFirstLast(compData.station, st, r.Stations[i + 1], destID);
+                if (sec) setEstimated(r, i, sec);
+            })
+        })
+        //2.仍缺的（到終點站的區段）取反方向同區段
+        aryRoute.forEach((r) => {
+            r.Stations.forEach((st, i) => {
+                if (!isMissing(r, i)) return;
+                let toID = r.Stations[i + 1], sec = 0;
+                aryRoute.find((rr) => {
+                    for (let j = 0; j < rr.Stations.length - 1; j++) {
+                        if (rr.Stations[j] == toID && rr.Stations[j + 1] == st && rr.TravelTime.RunTime[j]) {
+                            sec = rr.TravelTime.RunTime[j];
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                if (sec) setEstimated(r, i, sec);
+            })
+        })
+    })
+}
+Object.keys(companyTag).forEach(co => fillMissingTravelTime(datax[co]));
+
 
 var metro = {
     getCompanyTag: getCompanyTag,
     getStationOnWhatLineID: getStationOnWhatLineID,
+    fillMissingTravelTime: fillMissingTravelTime,
     urls: urls,
     companyTag: companyTag
 }
@@ -662,7 +725,7 @@ class baseMethod {
                         json.forEach((st, idx, arr) => {
                             if (st.StationPosition) {
                                 st.lat = st.StationPosition.PositionLat;
-                                st.lon = st.StationPosition.PositionLat;
+                                st.lon = st.StationPosition.PositionLon;
                                 delete st.StationPosition;
                             }
                             st.name = st.StationName.Zh_tw;

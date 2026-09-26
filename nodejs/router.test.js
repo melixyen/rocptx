@@ -124,8 +124,8 @@ test('router.v2 捷運 block 推導與路徑搜尋', async (t) => {
 
     await t.test('router.v2.ntmc：環狀線 block 推導與轉乘站', () => {
         const blocks = ptx.router.v2.ntmc.getBlockData();
-        assert.equal(blocks.length, 1, '環狀線一組 block');
-        const flat = blocks[0];
+        assert.equal(blocks.length, 2, '環狀線與三鶯線各一組 block');
+        const flat = blocks.reduce((c, n) => c.concat(n), []).filter((c) => c.LineID === 'Y');
         // 轉乘站 Y07 / Y11 / Y16 / Y17 / Y18 應各自成 transfer block
         for (const st of ['Y07', 'Y11', 'Y16', 'Y17', 'Y18']) {
             const b = flat.find((c) => c.type === 'transfer' && c.station === st);
@@ -153,6 +153,73 @@ test('router.v2 捷運 block 推導與路徑搜尋', async (t) => {
         assert.equal(routes[0].travelStation[0], 'Y08');
         assert.equal(routes[0].travelStation[routes[0].travelStation.length - 1], 'Y15');
         assert.ok(routes[0].travelTime > 0);
+    });
+
+    await t.test('router.v2.ntmc：三鶯線同線查詢與頂埔轉乘 block', () => {
+        const r = ptx.router.v2.ntmc;
+        const flat = r.getBlockData().reduce((c, n) => c.concat(n), []);
+        const lb01 = flat.find((c) => c.type === 'transfer' && c.station === 'LB01');
+        assert.ok(lb01, 'LB01 頂埔應為 transfer block');
+        assert.deepEqual(lb01.toIDList, ['BL01']);
+
+        const through = r.getMRTThrough('LB01', 'LB12');
+        assert.ok(through, '三鶯線同線應找得到路徑');
+        assert.equal(through.Stations.length, 12);
+        assert.ok(through.travelTime && through.travelTime.min > 0, '應含 travelTime');
+
+        const routes = r.getAllLineRoute('LB12', 'LB02');
+        assert.ok(routes.length > 0, '三鶯線反方向應有路徑');
+        assert.equal(routes[0].travelStation[0], 'LB12');
+        assert.equal(routes[0].travelStation[routes[0].travelStation.length - 1], 'LB02');
+    });
+
+    await t.test('router.v2.trtc：淡水信義線延伸至 R01', () => {
+        const through = ptx.router.v2.trtc.getMRTThrough('R01', 'R05');
+        assert.ok(through, 'R01 應可查到同線路徑');
+        assert.deepEqual(through.Stations, ['R01', 'R02', 'R03', 'R04', 'R05']);
+        assert.ok(through.RouteID.includes('R-1'));
+    });
+
+    await t.test('metro 站間時間缺漏：R01↔R02 以首末班車推算（TDX S2STravelTime 無此段）', () => {
+        const line = ptx.datax.trtc.line.find((c) => c.LineID === 'R');
+        const dir0 = line.Route.find((c) => c.RouteID === 'R-1' && c.Direction === 0);
+        const dir1 = line.Route.find((c) => c.RouteID === 'R-1' && c.Direction === 1);
+        // R01 首班 06:00、R02 首班 06:03（往 R28），末班 00:00 / 00:03
+        assert.equal(dir0.TravelTime.RunTime[0], 180);
+        assert.deepEqual(dir0.TravelTime.Estimated, [0]);
+        // 往 R01 的終點區段沒有首末班車，取反方向同區段
+        const i = dir1.Stations.indexOf('R02');
+        assert.equal(dir1.Stations[i + 1], 'R01');
+        assert.equal(dir1.TravelTime.RunTime[i], 180);
+        assert.deepEqual(dir1.TravelTime.Estimated, [i]);
+        // 其他區段維持 TDX 原值
+        assert.equal(dir0.TravelTime.RunTime[1], 93);
+
+        const tt = ptx.trtc.catchData.getDataXS2STravelTime('R01', 'R03');
+        assert.equal(tt.sec, 180 + 93);
+    });
+
+    await t.test('metro.fillMissingTravelTime：跨午夜末班、反方向補值、無資料不動', () => {
+        const comp = {
+            station: [
+                { StationID: 'X1', FirstLast: [{ To: 'X3', Time: ['06:00', '23:59'] }] },
+                { StationID: 'X2', FirstLast: [{ To: 'X3', Time: ['06:02', '00:01'] }] },
+                { StationID: 'X3', FirstLast: [] }
+            ],
+            line: [{
+                LineID: 'X',
+                Route: [
+                    { RouteID: 'X-1', Direction: 0, Stations: ['X1', 'X2', 'X3'], TravelTime: { RunTime: [0, 0, 0], StopTime: [0, 0, 0] } },
+                    { RouteID: 'X-1', Direction: 1, Stations: ['X3', 'X2', 'X1'], TravelTime: { RunTime: [0, 0, 0], StopTime: [0, 0, 0] } }
+                ]
+            }]
+        };
+        ptx.metro.fillMissingTravelTime(comp);
+        const [d0, d1] = comp.line[0].Route;
+        assert.deepEqual(d0.TravelTime.RunTime, [120, 0, 0], 'X1→X2 首末班皆差 120 秒；X2→X3 到終點無首末班車可推');
+        assert.deepEqual(d1.TravelTime.RunTime, [0, 120, 0], 'X2→X1 取反方向 X1→X2');
+        assert.deepEqual(d0.TravelTime.Estimated, [0]);
+        assert.deepEqual(d1.TravelTime.Estimated, [1]);
     });
 });
 

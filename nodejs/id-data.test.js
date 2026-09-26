@@ -59,6 +59,17 @@ test('id 轉換工具', async (t) => {
         }
     });
 
+    await t.test('id.trtc：淡水信義線延伸 R01 廣慈/奉天宮', () => {
+        assert.equal(id.trtc.getRPIDbyPTXV2('R01'), 'trtc_r01');
+        assert.equal(id.trtc.getPTXV2('trtc_r01', 'R'), 'R01');
+        const line = pData.trtc.line.find((c) => c.LineID === 'R');
+        assert.equal(line.station[line.station.length - 1], 'trtc_r01');
+        for (const r of line.route) {
+            const w = r.work.find((c) => c.RouteID === 'R-1');
+            assert.ok(w.from === 'R01' || w.to === 'R01', 'R-1 端點應為 R01');
+        }
+    });
+
     await t.test('id 線路轉換 getLINE_*', () => {
         for (const company of ['trtc', 'tymc', 'krtc', 'ntmc']) {
             for (const line of pData[company].line) {
@@ -79,12 +90,17 @@ test('id 轉換工具', async (t) => {
         assert.equal(id.idTrans({ value: 'no_prefix_company' }), false);
     });
 
-    await t.test('id.ntmc：環狀線 14 站靜態轉換可用', () => {
-        assert.equal(pData.ntmc.station_ary.length, 14);
+    await t.test('id.ntmc：環狀線 14 站＋三鶯線 12 站靜態轉換可用', () => {
+        assert.equal(pData.ntmc.station_ary.length, 26);
         assert.equal(id.ntmc.getRPIDbyPTXV2('Y07'), 'ntmc_y07');
         assert.equal(id.ntmc.getRPIDbyPTXV2('Y20'), 'ntmc_y20');
         assert.equal(id.ntmc.getLINE_LineIDbyRPID('ntmc_1'), 'Y');
         assert.equal(id.ntmc.getLINE_RPIDbyLineID('Y'), 'ntmc_1');
+        assert.equal(id.ntmc.getRPIDbyPTXV2('LB01'), 'ntmc_lb01');
+        assert.equal(id.ntmc.getPTXV2('ntmc_lb12', 'LB'), 'LB12');
+        assert.equal(id.ntmc.getLINE_LineIDbyRPID('ntmc_2'), 'LB');
+        assert.equal(id.ntmc.getLINE_RPIDbyLineID('LB'), 'ntmc_2');
+        assert.equal(id.getMRTStationIDInWhatLine('LB08'), 'LB');
         // 不存在的站仍回傳 false
         assert.equal(id.ntmc.getRPIDbyPTXV2('Y99'), false);
     });
@@ -170,21 +186,32 @@ test('datax 擴增資料完整性', async (t) => {
         assert.throws(() => datax.getLine('nosuch_BL'), (err) => /not defined/.test(err));
     });
 
-    await t.test('datax.ntmc：環狀線資料齊全，轉乘全為跨公司（北捷）', () => {
-        assert.equal(datax.ntmc.line.length, 1);
-        const line = datax.ntmc.line[0];
-        assert.equal(line.LineID, 'Y');
-        assert.equal(datax.ntmc.station.length, 14);
-        // Route 已合併站間行駛時間（router.v2 travelTime 依賴此格式）
-        for (const route of line.Route) {
-            assert.ok(route.TravelTime && Array.isArray(route.TravelTime.RunTime), `${route.RouteID} dir${route.Direction} 應有 TravelTime.RunTime`);
-            assert.equal(route.TravelTime.RunTime.length, route.Stations.length);
-        }
-        // 環狀線的轉乘目標都是北捷路線（跨公司），不在 ntmc line 清單內
-        assert.ok(line.Transfer.length >= 5, '應有轉乘資料');
+    await t.test('datax.ntmc：環狀線與三鶯線資料齊全，轉乘全為跨公司（北捷）', () => {
+        assert.deepEqual(datax.ntmc.line.map((c) => c.LineID).sort(), ['LB', 'Y']);
+        assert.equal(datax.ntmc.station.length, 26);
         const ntmcLineIDs = new Set(datax.ntmc.line.map((c) => c.LineID));
-        for (const tf of line.Transfer) {
-            assert.ok(!ntmcLineIDs.has(tf.ToLineID), `轉乘目標 ${tf.ToLineID} 應為跨公司路線`);
+        for (const line of datax.ntmc.line) {
+            // Route 已合併站間行駛時間（router.v2 travelTime 依賴此格式）
+            for (const route of line.Route) {
+                assert.ok(route.TravelTime && Array.isArray(route.TravelTime.RunTime), `${route.RouteID} dir${route.Direction} 應有 TravelTime.RunTime`);
+                assert.equal(route.TravelTime.RunTime.length, route.Stations.length);
+            }
+            // 環狀線、三鶯線的轉乘目標都是北捷路線（跨公司），不在 ntmc line 清單內
+            assert.ok(line.Transfer.length > 0, line.LineID + ' 應有轉乘資料');
+            for (const tf of line.Transfer) {
+                assert.ok(!ntmcLineIDs.has(tf.ToLineID), `轉乘目標 ${tf.ToLineID} 應為跨公司路線`);
+            }
+        }
+        const lb = datax.ntmc.line.find((c) => c.LineID === 'LB');
+        assert.ok(lb.Transfer.some((tf) => tf.FromStationID === 'LB01' && tf.ToStationID === 'BL01'), '頂埔 LB01 轉乘板南線 BL01');
+    });
+
+    await t.test('datax 捷運車站經緯度在台灣範圍內（lat / lon 不可相同）', () => {
+        for (const company of ['trtc', 'krtc', 'tymc', 'ntmc', 'tmrt', 'klrt']) {
+            for (const st of datax[company].station) {
+                assert.ok(st.lat > 21 && st.lat < 26.5, `${company} ${st.StationID} lat=${st.lat}`);
+                assert.ok(st.lon > 119 && st.lon < 123, `${company} ${st.StationID} lon=${st.lon}`);
+            }
         }
     });
 });

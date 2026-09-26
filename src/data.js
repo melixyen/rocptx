@@ -102,6 +102,7 @@ var pData = {
             { id: "trtc_101", StationID: ["R04"], name: "信義安和", estring: "xinyianhe" },
             { id: "trtc_100", StationID: ["R03"], name: "台北101/世貿", estring: "taipei101worldtradecentertaipei101shimao" },
             { id: "trtc_099", StationID: ["R02"], name: "象山", estring: "xiangshan" },
+            { id: "trtc_r01", StationID: ["R01"], name: "廣慈/奉天宮", estring: "guangcifengtiangong" },
             //ZhongHeXinLu Line
             { id: "trtc_048", StationID: ["O01"], name: "南勢角", estring: "nanshijiao" },
             { id: "trtc_047", StationID: ["O02", "Y11"], name: "景安", estring: "jingan" },
@@ -194,11 +195,11 @@ var pData = {
             route: [{
                 dir: 0,
                 Direction: 0,
-                work: [{ RouteID: 'R-1', from: 'R02', to: 'R28' }, { RouteID: 'R-2', from: 'R05', to: 'R22' }]
+                work: [{ RouteID: 'R-1', from: 'R01', to: 'R28' }, { RouteID: 'R-2', from: 'R05', to: 'R22' }]
             }, {
                 dir: 1,
                 Direction: 1,
-                work: [{ RouteID: 'R-1', from: 'R28', to: 'R02' }, { RouteID: 'R-2', from: 'R22', to: 'R05' }]
+                work: [{ RouteID: 'R-1', from: 'R28', to: 'R01' }, { RouteID: 'R-2', from: 'R22', to: 'R05' }]
             }],
             name: "淡水信義線(2)",
             color: "#cb2c30",
@@ -210,11 +211,11 @@ var pData = {
                 waitingNextMinute: 4
             }, {
                 dir: "1",
-                station: "trtc_101~trtc_099",
+                station: "trtc_101~trtc_r01",
                 transAt: "trtc_011",
                 waitingNextMinute: 4
             }],
-            station: ["trtc_071", "trtc_070", "trtc_069", "trtc_068", "trtc_067", "trtc_066", "trtc_064", "trtc_063", "trtc_062", "trtc_061", "trtc_060", "trtc_059", "trtc_058", "trtc_057", "trtc_056", "trtc_055", "trtc_054", "trtc_053", "trtc_051", "trtc_050", "trtc_042", "trtc_134", "trtc_103", "trtc_011", "trtc_101", "trtc_100", "trtc_099"]
+            station: ["trtc_071", "trtc_070", "trtc_069", "trtc_068", "trtc_067", "trtc_066", "trtc_064", "trtc_063", "trtc_062", "trtc_061", "trtc_060", "trtc_059", "trtc_058", "trtc_057", "trtc_056", "trtc_055", "trtc_054", "trtc_053", "trtc_051", "trtc_050", "trtc_042", "trtc_134", "trtc_103", "trtc_011", "trtc_101", "trtc_100", "trtc_099", "trtc_r01"]
         }, {
             id: 'trtc_3',
             LineID: 'G',
@@ -354,7 +355,20 @@ var pData = {
             { id: "ntmc_y17", StationID: ["Y17"], name: "新埔民生", estring: "xinpuminsheng", sect: 'newtaipei' },
             { id: "ntmc_y18", StationID: ["Y18"], name: "頭前庄", estring: "touqianzhuang", sect: 'newtaipei' },
             { id: "ntmc_y19", StationID: ["Y19"], name: "幸福", estring: "xingfu", sect: 'newtaipei' },
-            { id: "ntmc_y20", StationID: ["Y20"], name: "新北產業園區", estring: "xinbeichanyeyuanqui", sect: 'newtaipei' }
+            { id: "ntmc_y20", StationID: ["Y20"], name: "新北產業園區", estring: "xinbeichanyeyuanqui", sect: 'newtaipei' },
+            //Sanying Line（三鶯線）
+            { id: "ntmc_lb01", StationID: ["LB01"], name: "頂埔", estring: "dingpu", sect: 'newtaipei' },
+            { id: "ntmc_lb02", StationID: ["LB02"], name: "媽祖田", estring: "mazutian", sect: 'newtaipei' },
+            { id: "ntmc_lb03", StationID: ["LB03"], name: "長壽山", estring: "changshoushan", sect: 'newtaipei' },
+            { id: "ntmc_lb04", StationID: ["LB04"], name: "橫溪", estring: "hengxi", sect: 'newtaipei' },
+            { id: "ntmc_lb05", StationID: ["LB05"], name: "龍埔", estring: "longpu", sect: 'newtaipei' },
+            { id: "ntmc_lb06", StationID: ["LB06"], name: "三峽", estring: "sanxia", sect: 'newtaipei' },
+            { id: "ntmc_lb07", StationID: ["LB07"], name: "台北大學", estring: "taibeidaxuenationaltaipeiuniversity", sect: 'newtaipei' },
+            { id: "ntmc_lb08", StationID: ["LB08"], name: "鶯歌車站", estring: "yinggechezhanyinggestation", sect: 'newtaipei' },
+            { id: "ntmc_lb09", StationID: ["LB09"], name: "陶瓷老街", estring: "taocilaojieceramicsoldstreet", sect: 'newtaipei' },
+            { id: "ntmc_lb10", StationID: ["LB10"], name: "國華", estring: "guohua", sect: 'newtaipei' },
+            { id: "ntmc_lb11", StationID: ["LB11"], name: "永吉公園", estring: "yongjigongyuanyongjipark", sect: 'newtaipei' },
+            { id: "ntmc_lb12", StationID: ["LB12"], name: "鶯桃福德", estring: "yingtaofude", sect: 'newtaipei' }
         ],
         line: [
             {
@@ -374,6 +388,24 @@ var pData = {
                 color: "#fedb00",
                 dir: "0",
                 station: ["Y07", "Y08", "Y09", "Y10", "Y11", "Y12", "Y13", "Y14", "Y15", "Y16", "Y17", "Y18", "Y19", "Y20"]
+            },
+            {
+                id: "ntmc_2",
+                LineID: "LB",
+                route: [{
+                    dir: 0,
+                    Direction: 0,
+                    work: [{ RouteID: 'LB', from: 'LB01', to: 'LB12' }]
+                }, {
+                    dir: 1,
+                    Direction: 1,
+                    work: [{ RouteID: 'LB', from: 'LB12', to: 'LB01' }]
+                }],
+                name: "三鶯線",
+                trainSect: ["newtaipei"],
+                color: "#47c1e1",
+                dir: "0",
+                station: ["LB01", "LB02", "LB03", "LB04", "LB05", "LB06", "LB07", "LB08", "LB09", "LB10", "LB11", "LB12"]
             }
         ]
     },
