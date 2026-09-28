@@ -145,7 +145,12 @@ var fnMRT = {
         return rt;
     },
     getLineID: function(id){
-        return this.getLineData(id).LineID;
+        return this.getLineData(id) ? this.getLineData(id).LineID : false;
+    },
+    //路線的 TDX 營運單位代碼：環狀線、三鶯線由新北捷運營運，時刻表等資料在 NTMC
+    getLineOperator: function(id){
+        var lineData = this.getLineData(id);
+        return (lineData && lineData.operator) ? lineData.operator : 'TRTC';
     },
     getOriginalLineByLineID: function(LineID){
         var rt = false;
@@ -181,7 +186,7 @@ var fnMRT = {
     getStationID: function(id, lineOriginalID){
         var LineID = (/^trtc/.test(lineOriginalID)) ? this.getLineID(lineOriginalID) : lineOriginalID;
         var stData = this.getStationIDAry(id);
-        if(!LineID){
+        if(!LineID || !stData){
             return false;
         }else{
             var rt = false,
@@ -219,7 +224,7 @@ var fnMRT = {
         if(typeof(w)=='number') Week = common.ptxMRTWeekStr[w];
         var mtStr = "$filter=LineID eq '" + LineID + "' and StationID eq '" + StationID + "'";
         if(Week) mtStr += ' and ServiceDay/' + Week + ' eq true';
-        var url = common.metroURL + '/StationTimeTable/TRTC?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
+        var url = common.metroURL + '/StationTimeTable/' + this.getLineOperator(LineID) + '?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
         common.pui.printStatus('線上尋找捷運 ' + StationID + ' 站時刻表');
         //產生暫存時刻表空間
         if(!ptx.tempTimeTable.trtc) ptx.tempTimeTable.trtc = {};

@@ -231,3 +231,40 @@ test('thsr / tra catchData 靜態資料查找', async (t) => {
         assert.equal(ptx.tra.catchData.getDataXStationName('1000'), '臺北');
     });
 });
+
+test('trtc.getStationTime 依路線營運單位查站別時刻表', async (t) => {
+    const fakeTable = (LineID, RouteID, StationID) => [{
+        StationID: StationID, LineID: LineID, RouteID: RouteID, Direction: 0,
+        Timetables: [{ Sequence: 2, DepartureTime: '06:08' }, { Sequence: 1, DepartureTime: '06:00' }]
+    }];
+
+    await t.test('三鶯線 LB 由新北捷運營運，改查 NTMC 並寫入 trtc 暫存時刻表', async () => {
+        FakeXHR.reset();
+        FakeXHR.handler = () => fakeTable('LB', 'LB', 'LB06');
+        await new Promise((resolve) => ptx.trtc.getStationTime('LB', ['LB06', 'LB12'], 2, resolve));
+        assert.match(FakeXHR.lastURL, /\/StationTimeTable\/NTMC\?/);
+        assert.match(decodeURI(FakeXHR.lastURL), /ServiceDay\/Tuesday eq true/);
+        assert.deepEqual(ptx.trtc.getFormatStationTime('trtc_lb06', 'trtc_7', 0, 2), ['06:00', '06:08']);
+        assert.deepEqual(ptx.trtc.getFormatStationTime('trtc_076', 'trtc_7', 0, 2), false, '頂埔 LB01 尚未抓取');
+    });
+
+    await t.test('環狀線 Y 查 NTMC，淡水信義線 R01 仍查 TRTC', async () => {
+        FakeXHR.reset();
+        FakeXHR.handler = () => [];
+        await new Promise((resolve) => ptx.trtc.getStationTime('Y', ['Y16', 'Y20'], 2, resolve));
+        assert.match(FakeXHR.lastURL, /\/StationTimeTable\/NTMC\?/);
+
+        FakeXHR.handler = () => fakeTable('R', 'R-1', 'R01');
+        await new Promise((resolve) => ptx.trtc.getStationTime('R', ['R01', 'R10'], 2, resolve));
+        assert.match(FakeXHR.lastURL, /\/StationTimeTable\/TRTC\?/);
+        assert.deepEqual(ptx.trtc.getFormatStationTime('trtc_r01', 'trtc_2', 0, 2), ['06:00', '06:08']);
+    });
+
+    await t.test('ntmc.getStationTime 的星期篩選欄位為 ServiceDay（單數）', async () => {
+        FakeXHR.reset();
+        FakeXHR.handler = () => [];
+        await new Promise((resolve) => ptx.ntmc.getStationTime('LB', ['LB01', 'LB12'], 0, resolve));
+        assert.match(FakeXHR.lastURL, /\/StationTimeTable\/NTMC\?/);
+        assert.match(decodeURI(FakeXHR.lastURL), /ServiceDay\/Sunday eq true/);
+    });
+});

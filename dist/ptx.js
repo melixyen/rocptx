@@ -330,7 +330,7 @@
 
 	var defineProperty = _objectDp.f;
 	var _wksDefine = function (name) {
-	  var $Symbol = _core.Symbol || (_core.Symbol = _library ? {} : _global.Symbol || {});
+	  var $Symbol = _core.Symbol || (_core.Symbol = _global.Symbol || {});
 	  if (name.charAt(0) != '_' && !(name in $Symbol)) defineProperty($Symbol, name, { value: _wksExt.f(name) });
 	};
 
@@ -7977,7 +7977,7 @@
 	      estring: "yongning"
 	    }, {
 	      id: "trtc_076",
-	      StationID: ["BL01"],
+	      StationID: ["BL01", "LB01"],
 	      name: "頂埔",
 	      estring: "dingpu"
 	    }, //TamsuiXinyi Line
@@ -8374,6 +8374,62 @@
 	      StationID: ["Y20"],
 	      name: "新北產業園區",
 	      estring: "xinbeichanyeyuanqui"
+	    }, //Sanying Line（三鶯線，新北捷運營運，LB01 頂埔與板南線共用 trtc_076）
+	    {
+	      id: "trtc_lb02",
+	      StationID: ["LB02"],
+	      name: "媽祖田",
+	      estring: "mazutian"
+	    }, {
+	      id: "trtc_lb03",
+	      StationID: ["LB03"],
+	      name: "長壽山",
+	      estring: "changshoushan"
+	    }, {
+	      id: "trtc_lb04",
+	      StationID: ["LB04"],
+	      name: "橫溪",
+	      estring: "hengxi"
+	    }, {
+	      id: "trtc_lb05",
+	      StationID: ["LB05"],
+	      name: "龍埔",
+	      estring: "longpu"
+	    }, {
+	      id: "trtc_lb06",
+	      StationID: ["LB06"],
+	      name: "三峽",
+	      estring: "sanxia"
+	    }, {
+	      id: "trtc_lb07",
+	      StationID: ["LB07"],
+	      name: "台北大學",
+	      estring: "taibeidaxuenationaltaipeiuniversity"
+	    }, {
+	      id: "trtc_lb08",
+	      StationID: ["LB08"],
+	      name: "鶯歌車站",
+	      estring: "yinggechezhanyinggestation"
+	    }, {
+	      id: "trtc_lb09",
+	      StationID: ["LB09"],
+	      name: "陶瓷老街",
+	      estring: "taocilaojieceramicsoldstreet"
+	    }, {
+	      id: "trtc_lb10",
+	      StationID: ["LB10"],
+	      name: "國華",
+	      estring: "guohua"
+	    }, {
+	      id: "trtc_lb11",
+	      StationID: ["LB11"],
+	      name: "永吉公園",
+	      estring: "yongjigongyuanyongjipark"
+	    }, {
+	      id: "trtc_lb12",
+	      StationID: ["LB12"],
+	      name: "鶯桃福德",
+	      estring: "yingtaofude"
 	    }],
 	    line: [{
 	      id: 'trtc_1',
@@ -8402,6 +8458,8 @@
 	    }, {
 	      id: 'trtc_6',
 	      LineID: 'Y',
+	      operator: 'NTMC',
+	      //由新北捷運營運，TDX 時刻表查 NTMC
 	      route: [{
 	        dir: 0,
 	        Direction: 0,
@@ -8423,6 +8481,32 @@
 	      color: "#ffdb00",
 	      dir: "0",
 	      station: ["trtc_036", "trtc_y08", "trtc_y09", "trtc_y10", "trtc_047", "trtc_y12", "trtc_y13", "trtc_y14", "trtc_y15", "trtc_y16", "trtc_y17", "trtc_123", "trtc_y19", "trtc_y20"]
+	    }, {
+	      id: 'trtc_7',
+	      LineID: 'LB',
+	      operator: 'NTMC',
+	      //由新北捷運營運，TDX 時刻表查 NTMC
+	      route: [{
+	        dir: 0,
+	        Direction: 0,
+	        work: [{
+	          RouteID: 'LB',
+	          from: 'LB01',
+	          to: 'LB12'
+	        }]
+	      }, {
+	        dir: 1,
+	        Direction: 1,
+	        work: [{
+	          RouteID: 'LB',
+	          from: 'LB12',
+	          to: 'LB01'
+	        }]
+	      }],
+	      name: "三鶯線(LB)",
+	      color: "#79bce8",
+	      dir: "0",
+	      station: ["trtc_076", "trtc_lb02", "trtc_lb03", "trtc_lb04", "trtc_lb05", "trtc_lb06", "trtc_lb07", "trtc_lb08", "trtc_lb09", "trtc_lb10", "trtc_lb11", "trtc_lb12"]
 	    }, {
 	      id: 'trtc_2',
 	      LineID: 'R',
@@ -16182,7 +16266,12 @@
 	    return rt;
 	  },
 	  getLineID: function getLineID(id) {
-	    return this.getLineData(id).LineID;
+	    return this.getLineData(id) ? this.getLineData(id).LineID : false;
+	  },
+	  //路線的 TDX 營運單位代碼：環狀線、三鶯線由新北捷運營運，時刻表等資料在 NTMC
+	  getLineOperator: function getLineOperator(id) {
+	    var lineData = this.getLineData(id);
+	    return lineData && lineData.operator ? lineData.operator : 'TRTC';
 	  },
 	  getOriginalLineByLineID: function getOriginalLineByLineID(LineID) {
 	    var rt = false;
@@ -16223,7 +16312,7 @@
 	    var LineID = /^trtc/.test(lineOriginalID) ? this.getLineID(lineOriginalID) : lineOriginalID;
 	    var stData = this.getStationIDAry(id);
 
-	    if (!LineID) {
+	    if (!LineID || !stData) {
 	      return false;
 	    } else {
 	      var rt = false,
@@ -16265,7 +16354,7 @@
 	    if (typeof w == 'number') Week = CM.ptxMRTWeekStr[w];
 	    var mtStr = "$filter=LineID eq '" + LineID + "' and StationID eq '" + StationID + "'";
 	    if (Week) mtStr += ' and ServiceDay/' + Week + ' eq true';
-	    var url = CM.metroURL + '/StationTimeTable/TRTC?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
+	    var url = CM.metroURL + '/StationTimeTable/' + this.getLineOperator(LineID) + '?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
 	    CM.pui.printStatus('線上尋找捷運 ' + StationID + ' 站時刻表'); //產生暫存時刻表空間
 
 	    if (!ptx.tempTimeTable.trtc) ptx.tempTimeTable.trtc = {};
@@ -19679,7 +19768,7 @@
 	    var LineID = /^ntmc/.test(lineOriginalID) ? this.getLineID(lineOriginalID) : lineOriginalID;
 	    var stData = this.getStationIDAry(id);
 
-	    if (!LineID) {
+	    if (!LineID || !stData) {
 	      return false;
 	    } else {
 	      var rt = false,
@@ -19720,7 +19809,8 @@
 	    var Week = false;
 	    if (typeof w == 'number') Week = CM.ptxMRTWeekStr[w];
 	    var mtStr = "$filter=LineID eq '" + LineID + "' and StationID eq '" + StationID + "'";
-	    if (Week) mtStr += ' and ServiceDays/' + Week + ' eq true';
+	    if (Week) mtStr += ' and ServiceDay/' + Week + ' eq true'; //TDX StationTimeTable 欄位為 ServiceDay(單數)
+
 	    var url = CM.metroURL + '/StationTimeTable/NTMC?' + encodeURI(mtStr) + '&$top=3000&$format=JSON';
 	    CM.pui.printStatus('線上尋找捷運 ' + StationID + ' 站時刻表'); //產生暫存時刻表空間
 

@@ -70,6 +70,26 @@ test('id 轉換工具', async (t) => {
         }
     });
 
+    await t.test('id.trtc：三鶯線 trtc_7（新北捷運營運）與頂埔共站', () => {
+        assert.equal(id.trtc.getPTXV2('trtc_076', 'trtc_7'), 'LB01');
+        assert.equal(id.trtc.getPTXV2('trtc_076', 'trtc_5'), 'BL01');
+        assert.equal(id.trtc.getRPIDbyPTXV2('LB12'), 'trtc_lb12');
+        assert.equal(id.trtc.getLINE_LineIDbyRPID('trtc_7'), 'LB');
+        const line = pData.trtc.line.find((c) => c.LineID === 'LB');
+        assert.equal(line.operator, 'NTMC');
+        assert.equal(line.station.length, 12);
+        assert.equal(line.station[0], 'trtc_076');
+        assert.equal(pData.trtc.line.find((c) => c.LineID === 'Y').operator, 'NTMC', '環狀線同為新北捷運營運');
+    });
+
+    await t.test('trtc.getStationID：查無車站或路線時回傳 false 不丟錯', () => {
+        assert.equal(ptx.trtc.getStationID('trtc_not_exist', 'trtc_2'), false);
+        assert.equal(ptx.trtc.getStationID('trtc_051', 'trtc_99'), false);
+        assert.equal(ptx.trtc.getLineID('trtc_99'), false);
+        assert.equal(ptx.trtc.getStationID('trtc_r01', 'trtc_2'), 'R01');
+        assert.equal(ptx.ntmc.getStationID('ntmc_not_exist', 'ntmc_2'), false);
+    });
+
     await t.test('id 線路轉換 getLINE_*', () => {
         for (const company of ['trtc', 'tymc', 'krtc', 'ntmc']) {
             for (const line of pData[company].line) {
