@@ -66,3 +66,5 @@ distdev/
 # nodejs download folder
 nodejs/download/
 download/
+# Claude Code local settings
+.claude/settings.local.json
