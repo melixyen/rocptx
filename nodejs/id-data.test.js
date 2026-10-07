@@ -31,6 +31,28 @@ test('id 轉換工具', async (t) => {
         assert.equal(id.tra.getRPIDbyPTXV3('1000'), 'tra_1008');
     });
 
+    await t.test('id.tra 平鎮 tra_1037 <-> 1105，不影響後龍 tra_1105 <-> 2130 與鳳鳴', () => {
+        // 平鎮內部 ID 不能用 tra_1105（已是後龍），改用北段新站流水號 tra_1037
+        assert.equal(id.tra.getPTXV3byV2('1037'), '1105');
+        assert.equal(id.tra.getPTXV2byV3('1105'), '1037');
+        assert.equal(id.tra.getRPIDbyPTXV3('1105'), 'tra_1037');
+        assert.equal(ptx.tra.v3Sv2('1105'), '1037');
+        assert.equal(ptx.tra.v2Sv3('1037'), '1105');
+        // 後龍
+        assert.equal(id.tra.getPTXV2byV3('2130'), '1105');
+        assert.equal(id.tra.getPTXV3byV2('1105'), '2130');
+        // 鳳鳴
+        assert.equal(id.tra.getPTXV2byV3('1075'), '1075');
+
+        const xibu = pData.tra.line.find((c) => c.id === 'tra_xibu').station;
+        assert.deepEqual(xibu.slice(xibu.indexOf('tra_1017'), xibu.indexOf('tra_1017') + 3), ['tra_1017', 'tra_1037', 'tra_1018']);
+        assert.equal(xibu[xibu.indexOf('tra_1014') + 1], 'tra_1075', '鳳鳴在鶯歌之後');
+        const wl = datax.tra.line.find((c) => c.LineID === 'WL').station;
+        const i = wl.findIndex((c) => c.ID === '1105');
+        assert.ok(i > 0 && wl[i - 1].ID === '1100' && wl[i + 1].ID === '1110', 'WL 線平鎮位於中壢、埔心之間');
+        assert.ok(datax.tra.station.find((c) => c.StationID === '1105'), 'datax tra.station 應有平鎮');
+    });
+
     await t.test('id.tra 全站 v2 <-> v3 roundtrip', () => {
         const withV3 = pData.tra.station_ary.filter((c) => c.v3id);
         assert.ok(withV3.length > 200, 'tra station 應有大量 v3id 資料');

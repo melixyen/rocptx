@@ -696,6 +696,7 @@ var pData = {
             { id: "tra_1015", v3id: "1080", name: "桃園", estring: "taoyuan", sect: "taoyuan", big: 'w' },
             { id: "tra_1016", v3id: "1090", name: "內壢", estring: "neili", sect: "taoyuan" },
             { id: "tra_1017", v3id: "1100", name: "中壢", estring: "zhongli", sect: "taoyuan", big: 'w' },
+            { id: "tra_1037", v3id: "1105", name: "平鎮", estring: "pingzhen", sect: "taoyuan" },
             { id: "tra_1018", v3id: "1110", name: "埔心", estring: "puxin", sect: "taoyuan" },
             { id: "tra_1019", v3id: "1120", name: "楊梅", estring: "yangmei", sect: "taoyuan" },
             { id: "tra_1020", v3id: "1130", name: "富岡", estring: "fugan", sect: "taoyuan" },
@@ -935,8 +936,8 @@ var pData = {
                     "tra_hai": { station: "tra_1028", dir: "1" },
                     "tra_liujia": { station: "tra_1025", dir: "0" }
                 },
-                station: ["tra_1001", "tra_1029", "tra_1002", "tra_1003", "tra_1030", "tra_1004", "tra_1005", "tra_1031", "tra_1006", "tra_1007", "tra_1008", "tra_1009", "tra_1011", "tra_1032", "tra_1012", "tra_1034", "tra_1013", "tra_1014",//taipei
-                    "tra_1015", "tra_1016", "tra_1017", "tra_1018", "tra_1019", "tra_1020", "tra_1036", "tra_1033", "tra_1021", "tra_1022", "tra_1023", "tra_1024", "tra_1025", "tra_1035", "tra_1026", "tra_1027", "tra_1028"]
+                station: ["tra_1001", "tra_1029", "tra_1002", "tra_1003", "tra_1030", "tra_1004", "tra_1005", "tra_1031", "tra_1006", "tra_1007", "tra_1008", "tra_1009", "tra_1011", "tra_1032", "tra_1012", "tra_1034", "tra_1013", "tra_1014", "tra_1075",//taipei
+                    "tra_1015", "tra_1016", "tra_1017", "tra_1037", "tra_1018", "tra_1019", "tra_1020", "tra_1036", "tra_1033", "tra_1021", "tra_1022", "tra_1023", "tra_1024", "tra_1025", "tra_1035", "tra_1026", "tra_1027", "tra_1028"]
             }, {
                 v2LineID: 'TL-M', v3LineID: 'WL',
                 id: "tra_shan",
@@ -2518,7 +2519,7 @@ var pData = {
                 {
                     line: ['tra_jygx', 'tra_zhjy', 'tra_shan', 'tra_yilan', 'tra_beihui', 'tra_huadong', 'tra_pingxi'],
                     sect: ['taoyuan', 'hsinchu', 'miaoli', 'taichung', 'changhua', 'yunlin', 'chiayi', 'tainan', 'kaohsiung', 'pingdong'],
-                    station: ["tra_1032", "tra_1012", "tra_1013", "tra_1014"],
+                    station: ["tra_1032", "tra_1012", "tra_1034", "tra_1013", "tra_1014", "tra_1075"],
                     transStation: 'banqiaotra1'
                 }, {
                     line: ['tra_yilan', 'tra_beihui', 'tra_huadong', 'tra_pingxi'],
@@ -2559,15 +2560,15 @@ var pData = {
                     transStation: 'songshantra1'
                 }, {
                     line: ['tra_shan'],
-                    station: ["tra_1009", "tra_1032", "tra_1012", "tra_1013"],
+                    station: ["tra_1009", "tra_1032", "tra_1012", "tra_1034", "tra_1013"],
                     transStation: 'banqiaotra1'
                 }, {
                     line: ['tra_shan'],
-                    station: ["tra_1012", "tra_1013", "tra_1014"],
+                    station: ["tra_1012", "tra_1034", "tra_1013", "tra_1014", "tra_1075"],
                     transStation: 'taoyuantra1'
                 }, {
                     line: ['tra_shan'],
-                    station: ["tra_1016", "tra_1018"],
+                    station: ["tra_1016", "tra_1037", "tra_1018"],
                     transStation: 'zhonglitra1'
                 }, {
                     line: ['tra_shan'],
@@ -2610,15 +2611,15 @@ var pData = {
                     transStation: 'songshantra1'
                 }, {
                     line: ['tra_zhjy'],
-                    station: ["tra_1009", "tra_1032", "tra_1012", "tra_1013"],
+                    station: ["tra_1009", "tra_1032", "tra_1012", "tra_1034", "tra_1013"],
                     transStation: 'banqiaotra1'
                 }, {
                     line: ['tra_zhjy'],
-                    station: ["tra_1012", "tra_1013", "tra_1014"],
+                    station: ["tra_1012", "tra_1034", "tra_1013", "tra_1014", "tra_1075"],
                     transStation: 'taoyuantra1'
                 }, {
                     line: ['tra_zhjy'],
-                    station: ["tra_1016", "tra_1018"],
+                    station: ["tra_1016", "tra_1037", "tra_1018"],
                     transStation: 'zhonglitra1'
                 }, {
                     line: ['tra_zhjy'],
@@ -2665,15 +2666,15 @@ var pData = {
                     transStation: 'songshantra1'
                 }, {
                     line: ['tra_jygx', 'tra_shalun'],
-                    station: ["tra_1009", "tra_1032", "tra_1012", "tra_1013"],
+                    station: ["tra_1009", "tra_1032", "tra_1012", "tra_1034", "tra_1013"],
                     transStation: 'banqiaotra1'
                 }, {
                     line: ['tra_jygx', 'tra_shalun'],
-                    station: ["tra_1012", "tra_1013", "tra_1014"],
+                    station: ["tra_1012", "tra_1034", "tra_1013", "tra_1014", "tra_1075"],
                     transStation: 'taoyuantra1'
                 }, {
                     line: ['tra_jygx', 'tra_shalun'],
-                    station: ["tra_1016", "tra_1018"],
+                    station: ["tra_1016", "tra_1037", "tra_1018"],
                     transStation: 'zhonglitra1'
                 }, {
                     line: ['tra_jygx', 'tra_shalun'],
@@ -2829,15 +2830,15 @@ var pData = {
                     transStation: 'songshantra1'
                 }, {
                     line: ['tra_pingdong'],
-                    station: ["tra_1009", "tra_1032", "tra_1012", "tra_1013"],
+                    station: ["tra_1009", "tra_1032", "tra_1012", "tra_1034", "tra_1013"],
                     transStation: 'banqiaotra1'
                 }, {
                     line: ['tra_pingdong'],
-                    station: ["tra_1012", "tra_1013", "tra_1014"],
+                    station: ["tra_1012", "tra_1034", "tra_1013", "tra_1014", "tra_1075"],
                     transStation: 'taoyuantra1'
                 }, {
                     line: ['tra_pingdong'],
-                    station: ["tra_1016", "tra_1018"],
+                    station: ["tra_1016", "tra_1037", "tra_1018"],
                     sect: ["taoyuan"],
                     transStation: 'zhonglitra1'
                 }, {
