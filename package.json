@@ -16,6 +16,7 @@
         "test:all": "npm run test:unit && node --test --test-concurrency=1 nodejs/auto-crawler.test.js",
         "datax:update": "node nodejs/update-datax.js",
         "outdata:update": "node nodejs/catch_out_data.js",
+        "datatdx:update": "node nodejs/update-datatdx.js",
         "datax:refresh": "node nodejs/update-datax.js && node nodejs/catch_out_data.js && npm run test:unit && npm run build:all",
         "build:all": "npm run umd3 && npm run ttbuild && npm run build:node-lib && npm run linetime && node nodejs/copy-out-data.js",
         "watch": "rollup -f umd --config rollup.config.js --watch -o dist/ptx.js",

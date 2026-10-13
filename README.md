@@ -379,6 +379,13 @@ npm run outdata:update                       # 只更新 out_data 層
 node nodejs/catch_out_data.js --only fare    # 只更新票價包
 ```
 
+`src/datatdx.js`（全台軌道車站 / 路線的 TDX 原始回應，用於與 `src/data.js` 交叉比對）另有獨立工具，直接打 TDX API 把原始資料整檔重寫，不經契約裁剪：
+
+```bash
+npm run datatdx:update                       # 抓取並覆寫 src/datatdx.js
+node nodejs/update-datatdx.js --dry-run      # 只抓取並列出筆數差異，不寫檔
+```
+
 安全機制（確保更新不會破壞舊版行為，兩層共用）：
 
 1. **資料格式契約**（`nodejs/datax-schema.js`）：記錄 SDK 實際讀取的每個欄位；抓回的新資料必須通過契約驗證才會寫入，TDX 改格式時會在更新階段被擋下

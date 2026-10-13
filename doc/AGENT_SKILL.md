@@ -36,6 +36,7 @@ Primary rule: **reuse the current `src/*.js` structure; do not invent a new arch
 - **Tier rule**: `src/datax/` = bundled into the library, loaded eagerly; `out_data/` = NOT imported, pure data storage, cloned to `dist/out_data/` at build time, loaded on demand via `datax.loadOutDataByFile` (Node fs) / `datax.loadOutDataByURL` (fetch) / `datax.attachData`.
 - **Moving a pack between tiers**: change its `location` in `nodejs/datax-runner.js` manifest, move the JSON file, and add/remove the import in `src/datax.js` if it enters/leaves the datax tier.
 - `nodejs/update-datax.js` (datax tier) and `nodejs/catch_out_data.js` (out_data tier): thin CLIs over `nodejs/datax-runner.js`; `npm run datax:refresh` runs both + tests + full build.
+- `nodejs/update-datatdx.js` (`npm run datatdx:update`, `--dry-run`): regenerates `src/datatdx.js` from raw TDX Station / Line responses (TRA & AFR v3, THSR v2, Metro v2 per operator). The file is generated — do not hand-edit it; aborts without writing on fetch failure, empty response, or <60% shrink.
 - `nodejs/datax-schema.js`: field contract of every data file — the fields SDK actually reads. New data must pass this contract before being written. **When code starts reading a new field from a data file, add it to the contract.**
 - `nodejs/datax-contract.test.js`: every JSON in both tiers must have a contract entry and pass it; a pack must not exist in both tiers (enforced in `test:unit`).
 - Never overwrite existing data unless fresh data was fetched AND passed the contract (existing-data-preservation principle).
