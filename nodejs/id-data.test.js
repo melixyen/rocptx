@@ -146,6 +146,29 @@ test('id 轉換工具', async (t) => {
         // 不存在的站仍回傳 false
         assert.equal(id.ntmc.getRPIDbyPTXV2('Y99'), false);
     });
+    await t.test('getStationDataByStationUID：StationUID 反查 data.js 車站', () => {
+        assert.equal(id.getStationDataByStationUID('TRTC-BR01').id, 'trtc_br01');
+        assert.equal(id.getStationDataByStationUID('TRA-1000').id, 'tra_1008');
+        assert.equal(id.getStationDataByStationUID('THSR-0990').id, 'thsr_0990');
+        assert.equal(id.getStationDataByStationUID('KRTC-O1').name, '哈瑪星');
+        // 轉乘站第二組 UID 也找得到
+        assert.equal(id.getStationDataByStationUID('TRTC-BR10').id, 'trtc_010');
+        // 同一 UID 在 trtc / ntmc 都有時，依 UID 前綴（NTMCC-）優先回傳 ntmc
+        assert.equal(id.getStationDataByStationUID('NTMCC-LB01').id, 'ntmc_lb01');
+        assert.equal(id.getStationDataByStationUID('NTMCC-Y08').id, 'ntmc_y08');
+        // 找不到回傳 undefined
+        assert.equal(id.getStationDataByStationUID('TRTC-ZZ99'), undefined);
+        assert.equal(id.getStationDataByStationUID(''), undefined);
+        assert.equal(id.getStationDataByStationUID(undefined), undefined);
+        // 每一站的每個 UID 都能反查回含該 UID 的車站
+        for (const company of ['trtc', 'tymc', 'ntmc', 'krtc', 'tmrt', 'klrt', 'thsr', 'tra']) {
+            for (const st of pData[company].station_ary) {
+                for (const uid of st.StationUID) {
+                    assert.ok(id.getStationDataByStationUID(uid).StationUID.includes(uid), `${st.id} ${uid}`);
+                }
+            }
+        }
+    });
 });
 
 test('data 靜態資料完整性', async (t) => {

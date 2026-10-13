@@ -190,6 +190,22 @@ function mrtLineTrans(objS) {
     return rt;
 }
 
+//====================== StationUID 反查 ==============================
+
+//傳入 TDX StationUID（如 TRTC-BR01、TRA-1000、NTMCC-LB01），回傳 data.js 內 StationUID 含該值的車站物件，找不到回傳 undefined
+//同一 UID 可能同時出現在多家（如三鶯線 LB01 在 trtc_076 與 ntmc_lb01），先找 UID 前綴對應的公司（NTMCC- → ntmc），再找其他公司
+function getStationDataByStationUID(uid) {
+    if (typeof (uid) != 'string' || !uid) return undefined;
+    let companies = Object.keys(pData).filter((k) => pData[k] && pData[k].station_ary);
+    let uidLower = uid.toLowerCase();
+    companies.sort((a, b) => (uidLower.indexOf(b) == 0) - (uidLower.indexOf(a) == 0));
+    for (let i = 0; i < companies.length; i++) {
+        let stData = findData(pData[companies[i]].station_ary, 'StationUID', uid);
+        if (stData) return stData;
+    }
+    return undefined;
+}
+
 let thsr = {
     getPTXV2: function (id) {
         return id.replace('thsr_', '');
@@ -302,6 +318,7 @@ let ntmc = {
 let id = {
     idTrans: idTrans,
     mrtLineTrans: mrtLineTrans,
+    getStationDataByStationUID: getStationDataByStationUID,
     thsr: thsr,
     tra: tra,
     trtc: trtc,

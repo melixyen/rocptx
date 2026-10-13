@@ -316,7 +316,7 @@ var _wksExt = {
 
 var defineProperty = _objectDp.f;
 var _wksDefine = function (name) {
-  var $Symbol = _core.Symbol || (_core.Symbol = _global.Symbol || {});
+  var $Symbol = _core.Symbol || (_core.Symbol = _library ? {} : _global.Symbol || {});
   if (name.charAt(0) != '_' && !(name in $Symbol)) defineProperty($Symbol, name, { value: _wksExt.f(name) });
 };
 
@@ -7758,662 +7758,793 @@ var pData = {
     {
       id: "trtc_br01",
       StationID: ["BR01"],
+      StationUID: ["TRTC-BR01"],
       name: "動物園",
       estring: "dongwuyuantaipeizoo"
     }, {
       id: "trtc_br02",
       StationID: ["BR02"],
+      StationUID: ["TRTC-BR02"],
       name: "木柵",
       estring: "muzha"
     }, {
       id: "trtc_br03",
       StationID: ["BR03"],
+      StationUID: ["TRTC-BR03"],
       name: "萬芳社區",
       estring: "wanfangshequwanfangcommunity"
     }, {
       id: "trtc_br04",
       StationID: ["BR04"],
+      StationUID: ["TRTC-BR04"],
       name: "萬芳醫院",
       estring: "dongwuyuantaipeizoo"
     }, {
       id: "trtc_br05",
       StationID: ["BR05"],
+      StationUID: ["TRTC-BR05"],
       name: "辛亥",
       estring: "xinhai"
     }, {
       id: "trtc_br06",
       StationID: ["BR06"],
+      StationUID: ["TRTC-BR06"],
       name: "麟光",
       estring: "linguang"
     }, {
       id: "trtc_br07",
       StationID: ["BR07"],
+      StationUID: ["TRTC-BR07"],
       name: "六張犁",
       estring: "liuzhangli"
     }, {
       id: "trtc_br08",
       StationID: ["BR08"],
+      StationUID: ["TRTC-BR08"],
       name: "科技大樓",
       estring: "kejidaloutechnologybuilding"
     }, {
       id: "trtc_br12",
       StationID: ["BR12"],
+      StationUID: ["TRTC-BR12"],
       name: "中山國中",
       estring: "zhongshanguozhongzhongshanjuniorhighschool"
     }, {
       id: "trtc_br13",
       StationID: ["BR13"],
+      StationUID: ["TRTC-BR13"],
       name: "松山機場",
       estring: "songshanjichangsongshanairport"
     }, {
       id: "trtc_br14",
       StationID: ["BR14"],
+      StationUID: ["TRTC-BR14"],
       name: "大直",
       estring: "dazhi"
     }, {
       id: "trtc_br15",
       StationID: ["BR15"],
+      StationUID: ["TRTC-BR15"],
       name: "劍南路",
       estring: "jiannanlujiannanroad"
     }, {
       id: "trtc_br16",
       StationID: ["BR16"],
+      StationUID: ["TRTC-BR16"],
       name: "西湖",
       estring: "xihu"
     }, {
       id: "trtc_br17",
       StationID: ["BR17"],
+      StationUID: ["TRTC-BR17"],
       name: "港墘",
       estring: "gangqian"
     }, {
       id: "trtc_br18",
       StationID: ["BR18"],
+      StationUID: ["TRTC-BR18"],
       name: "文德",
       estring: "wende"
     }, {
       id: "trtc_br19",
       StationID: ["BR19"],
+      StationUID: ["TRTC-BR19"],
       name: "內湖",
       estring: "neihu"
     }, {
       id: "trtc_br20",
       StationID: ["BR20"],
+      StationUID: ["TRTC-BR20"],
       name: "大湖公園",
       estring: "dahugongyuandahupark"
     }, {
       id: "trtc_br21",
       StationID: ["BR21"],
+      StationUID: ["TRTC-BR21"],
       name: "葫洲",
       estring: "huzhou"
     }, {
       id: "trtc_br22",
       StationID: ["BR22"],
+      StationUID: ["TRTC-BR22"],
       name: "東湖",
       estring: "donghu"
     }, {
       id: "trtc_br23",
       StationID: ["BR23"],
+      StationUID: ["TRTC-BR23"],
       name: "南港軟體園區",
       estring: "nangangruantiyuanqunangangsoftwarepark"
     }, //Bannan Line
     {
       id: "trtc_031",
       StationID: ["BL23", "BR24"],
+      StationUID: ["TRTC-BL23", "TRTC-BR24"],
       name: "南港展覽館",
       estring: "nangangzhanlanguantaipeinangangexhibitioncenter"
     }, {
       id: "trtc_097",
       StationID: ["BL22"],
+      StationUID: ["TRTC-BL22"],
       name: "南港",
       estring: "nangang"
     }, {
       id: "trtc_096",
       StationID: ["BL21"],
+      StationUID: ["TRTC-BL21"],
       name: "昆陽",
       estring: "kunyang"
     }, {
       id: "trtc_095",
       StationID: ["BL20"],
+      StationUID: ["TRTC-BL20"],
       name: "後山埤",
       estring: "houshanpi"
     }, {
       id: "trtc_094",
       StationID: ["BL19"],
+      StationUID: ["TRTC-BL19"],
       name: "永春",
       estring: "yongchun"
     }, {
       id: "trtc_093",
       StationID: ["BL18"],
+      StationUID: ["TRTC-BL18"],
       name: "市政府",
       estring: "taipeicityhallshizhengfu"
     }, {
       id: "trtc_092",
       StationID: ["BL17"],
+      StationUID: ["TRTC-BL17"],
       name: "國父紀念館",
       estring: "sunyatsenmemorialhallguofujinianguan"
     }, {
       id: "trtc_091",
       StationID: ["BL16"],
+      StationUID: ["TRTC-BL16"],
       name: "忠孝敦化",
       estring: "zhongxiaodunhua"
     }, {
       id: "trtc_010",
       StationID: ["BL15", "BR10"],
+      StationUID: ["TRTC-BL15", "TRTC-BR10"],
       name: "忠孝復興",
       estring: "zhongxiaofuxing"
     }, {
       id: "trtc_089",
       StationID: ["BL14", "O07"],
+      StationUID: ["TRTC-BL14", "TRTC-O07"],
       name: "忠孝新生",
       estring: "zhongxiaoxinsheng"
     }, {
       id: "trtc_088",
       StationID: ["BL13"],
+      StationUID: ["TRTC-BL13"],
       name: "善導寺",
       estring: "shandaosishandaotemple"
     }, {
       id: "trtc_086",
       StationID: ["BL11", "G12"],
+      StationUID: ["TRTC-BL11", "TRTC-G12"],
       name: "西門",
       estring: "ximen"
     }, {
       id: "trtc_085",
       StationID: ["BL10"],
+      StationUID: ["TRTC-BL10"],
       name: "龍山寺",
       estring: "longshansilongshantemple"
     }, {
       id: "trtc_084",
       StationID: ["BL09"],
+      StationUID: ["TRTC-BL09"],
       name: "江子翠",
       estring: "jiangzicui"
     }, {
       id: "trtc_083",
       StationID: ["BL08"],
+      StationUID: ["TRTC-BL08"],
       name: "新埔",
       estring: "xinpu"
     }, {
       id: "trtc_082",
       StationID: ["BL07"],
+      StationUID: ["TRTC-BL07"],
       name: "板橋",
       estring: "banqiao"
     }, {
       id: "trtc_081",
       StationID: ["BL06"],
+      StationUID: ["TRTC-BL06"],
       name: "府中",
       estring: "fuzhong"
     }, {
       id: "trtc_080",
       StationID: ["BL05"],
+      StationUID: ["TRTC-BL05"],
       name: "亞東醫院",
       estring: "yadongyiyuanfareasternhospital"
     }, {
       id: "trtc_079",
       StationID: ["BL04"],
+      StationUID: ["TRTC-BL04"],
       name: "海山",
       estring: "haishan"
     }, {
       id: "trtc_078",
       StationID: ["BL03"],
+      StationUID: ["TRTC-BL03"],
       name: "土城",
       estring: "tucheng"
     }, {
       id: "trtc_077",
       StationID: ["BL02"],
+      StationUID: ["TRTC-BL02"],
       name: "永寧",
       estring: "yongning"
     }, {
       id: "trtc_076",
       StationID: ["BL01", "LB01"],
+      StationUID: ["TRTC-BL01", "NTMCC-LB01"],
       name: "頂埔",
       estring: "dingpu"
     }, //TamsuiXinyi Line
     {
       id: "trtc_071",
       StationID: ["R28"],
+      StationUID: ["TRTC-R28"],
       name: "淡水",
       estring: "danshuitamsui"
     }, {
       id: "trtc_070",
       StationID: ["R27"],
+      StationUID: ["TRTC-R27"],
       name: "紅樹林",
       estring: "hongshulin"
     }, {
       id: "trtc_069",
       StationID: ["R26"],
+      StationUID: ["TRTC-R26"],
       name: "竹圍",
       estring: "zhuwei"
     }, {
       id: "trtc_068",
       StationID: ["R25"],
+      StationUID: ["TRTC-R25"],
       name: "關渡",
       estring: "guandu"
     }, {
       id: "trtc_067",
       StationID: ["R24"],
+      StationUID: ["TRTC-R24"],
       name: "忠義",
       estring: "zhongyi"
     }, {
       id: "trtc_066",
       StationID: ["R23"],
+      StationUID: ["TRTC-R23"],
       name: "復興崗",
       estring: "fuxinggang"
     }, {
       id: "trtc_064",
       StationID: ["R22"],
+      StationUID: ["TRTC-R22"],
       name: "北投",
       estring: "beitou"
     }, {
       id: "trtc_r22a",
       StationID: ["R22A"],
+      StationUID: ["TRTC-R22A"],
       name: "新北投",
       estring: "xinbeitou"
     }, {
       id: "trtc_063",
       StationID: ["R21"],
+      StationUID: ["TRTC-R21"],
       name: "奇岩",
       estring: "qiyan"
     }, {
       id: "trtc_062",
       StationID: ["R20"],
+      StationUID: ["TRTC-R20"],
       name: "唭哩岸",
       estring: "qilian"
     }, {
       id: "trtc_061",
       StationID: ["R19"],
+      StationUID: ["TRTC-R19"],
       name: "石牌",
       estring: "shipai"
     }, {
       id: "trtc_060",
       StationID: ["R18"],
+      StationUID: ["TRTC-R18"],
       name: "明德",
       estring: "mingde"
     }, {
       id: "trtc_059",
       StationID: ["R17"],
+      StationUID: ["TRTC-R17"],
       name: "芝山",
       estring: "zhishan"
     }, {
       id: "trtc_058",
       StationID: ["R16"],
+      StationUID: ["TRTC-R16"],
       name: "士林",
       estring: "shilin"
     }, {
       id: "trtc_057",
       StationID: ["R15"],
+      StationUID: ["TRTC-R15"],
       name: "劍潭",
       estring: "jiantan"
     }, {
       id: "trtc_056",
       StationID: ["R14"],
+      StationUID: ["TRTC-R14"],
       name: "圓山",
       estring: "yuanshan"
     }, {
       id: "trtc_055",
       StationID: ["R13", "O11"],
+      StationUID: ["TRTC-R13", "TRTC-O11"],
       name: "民權西路",
       estring: "mingquanwrdmingquanxilu"
     }, {
       id: "trtc_054",
       StationID: ["R12"],
+      StationUID: ["TRTC-R12"],
       name: "雙連",
       estring: "shuanglian"
     }, {
       id: "trtc_053",
       StationID: ["R11", "G14"],
+      StationUID: ["TRTC-R11", "TRTC-G14"],
       name: "中山",
       estring: "zhongshan"
     }, {
       id: "trtc_051",
       StationID: ["R10", "BL12"],
+      StationUID: ["TRTC-R10", "TRTC-BL12"],
       name: "台北車站",
       estring: "taipeichezhantaipeimainstation"
     }, {
       id: "trtc_050",
       StationID: ["R09"],
+      StationUID: ["TRTC-R09"],
       name: "台大醫院",
       estring: "taidayiyuanntuhospital"
     }, {
       id: "trtc_134",
       StationID: ["R07", "O06"],
+      StationUID: ["TRTC-R07", "TRTC-O06"],
       name: "東門",
       estring: "dongmen"
     }, {
       id: "trtc_103",
       StationID: ["R06"],
+      StationUID: ["TRTC-R06"],
       name: "大安森林公園",
       estring: "daanparkdaansenlingongyuan"
     }, {
       id: "trtc_011",
       StationID: ["R05", "BR09"],
+      StationUID: ["TRTC-R05", "TRTC-BR09"],
       name: "大安",
       estring: "daan"
     }, {
       id: "trtc_101",
       StationID: ["R04"],
+      StationUID: ["TRTC-R04"],
       name: "信義安和",
       estring: "xinyianhe"
     }, {
       id: "trtc_100",
       StationID: ["R03"],
+      StationUID: ["TRTC-R03"],
       name: "台北101/世貿",
       estring: "taipei101worldtradecentertaipei101shimao"
     }, {
       id: "trtc_099",
       StationID: ["R02"],
+      StationUID: ["TRTC-R02"],
       name: "象山",
       estring: "xiangshan"
     }, {
       id: "trtc_r01",
       StationID: ["R01"],
+      StationUID: ["TRTC-R01"],
       name: "廣慈/奉天宮",
       estring: "guangcifengtiangong"
     }, //ZhongHeXinLu Line
     {
       id: "trtc_048",
       StationID: ["O01"],
+      StationUID: ["TRTC-O01"],
       name: "南勢角",
       estring: "nanshijiao"
     }, {
       id: "trtc_047",
       StationID: ["O02", "Y11"],
+      StationUID: ["TRTC-O02", "NTMCC-Y11"],
       name: "景安",
       estring: "jingan"
     }, {
       id: "trtc_046",
       StationID: ["O03"],
+      StationUID: ["TRTC-O03"],
       name: "永安市場",
       estring: "yonganshichangyonganmarket"
     }, {
       id: "trtc_045",
       StationID: ["O04"],
+      StationUID: ["TRTC-O04"],
       name: "頂溪",
       estring: "dingxi"
     }, {
       id: "trtc_131",
       StationID: ["O09"],
+      StationUID: ["TRTC-O09"],
       name: "行天宮",
       estring: "xingtiantemplexingtiangong"
     }, {
       id: "trtc_130",
       StationID: ["O10"],
+      StationUID: ["TRTC-O10"],
       name: "中山國小",
       estring: "zhongshanguoxiaozhongshanelementaryschool"
     }, {
       id: "trtc_128",
       StationID: ["O12"],
+      StationUID: ["TRTC-O12"],
       name: "大橋頭",
       estring: "daqiaotou"
     }, {
       id: "trtc_127",
       StationID: ["O13"],
+      StationUID: ["TRTC-O13"],
       name: "台北橋",
       estring: "taibeiqiaotaipeibridge"
     }, {
       id: "trtc_126",
       StationID: ["O14"],
+      StationUID: ["TRTC-O14"],
       name: "菜寮",
       estring: "cailiao"
     }, {
       id: "trtc_125",
       StationID: ["O15"],
+      StationUID: ["TRTC-O15"],
       name: "三重",
       estring: "sanchong"
     }, {
       id: "trtc_124",
       StationID: ["O16"],
+      StationUID: ["TRTC-O16"],
       name: "先嗇宮",
       estring: "xiansetemplexiansegong"
     }, {
       id: "trtc_123",
       StationID: ["O17", "Y18"],
+      StationUID: ["TRTC-O17", "NTMCC-Y18"],
       name: "頭前庄",
       estring: "touqianzhuang"
     }, {
       id: "trtc_122",
       StationID: ["O18"],
+      StationUID: ["TRTC-O18"],
       name: "新莊",
       estring: "xinzhuang"
     }, {
       id: "trtc_121",
       StationID: ["O19"],
+      StationUID: ["TRTC-O19"],
       name: "輔大",
       estring: "fudafujenuniversity"
     }, {
       id: "trtc_180",
       StationID: ["O20"],
+      StationUID: ["TRTC-O20"],
       name: "丹鳳",
       estring: "danfeng"
     }, {
       id: "trtc_179",
       StationID: ["O21"],
+      StationUID: ["TRTC-O21"],
       name: "迴龍",
       estring: "huilong"
     }, {
       id: "trtc_178",
       StationID: ["O50"],
+      StationUID: ["TRTC-O50"],
       name: "三重國小",
       estring: "sanchongguoxiaosanchongelementaryschool"
     }, {
       id: "trtc_177",
       StationID: ["O51"],
+      StationUID: ["TRTC-O51"],
       name: "三和國中",
       estring: "sanheguozhongsanhejuniorhighschool"
     }, {
       id: "trtc_176",
       StationID: ["O52"],
+      StationUID: ["TRTC-O52"],
       name: "徐匯中學",
       estring: "xuhuizhongxuestignatiushighschool"
     }, {
       id: "trtc_175",
       StationID: ["O53"],
+      StationUID: ["TRTC-O53"],
       name: "三民高中",
       estring: "sanmingaozhongsanminseniorhighschool"
     }, {
       id: "trtc_174",
       StationID: ["O54"],
+      StationUID: ["TRTC-O54"],
       name: "蘆洲",
       estring: "luzhou"
     }, //SongShanXinDian Line
     {
       id: "trtc_111",
       StationID: ["G19"],
+      StationUID: ["TRTC-G19"],
       name: "松山",
       estring: "songshan"
     }, {
       id: "trtc_110",
       StationID: ["G18"],
+      StationUID: ["TRTC-G18"],
       name: "南京三民",
       estring: "nanjingsanmin"
     }, {
       id: "trtc_109",
       StationID: ["G17"],
+      StationUID: ["TRTC-G17"],
       name: "台北小巨蛋",
       estring: "taipeiarenataibeixiaojudan"
     }, {
       id: "trtc_009",
       StationID: ["G16", "BR11"],
+      StationUID: ["TRTC-G16", "TRTC-BR11"],
       name: "南京復興",
       estring: "nanjingfuxing"
     }, {
       id: "trtc_132",
       StationID: ["G15", "O08"],
+      StationUID: ["TRTC-G15", "TRTC-O08"],
       name: "松江南京",
       estring: "songjiangnanjing"
     }, {
       id: "trtc_105",
       StationID: ["G13"],
+      StationUID: ["TRTC-G13"],
       name: "北門",
       estring: "beimen"
     }, {
       id: "trtc_043",
       StationID: ["G11"],
+      StationUID: ["TRTC-G11"],
       name: "小南門",
       estring: "xiaonanmen"
     }, {
       id: "trtc_042",
       StationID: ["G10", "R08"],
+      StationUID: ["TRTC-G10", "TRTC-R08"],
       name: "中正紀念堂",
       estring: "zhongzhengjiniantangchiangkaishekmemorialhall"
     }, {
       id: "trtc_041",
       StationID: ["G09", "O05"],
+      StationUID: ["TRTC-G09", "TRTC-O05"],
       name: "古亭",
       estring: "guting"
     }, {
       id: "trtc_040",
       StationID: ["G08"],
+      StationUID: ["TRTC-G08"],
       name: "台電大樓",
       estring: "taidiandaloutaipowerbuilding"
     }, {
       id: "trtc_039",
       StationID: ["G07"],
+      StationUID: ["TRTC-G07"],
       name: "公館",
       estring: "gongguan"
     }, {
       id: "trtc_038",
       StationID: ["G06"],
+      StationUID: ["TRTC-G06"],
       name: "萬隆",
       estring: "wanlong"
     }, {
       id: "trtc_037",
       StationID: ["G05"],
+      StationUID: ["TRTC-G05"],
       name: "景美",
       estring: "jingmei"
     }, {
       id: "trtc_036",
       StationID: ["G04", "Y07"],
+      StationUID: ["TRTC-G04", "NTMCC-Y07"],
       name: "大坪林",
       estring: "dapinglin"
     }, {
       id: "trtc_035",
       StationID: ["G03"],
+      StationUID: ["TRTC-G03"],
       name: "七張",
       estring: "qizhang"
     }, {
       id: "trtc_g03a",
       StationID: ["G03A"],
+      StationUID: ["TRTC-G03A"],
       name: "小碧潭",
       estring: "xiaobitan"
     }, {
       id: "trtc_034",
       StationID: ["G02"],
+      StationUID: ["TRTC-G02"],
       name: "新店區公所",
       estring: "xindiandistrictofficexindianqugongsuo"
     }, {
       id: "trtc_033",
       StationID: ["G01"],
+      StationUID: ["TRTC-G01"],
       name: "新店",
       estring: "xindian"
     }, //Circular Line
     {
       id: "trtc_y08",
       StationID: ["Y08"],
+      StationUID: ["NTMCC-Y08"],
       name: "十四張",
       estring: "shisizhang"
     }, {
       id: "trtc_y09",
       StationID: ["Y09"],
+      StationUID: ["NTMCC-Y09"],
       name: "秀朗橋",
       estring: "xiulangqiao"
     }, {
       id: "trtc_y10",
       StationID: ["Y10"],
+      StationUID: ["NTMCC-Y10"],
       name: "景平",
       estring: "jingping"
     }, {
       id: "trtc_y12",
       StationID: ["Y12"],
+      StationUID: ["NTMCC-Y12"],
       name: "中和",
       estring: "zhonghe"
     }, {
       id: "trtc_y13",
       StationID: ["Y13"],
+      StationUID: ["NTMCC-Y13"],
       name: "橋和",
       estring: "qiaohe"
     }, {
       id: "trtc_y14",
       StationID: ["Y14"],
+      StationUID: ["NTMCC-Y14"],
       name: "中原",
       estring: "zhongyuan"
     }, {
       id: "trtc_y15",
       StationID: ["Y15"],
+      StationUID: ["NTMCC-Y15"],
       name: "板新",
       estring: "banxin"
     }, {
       id: "trtc_y16",
       StationID: ["Y16"],
+      StationUID: ["NTMCC-Y16"],
       name: "板橋（環狀）",
       estring: "banqiao"
     }, {
       id: "trtc_y17",
       StationID: ["Y17"],
+      StationUID: ["NTMCC-Y17"],
       name: "新埔民生",
       estring: "xinpuminsheng"
     }, {
       id: "trtc_y19",
       StationID: ["Y19"],
+      StationUID: ["NTMCC-Y19"],
       name: "幸福",
       estring: "xingfu"
     }, {
       id: "trtc_y20",
       StationID: ["Y20"],
+      StationUID: ["NTMCC-Y20"],
       name: "新北產業園區",
       estring: "xinbeichanyeyuanqui"
     }, //Sanying Line（三鶯線，新北捷運營運，LB01 頂埔與板南線共用 trtc_076）
     {
       id: "trtc_lb02",
       StationID: ["LB02"],
+      StationUID: ["NTMCC-LB02"],
       name: "媽祖田",
       estring: "mazutian"
     }, {
       id: "trtc_lb03",
       StationID: ["LB03"],
+      StationUID: ["NTMCC-LB03"],
       name: "長壽山",
       estring: "changshoushan"
     }, {
       id: "trtc_lb04",
       StationID: ["LB04"],
+      StationUID: ["NTMCC-LB04"],
       name: "橫溪",
       estring: "hengxi"
     }, {
       id: "trtc_lb05",
       StationID: ["LB05"],
+      StationUID: ["NTMCC-LB05"],
       name: "龍埔",
       estring: "longpu"
     }, {
       id: "trtc_lb06",
       StationID: ["LB06"],
+      StationUID: ["NTMCC-LB06"],
       name: "三峽",
       estring: "sanxia"
     }, {
       id: "trtc_lb07",
       StationID: ["LB07"],
+      StationUID: ["NTMCC-LB07"],
       name: "台北大學",
       estring: "taibeidaxuenationaltaipeiuniversity"
     }, {
       id: "trtc_lb08",
       StationID: ["LB08"],
+      StationUID: ["NTMCC-LB08"],
       name: "鶯歌車站",
       estring: "yinggechezhanyinggestation"
     }, {
       id: "trtc_lb09",
       StationID: ["LB09"],
+      StationUID: ["NTMCC-LB09"],
       name: "陶瓷老街",
       estring: "taocilaojieceramicsoldstreet"
     }, {
       id: "trtc_lb10",
       StationID: ["LB10"],
+      StationUID: ["NTMCC-LB10"],
       name: "國華",
       estring: "guohua"
     }, {
       id: "trtc_lb11",
       StationID: ["LB11"],
+      StationUID: ["NTMCC-LB11"],
       name: "永吉公園",
       estring: "yongjigongyuanyongjipark"
     }, {
       id: "trtc_lb12",
       StationID: ["LB12"],
+      StationUID: ["NTMCC-LB12"],
       name: "鶯桃福德",
       estring: "yingtaofude"
     }],
@@ -8679,6 +8810,7 @@ var pData = {
     {
       id: "tymc_a01",
       StationID: ["A1"],
+      StationUID: ["TYMC-A1"],
       name: "臺北車站",
       estring: "taipeichezhantaipeimainstation",
       sect: 'taipei',
@@ -8686,12 +8818,14 @@ var pData = {
     }, {
       id: "tymc_a02",
       StationID: ["A2"],
+      StationUID: ["TYMC-A2"],
       name: "三重",
       estring: "sanchong",
       sect: 'taipei'
     }, {
       id: "tymc_a03",
       StationID: ["A3"],
+      StationUID: ["TYMC-A3"],
       name: "新北產業園區",
       estring: "xinbeichanyeyuanqui",
       sect: 'taipei',
@@ -8699,30 +8833,35 @@ var pData = {
     }, {
       id: "tymc_a04",
       StationID: ["A4"],
+      StationUID: ["TYMC-A4"],
       name: "新莊副都心",
       estring: "xinzhungfuduxin",
       sect: 'taipei'
     }, {
       id: "tymc_a05",
       StationID: ["A5"],
+      StationUID: ["TYMC-A5"],
       name: "泰山",
       estring: "taishan",
       sect: 'taipei'
     }, {
       id: "tymc_a06",
       StationID: ["A6"],
+      StationUID: ["TYMC-A6"],
       name: "泰山貴和",
       estring: "taishanguehe",
       sect: 'taipei'
     }, {
       id: "tymc_a07",
       StationID: ["A7"],
+      StationUID: ["TYMC-A7"],
       name: "體育大學",
       estring: "tiyvdaxue",
       sect: 'taipei'
     }, {
       id: "tymc_a08",
       StationID: ["A8"],
+      StationUID: ["TYMC-A8"],
       name: "長庚醫院",
       estring: "changgengyiyuan",
       sect: 'taoyuan',
@@ -8730,24 +8869,28 @@ var pData = {
     }, {
       id: "tymc_a09",
       StationID: ["A9"],
+      StationUID: ["TYMC-A9"],
       name: "林口",
       estring: "linkou",
       sect: 'taoyuan'
     }, {
       id: "tymc_a10",
       StationID: ["A10"],
+      StationUID: ["TYMC-A10"],
       name: "山鼻",
       estring: "shanbi",
       sect: 'taoyuan'
     }, {
       id: "tymc_a11",
       StationID: ["A11"],
+      StationUID: ["TYMC-A11"],
       name: "坑口",
       estring: "kengkou",
       sect: 'taoyuan'
     }, {
       id: "tymc_a12",
       StationID: ["A12"],
+      StationUID: ["TYMC-A12"],
       name: "機場第一航廈",
       estring: "terminal1",
       sect: 'taoyuan',
@@ -8755,6 +8898,7 @@ var pData = {
     }, {
       id: "tymc_a13",
       StationID: ["A13"],
+      StationUID: ["TYMC-A13"],
       name: "機場第二航廈",
       estring: "terminal2",
       sect: 'taoyuan',
@@ -8762,54 +8906,63 @@ var pData = {
     }, {
       id: "tymc_a14a",
       StationID: ["A14a"],
+      StationUID: ["TYMC-A14a"],
       name: "機場旅館",
       estring: "airporthotel",
       sect: 'taoyuan'
     }, {
       id: "tymc_a15",
       StationID: ["A15"],
+      StationUID: ["TYMC-A15"],
       name: "大園",
       estring: "dayuan",
       sect: 'taoyuan'
     }, {
       id: "tymc_a16",
       StationID: ["A16"],
+      StationUID: ["TYMC-A16"],
       name: "橫山",
       estring: "hengshan",
       sect: 'taoyuan'
     }, {
       id: "tymc_a17",
       StationID: ["A17"],
+      StationUID: ["TYMC-A17"],
       name: "領航",
       estring: "linghang",
       sect: 'taoyuan'
     }, {
       id: "tymc_a18",
       StationID: ["A18"],
+      StationUID: ["TYMC-A18"],
       name: "高鐵桃園站",
       estring: "gaotietaoyuanzhan",
       sect: 'taoyuan'
     }, {
       id: "tymc_a19",
       StationID: ["A19"],
+      StationUID: ["TYMC-A19"],
       name: "桃園體育園區",
       estring: "taoyuantiyuyuanqui",
       sect: 'taoyuan'
     }, {
       id: "tymc_a20",
       StationID: ["A20"],
+      StationUID: ["TYMC-A20"],
       name: "興南",
       estring: "xingnan",
       sect: 'taoyuan'
     }, {
       id: "tymc_a21",
       StationID: ["A21"],
+      StationUID: ["TYMC-A21"],
       name: "環北",
       estring: "huanbei",
       sect: 'taoyuan'
     }, {
       id: "tymc_a22",
       StationID: ["A22"],
+      StationUID: ["TYMC-A22"],
       name: "老街溪",
       estring: "laojieriverstation",
       sect: 'taoyuan'
@@ -8830,84 +8983,98 @@ var pData = {
     {
       id: "ntmc_y07",
       StationID: ["Y07"],
+      StationUID: ["NTMCC-Y07"],
       name: "大坪林",
       estring: "dapinglin",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y08",
       StationID: ["Y08"],
+      StationUID: ["NTMCC-Y08"],
       name: "十四張",
       estring: "shisizhang",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y09",
       StationID: ["Y09"],
+      StationUID: ["NTMCC-Y09"],
       name: "秀朗橋",
       estring: "xiulangqiao",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y10",
       StationID: ["Y10"],
+      StationUID: ["NTMCC-Y10"],
       name: "景平",
       estring: "jingping",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y11",
       StationID: ["Y11"],
+      StationUID: ["NTMCC-Y11"],
       name: "景安",
       estring: "jingan",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y12",
       StationID: ["Y12"],
+      StationUID: ["NTMCC-Y12"],
       name: "中和",
       estring: "zhonghe",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y13",
       StationID: ["Y13"],
+      StationUID: ["NTMCC-Y13"],
       name: "橋和",
       estring: "qiaohe",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y14",
       StationID: ["Y14"],
+      StationUID: ["NTMCC-Y14"],
       name: "中原",
       estring: "zhongyuan",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y15",
       StationID: ["Y15"],
+      StationUID: ["NTMCC-Y15"],
       name: "板新",
       estring: "banxin",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y16",
       StationID: ["Y16"],
+      StationUID: ["NTMCC-Y16"],
       name: "板橋",
       estring: "banqiaobanciao",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y17",
       StationID: ["Y17"],
+      StationUID: ["NTMCC-Y17"],
       name: "新埔民生",
       estring: "xinpuminsheng",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y18",
       StationID: ["Y18"],
+      StationUID: ["NTMCC-Y18"],
       name: "頭前庄",
       estring: "touqianzhuang",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y19",
       StationID: ["Y19"],
+      StationUID: ["NTMCC-Y19"],
       name: "幸福",
       estring: "xingfu",
       sect: 'newtaipei'
     }, {
       id: "ntmc_y20",
       StationID: ["Y20"],
+      StationUID: ["NTMCC-Y20"],
       name: "新北產業園區",
       estring: "xinbeichanyeyuanqui",
       sect: 'newtaipei'
@@ -8915,72 +9082,84 @@ var pData = {
     {
       id: "ntmc_lb01",
       StationID: ["LB01"],
+      StationUID: ["NTMCC-LB01"],
       name: "頂埔",
       estring: "dingpu",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb02",
       StationID: ["LB02"],
+      StationUID: ["NTMCC-LB02"],
       name: "媽祖田",
       estring: "mazutian",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb03",
       StationID: ["LB03"],
+      StationUID: ["NTMCC-LB03"],
       name: "長壽山",
       estring: "changshoushan",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb04",
       StationID: ["LB04"],
+      StationUID: ["NTMCC-LB04"],
       name: "橫溪",
       estring: "hengxi",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb05",
       StationID: ["LB05"],
+      StationUID: ["NTMCC-LB05"],
       name: "龍埔",
       estring: "longpu",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb06",
       StationID: ["LB06"],
+      StationUID: ["NTMCC-LB06"],
       name: "三峽",
       estring: "sanxia",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb07",
       StationID: ["LB07"],
+      StationUID: ["NTMCC-LB07"],
       name: "台北大學",
       estring: "taibeidaxuenationaltaipeiuniversity",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb08",
       StationID: ["LB08"],
+      StationUID: ["NTMCC-LB08"],
       name: "鶯歌車站",
       estring: "yinggechezhanyinggestation",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb09",
       StationID: ["LB09"],
+      StationUID: ["NTMCC-LB09"],
       name: "陶瓷老街",
       estring: "taocilaojieceramicsoldstreet",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb10",
       StationID: ["LB10"],
+      StationUID: ["NTMCC-LB10"],
       name: "國華",
       estring: "guohua",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb11",
       StationID: ["LB11"],
+      StationUID: ["NTMCC-LB11"],
       name: "永吉公園",
       estring: "yongjigongyuanyongjipark",
       sect: 'newtaipei'
     }, {
       id: "ntmc_lb12",
       StationID: ["LB12"],
+      StationUID: ["NTMCC-LB12"],
       name: "鶯桃福德",
       estring: "yingtaofude",
       sect: 'newtaipei'
@@ -9043,12 +9222,14 @@ var pData = {
     {
       id: "krtc_r03",
       StationID: ["R3"],
+      StationUID: ["KRTC-R3"],
       name: "小港",
       estring: "siaogang",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r04",
       StationID: ["R4"],
+      StationUID: ["KRTC-R4"],
       name: "高雄國際機場",
       estring: "kaohsiunginternationalairport",
       sect: 'kaohsiung',
@@ -9056,42 +9237,49 @@ var pData = {
     }, {
       id: "krtc_r04a",
       StationID: ["R4A"],
+      StationUID: ["KRTC-R4A"],
       name: "草衙",
       estring: "caoya",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r05",
       StationID: ["R5"],
+      StationUID: ["KRTC-R5"],
       name: "前鎮高中",
       estring: "cianjhenseniorhighschool",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r06",
       StationID: ["R6"],
+      StationUID: ["KRTC-R6"],
       name: "凱旋",
       estring: "kaisyuan",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r07",
       StationID: ["R7"],
+      StationUID: ["KRTC-R7"],
       name: "獅甲",
       estring: "shihjia",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r08",
       StationID: ["R8"],
+      StationUID: ["KRTC-R8"],
       name: "三多商圈",
       estring: "sanduoshoppingdistrict",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r09",
       StationID: ["R9"],
+      StationUID: ["KRTC-R9"],
       name: "中央公園",
       estring: "centralpark",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r10",
       StationID: ["R10", "O5"],
+      StationUID: ["KRTC-R10", "KRTC-O5"],
       name: "美麗島",
       estring: "meilidaoformosaboulevard",
       sect: 'kaohsiung',
@@ -9099,6 +9287,7 @@ var pData = {
     }, {
       id: "krtc_r11",
       StationID: ["R11"],
+      StationUID: ["KRTC-R11"],
       name: "高雄車站",
       estring: "kaohsiungmainstation",
       sect: 'kaohsiung',
@@ -9106,30 +9295,35 @@ var pData = {
     }, {
       id: "krtc_r12",
       StationID: ["R12"],
+      StationUID: ["KRTC-R12"],
       name: "後驛",
       estring: "houyi",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r13",
       StationID: ["R13"],
+      StationUID: ["KRTC-R13"],
       name: "凹子底",
       estring: "aozihdi",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r14",
       StationID: ["R14"],
+      StationUID: ["KRTC-R14"],
       name: "巨蛋",
       estring: "kaohsiungarena",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r15",
       StationID: ["R15"],
+      StationUID: ["KRTC-R15"],
       name: "生態園區",
       estring: "ecologicaldistrict",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r16",
       StationID: ["R16"],
+      StationUID: ["KRTC-R16"],
       name: "左營",
       estring: "zuoying",
       sect: 'kaohsiung',
@@ -9137,60 +9331,70 @@ var pData = {
     }, {
       id: "krtc_r17",
       StationID: ["R17"],
+      StationUID: ["KRTC-R17"],
       name: "世運",
       estring: "worldgames",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r18",
       StationID: ["R18"],
+      StationUID: ["KRTC-R18"],
       name: "油廠國小",
       estring: "oilrefineryelementaryschool",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r19",
       StationID: ["R19"],
-      name: "楠梓加工區",
-      estring: "nanzihexportprocessingzone",
+      StationUID: ["KRTC-R19"],
+      name: "楠梓科技園區",
+      estring: "nanzihtechnologyindustrialparknanzihexportprocessingzone",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r20",
       StationID: ["R20"],
+      StationUID: ["KRTC-R20"],
       name: "後勁",
       estring: "houjing",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r21",
       StationID: ["R21"],
+      StationUID: ["KRTC-R21"],
       name: "都會公園",
       estring: "metropolitanpark",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r22",
       StationID: ["R22"],
+      StationUID: ["KRTC-R22"],
       name: "青埔",
       estring: "cingpu",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r22a",
       StationID: ["R22A"],
+      StationUID: ["KRTC-R22A"],
       name: "橋頭糖廠",
       estring: "ciaotousugarrefinery",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r23",
       StationID: ["R23"],
+      StationUID: ["KRTC-R23"],
       name: "橋頭火車站",
       estring: "ciaotoustation",
       sect: 'kaohsiung'
     }, {
       id: "krtc_r24",
       StationID: ["R24"],
-      name: "南岡山",
-      estring: "gangshansouth",
+      StationUID: ["KRTC-R24"],
+      name: "岡山高醫",
+      estring: "kaohsiungmedicaluniversitygangshanhospitalgangshansouth",
       sect: 'kaohsiung'
     }, {
       id: "krtc_rk1",
       StationID: ["RK1"],
+      StationUID: ["KRTC-RK1"],
       name: "岡山車站",
       estring: "gangshanstation",
       sect: 'kaohsiung'
@@ -9198,78 +9402,91 @@ var pData = {
     {
       id: "krtc_o01",
       StationID: ["O1"],
-      name: "西子灣",
-      estring: "sizihwan",
+      StationUID: ["KRTC-O1"],
+      name: "哈瑪星",
+      estring: "hamasensizihwan",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o02",
       StationID: ["O2"],
+      StationUID: ["KRTC-O2"],
       name: "鹽埕埔",
       estring: "yanchengpu",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o04",
       StationID: ["O4"],
-      name: "市議會",
-      estring: "citycouncil",
+      StationUID: ["KRTC-O4"],
+      name: "前金",
+      estring: "cianjincitycouncil",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o06",
       StationID: ["O6"],
+      StationUID: ["KRTC-O6"],
       name: "信義國小",
       estring: "sinyielementaryschool",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o07",
       StationID: ["O7"],
+      StationUID: ["KRTC-O7"],
       name: "文化中心",
       estring: "culturalcenter",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o08",
       StationID: ["O8"],
+      StationUID: ["KRTC-O8"],
       name: "五塊厝",
       estring: "wukuaicuo",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o09",
       StationID: ["O9"],
-      name: "技擊館",
-      estring: "martialartsstadium",
+      StationUID: ["KRTC-O9"],
+      name: "苓雅運動園區",
+      estring: "lingyasportsparkmartialartsstadium",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o10",
       StationID: ["O10"],
+      StationUID: ["KRTC-O10"],
       name: "衛武營",
       estring: "weiwuying",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o11",
       StationID: ["O11"],
+      StationUID: ["KRTC-O11"],
       name: "鳳山西站",
       estring: "fongshanwest",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o12",
       StationID: ["O12"],
+      StationUID: ["KRTC-O12"],
       name: "鳳山",
       estring: "fongshan",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o13",
       StationID: ["O13"],
+      StationUID: ["KRTC-O13"],
       name: "大東",
       estring: "dadong",
       sect: 'kaohsiung'
     }, {
       id: "krtc_o14",
       StationID: ["O14"],
+      StationUID: ["KRTC-O14"],
       name: "鳳山國中",
       estring: "fongshanjuniorhighschool",
       sect: 'kaohsiung'
     }, {
       id: "krtc_ot1",
       StationID: ["OT1"],
+      StationUID: ["KRTC-OT1"],
       name: "大寮",
       estring: "daliao",
       sect: 'kaohsiung'
@@ -9332,108 +9549,126 @@ var pData = {
     {
       id: "tmrt_103a",
       StationID: ["G0"],
+      StationUID: ["TMRT-G0"],
       name: "北屯總站",
       estring: "beitunmainstationbeitunzhongzhan",
       sect: 'taichung'
     }, {
       id: "tmrt_103",
       StationID: ["G3"],
+      StationUID: ["TMRT-G3"],
       name: "舊社",
       estring: "jiushe",
       sect: 'taichung'
     }, {
       id: "tmrt_104",
       StationID: ["G4"],
+      StationUID: ["TMRT-G4"],
       name: "松竹",
       estring: "songzhu",
       sect: 'taichung'
     }, {
       id: "tmrt_105",
       StationID: ["G5"],
+      StationUID: ["TMRT-G5"],
       name: "四維國小",
       estring: "sihweielementaryschoolsiweiguoxiao",
       sect: 'taichung'
     }, {
       id: "tmrt_106",
       StationID: ["G6"],
+      StationUID: ["TMRT-G6"],
       name: "文心崇德",
       estring: "wenxinchongde",
       sect: 'taichung'
     }, {
       id: "tmrt_107",
       StationID: ["G7"],
+      StationUID: ["TMRT-G7"],
       name: "文心中清",
       estring: "wenxinzhongqing",
       sect: 'taichung'
     }, {
       id: "tmrt_108",
       StationID: ["G8"],
+      StationUID: ["TMRT-G8"],
       name: "文華高中",
       estring: "wenhuaseniorhighschoolwenhuagaozhong",
       sect: 'taichung'
     }, {
       id: "tmrt_109",
       StationID: ["G8a"],
+      StationUID: ["TMRT-G8a"],
       name: "文心櫻花",
       estring: "wenxinyinghua",
       sect: 'taichung'
     }, {
       id: "tmrt_110",
       StationID: ["G9"],
+      StationUID: ["TMRT-G9"],
       name: "市政府",
       estring: "taichungcityhallshizhengfu",
       sect: 'taichung'
     }, {
       id: "tmrt_111",
       StationID: ["G10"],
+      StationUID: ["TMRT-G10"],
       name: "水安宮",
       estring: "shuiantempleshuiangong",
       sect: 'taichung'
     }, {
       id: "tmrt_112",
       StationID: ["G10a"],
+      StationUID: ["TMRT-G10a"],
       name: "文心森林公園",
       estring: "wenxinforestpark",
       sect: 'taichung'
     }, {
       id: "tmrt_113",
       StationID: ["G11"],
+      StationUID: ["TMRT-G11"],
       name: "南屯",
       estring: "nantun",
       sect: 'taichung'
     }, {
       id: "tmrt_114",
       StationID: ["G12"],
+      StationUID: ["TMRT-G12"],
       name: "豐樂公園",
       estring: "fengleparkfenglegongyuan",
       sect: 'taichung'
     }, {
       id: "tmrt_115",
       StationID: ["G13"],
+      StationUID: ["TMRT-G13"],
       name: "大慶",
       estring: "daqing",
       sect: 'taichung'
     }, {
       id: "tmrt_116",
       StationID: ["G14"],
+      StationUID: ["TMRT-G14"],
       name: "九張犁",
       estring: "jiuzhangli",
       sect: 'taichung'
     }, {
       id: "tmrt_117",
       StationID: ["G15"],
+      StationUID: ["TMRT-G15"],
       name: "九德",
       estring: "jiude",
       sect: 'taichung'
     }, {
       id: "tmrt_118",
       StationID: ["G16"],
+      StationUID: ["TMRT-G16"],
       name: "烏日",
       estring: "wuri",
       sect: 'taichung'
     }, {
       id: "tmrt_119",
       StationID: ["G17"],
+      StationUID: ["TMRT-G17"],
       name: "高鐵臺中站",
       estring: "hSRtaichungstationgaotietaizhongzhan",
       sect: 'taichung'
@@ -9454,228 +9689,266 @@ var pData = {
     {
       id: "klrt_c1",
       StationID: ["C1"],
+      StationUID: ["KLRT-NETWORK-C1"],
       name: "籬仔內",
       estring: "lizihnei",
       sect: "kaohsiung"
     }, {
       id: "klrt_c2",
       StationID: ["C2"],
+      StationUID: ["KLRT-NETWORK-C2"],
       name: "凱旋瑞田",
       estring: "kaisyuanrueitian",
       sect: "kaohsiung"
     }, {
       id: "klrt_c3",
       StationID: ["C3"],
+      StationUID: ["KLRT-NETWORK-C3"],
       name: "前鎮之星",
       estring: "cianjhenstar",
       sect: "kaohsiung"
     }, {
       id: "klrt_c4",
       StationID: ["C4"],
+      StationUID: ["KLRT-NETWORK-C4"],
       name: "凱旋中華",
       estring: "kaisyuanjhonghua",
       sect: "kaohsiung"
     }, {
       id: "klrt_c5",
       StationID: ["C5"],
+      StationUID: ["KLRT-NETWORK-C5"],
       name: "夢時代",
       estring: "dreammall",
       sect: "kaohsiung"
     }, {
       id: "klrt_c6",
       StationID: ["C6"],
+      StationUID: ["KLRT-NETWORK-C6"],
       name: "經貿園區",
       estring: "commerceandtradepark",
       sect: "kaohsiung"
     }, {
       id: "klrt_c7",
       StationID: ["C7"],
+      StationUID: ["KLRT-NETWORK-C7"],
       name: "軟體園區",
       estring: "softwaretechnologypark",
       sect: "kaohsiung"
     }, {
       id: "klrt_c8",
       StationID: ["C8"],
+      StationUID: ["KLRT-NETWORK-C8"],
       name: "高雄展覽館",
       estring: "kaohsiungexhibitioncenter",
       sect: "kaohsiung"
     }, {
       id: "klrt_c9",
       StationID: ["C9"],
+      StationUID: ["KLRT-NETWORK-C9"],
       name: "旅運中心",
       estring: "cruiseterminal",
       sect: "kaohsiung"
     }, {
       id: "klrt_c10",
       StationID: ["C10"],
+      StationUID: ["KLRT-NETWORK-C10"],
       name: "光榮碼頭",
       estring: "glorypier",
       sect: "kaohsiung"
     }, {
       id: "klrt_c11",
       StationID: ["C11"],
+      StationUID: ["KLRT-NETWORK-C11"],
       name: "真愛碼頭",
       estring: "lovepier",
       sect: "kaohsiung"
     }, {
       id: "klrt_c12",
       StationID: ["C12"],
+      StationUID: ["KLRT-NETWORK-C12"],
       name: "駁二大義",
       estring: "dayipier2",
       sect: "kaohsiung"
     }, {
       id: "klrt_c13",
       StationID: ["C13"],
+      StationUID: ["KLRT-NETWORK-C13"],
       name: "駁二蓬萊",
       estring: "penglaipier2",
       sect: "kaohsiung"
     }, {
       id: "klrt_c14",
       StationID: ["C14"],
+      StationUID: ["KLRT-NETWORK-C14"],
       name: "哈瑪星",
       estring: "hamasen",
       sect: "kaohsiung"
     }, {
       id: "klrt_c15",
       StationID: ["C15"],
+      StationUID: ["KLRT-NETWORK-C15"],
       name: "壽山公園站",
       estring: "shoushanpark",
       sect: "kaohsiung"
     }, {
       id: "klrt_c16",
       StationID: ["C16"],
+      StationUID: ["KLRT-NETWORK-C16"],
       name: "文武聖殿站",
       estring: "wenwutemple",
       sect: "kaohsiung"
     }, {
       id: "klrt_c17",
       StationID: ["C17"],
+      StationUID: ["KLRT-NETWORK-C17"],
       name: "鼓山區公所站",
       estring: "gushandistrictoffice",
       sect: "kaohsiung"
     }, {
       id: "klrt_c18",
       StationID: ["C18"],
+      StationUID: ["KLRT-NETWORK-C18"],
       name: "鼓山",
       estring: "gushan",
       sect: "kaohsiung"
     }, {
       id: "klrt_c19",
       StationID: ["C19"],
+      StationUID: ["KLRT-NETWORK-C19"],
       name: "馬卡道",
       estring: "makadao",
       sect: "kaohsiung"
     }, {
       id: "klrt_c20",
       StationID: ["C20"],
+      StationUID: ["KLRT-NETWORK-C20"],
       name: "臺鐵美術館",
       estring: "tramuseumoffinearts",
       sect: "kaohsiung"
     }, {
       id: "klrt_c21a",
       StationID: ["C21A"],
+      StationUID: ["KLRT-NETWORK-C21A"],
       name: "內惟藝術中心",
       estring: "neiweiartscenter",
       sect: "kaohsiung"
     }, {
       id: "klrt_c21",
       StationID: ["C21"],
+      StationUID: ["KLRT-NETWORK-C21"],
       name: "美術館",
       estring: "kaohsiungmuseumoffinearts",
       sect: "kaohsiung"
     }, {
       id: "klrt_c22",
       StationID: ["C22"],
+      StationUID: ["KLRT-NETWORK-C22"],
       name: "聯合醫院",
       estring: "kaohsiungmunicipalunitedhospital",
       sect: "kaohsiung"
     }, {
       id: "klrt_c23",
       StationID: ["C23"],
+      StationUID: ["KLRT-NETWORK-C23"],
       name: "龍華國小",
       estring: "longhuaelementaryschool",
       sect: "kaohsiung"
     }, {
       id: "klrt_c24",
       StationID: ["C24"],
+      StationUID: ["KLRT-NETWORK-C24"],
       name: "愛河之心",
       estring: "heartofloveriver",
       sect: "kaohsiung"
     }, {
       id: "klrt_c25",
       StationID: ["C25"],
+      StationUID: ["KLRT-NETWORK-C25"],
       name: "新上國小",
       estring: "sinshangelementaryschool",
       sect: "kaohsiung"
     }, {
       id: "klrt_c26",
       StationID: ["C26"],
+      StationUID: ["KLRT-NETWORK-C26"],
       name: "大順民族",
       estring: "dashunminzu",
       sect: "kaohsiung"
     }, {
       id: "klrt_c27",
       StationID: ["C27"],
+      StationUID: ["KLRT-NETWORK-C27"],
       name: "灣仔內(大順鼎山)",
       estring: "wanzihneidashundingshan",
       sect: "kaohsiung"
     }, {
       id: "klrt_c28",
       StationID: ["C28"],
+      StationUID: ["KLRT-NETWORK-C28"],
       name: "高雄高工",
       estring: "kaohsiungindustrialhighschool",
       sect: "kaohsiung"
     }, {
       id: "klrt_c29",
       StationID: ["C29"],
+      StationUID: ["KLRT-NETWORK-C29"],
       name: "樹德家商",
       estring: "shutehomeeconomicscommercialhighschool",
       sect: "kaohsiung"
     }, {
       id: "klrt_c30",
       StationID: ["C30"],
+      StationUID: ["KLRT-NETWORK-C30"],
       name: "科工館",
       estring: "scienceandtechnologymuseum",
       sect: "kaohsiung"
     }, {
       id: "klrt_c31",
       StationID: ["C31"],
+      StationUID: ["KLRT-NETWORK-C31"],
       name: "聖功醫院",
       estring: "stjosephhospital",
       sect: "kaohsiung"
     }, {
       id: "klrt_c32",
       StationID: ["C32"],
+      StationUID: ["KLRT-NETWORK-C32"],
       name: "凱旋公園站",
       estring: "kaisyuanpark",
       sect: "kaohsiung"
     }, {
       id: "klrt_c33",
       StationID: ["C33"],
+      StationUID: ["KLRT-NETWORK-C33"],
       name: "衛生局站",
       estring: "departmentofhealth",
       sect: "kaohsiung"
     }, {
       id: "klrt_c34",
       StationID: ["C34"],
+      StationUID: ["KLRT-NETWORK-C34"],
       name: "五權國小站",
       estring: "wucyuanelementaryschool",
       sect: "kaohsiung"
     }, {
       id: "klrt_c35",
       StationID: ["C35"],
+      StationUID: ["KLRT-NETWORK-C35"],
       name: "凱旋武昌站",
       estring: "kaisyuanwuchang",
       sect: "kaohsiung"
     }, {
       id: "klrt_c36",
       StationID: ["C36"],
+      StationUID: ["KLRT-NETWORK-C36"],
       name: "凱旋二聖站",
       estring: "kaisyuanersheng",
       sect: "kaohsiung"
     }, {
       id: "klrt_c37",
       StationID: ["C37"],
+      StationUID: ["KLRT-NETWORK-C37"],
       name: "輕軌機廠站",
       estring: "lrtdepot",
       sect: "kaohsiung"
@@ -9712,72 +9985,84 @@ var pData = {
     station_ary: [{
       id: 'thsr_0990',
       StationID: ['0990'],
+      StationUID: ['THSR-0990'],
       name: '南港',
       estring: 'nangang',
       sect: 'taipei'
     }, {
       id: 'thsr_1000',
       StationID: ['1000'],
+      StationUID: ['THSR-1000'],
       name: '台北',
       estring: 'taipeitaibei',
       sect: 'taipei'
     }, {
       id: 'thsr_1010',
       StationID: ['1010'],
+      StationUID: ['THSR-1010'],
       name: '板橋',
       estring: 'banqiaobanciao',
       sect: 'taipei'
     }, {
       id: 'thsr_1020',
       StationID: ['1020'],
+      StationUID: ['THSR-1020'],
       name: '桃園',
       estring: 'taoyuan',
       sect: 'taoyuan'
     }, {
       id: 'thsr_1030',
       StationID: ['1030'],
+      StationUID: ['THSR-1030'],
       name: '新竹',
       estring: 'hsinchuxinzhu',
       sect: 'hsinchu'
     }, {
       id: 'thsr_1035',
       StationID: ['1035'],
+      StationUID: ['THSR-1035'],
       name: '苗栗',
       estring: 'miaoli',
       sect: 'miaoli'
     }, {
       id: 'thsr_1040',
       StationID: ['1040'],
+      StationUID: ['THSR-1040'],
       name: '台中',
       estring: 'taizhongtaichung',
       sect: 'taichung'
     }, {
       id: 'thsr_1043',
       StationID: ['1043'],
+      StationUID: ['THSR-1043'],
       name: '彰化',
       estring: 'zhanghuachanghua',
       sect: 'changhua'
     }, {
       id: 'thsr_1047',
       StationID: ['1047'],
+      StationUID: ['THSR-1047'],
       name: '雲林',
       estring: 'yunlin',
       sect: 'yunlin'
     }, {
       id: 'thsr_1050',
       StationID: ['1050'],
+      StationUID: ['THSR-1050'],
       name: '嘉義',
       estring: 'jiayichiayi',
       sect: 'chiayi'
     }, {
       id: 'thsr_1060',
       StationID: ['1060'],
+      StationUID: ['THSR-1060'],
       name: '台南',
       estring: 'tainan',
       sect: 'tainan'
     }, {
       id: 'thsr_1070',
       StationID: ['1070'],
+      StationUID: ['THSR-1070'],
       name: '左營',
       estring: 'zouying',
       sect: 'kaohsiung'
@@ -9947,18 +10232,21 @@ var pData = {
     {
       id: "tra_1001",
       v3id: "0900",
+      StationUID: ["TRA-0900"],
       name: "基隆",
       estring: "keelung",
       sect: "keelung"
     }, {
       id: "tra_1029",
       v3id: "0910",
+      StationUID: ["TRA-0910"],
       name: "三坑",
       estring: "sankeng",
       sect: "keelung"
     }, {
       id: "tra_1002",
       v3id: "0920",
+      StationUID: ["TRA-0920"],
       name: "八堵",
       estring: "badu",
       sect: "keelung",
@@ -9966,6 +10254,7 @@ var pData = {
     }, {
       id: "tra_1003",
       v3id: "0930",
+      StationUID: ["TRA-0930"],
       name: "七堵",
       estring: "qidu",
       sect: "keelung",
@@ -9973,36 +10262,42 @@ var pData = {
     }, {
       id: "tra_1030",
       v3id: "0940",
+      StationUID: ["TRA-0940"],
       name: "百福",
       estring: "baifu",
       sect: "keelung"
     }, {
       id: "tra_1004",
       v3id: "0950",
+      StationUID: ["TRA-0950"],
       name: "五堵",
       estring: "wudu",
       sect: "taipei"
     }, {
       id: "tra_1005",
       v3id: "0960",
+      StationUID: ["TRA-0960"],
       name: "汐止",
       estring: "xizhisijhih",
       sect: "taipei"
     }, {
       id: "tra_1031",
       v3id: "0970",
+      StationUID: ["TRA-0970"],
       name: "汐科",
       estring: "xikesike",
       sect: "taipei"
     }, {
       id: "tra_1006",
       v3id: "0980",
+      StationUID: ["TRA-0980"],
       name: "南港",
       estring: "nangang",
       sect: "taipei"
     }, {
       id: "tra_1007",
       v3id: "0990",
+      StationUID: ["TRA-0990"],
       name: "松山",
       estring: "songshan",
       sect: "taipei",
@@ -10011,6 +10306,7 @@ var pData = {
     }, {
       id: "tra_1008",
       v3id: "1000",
+      StationUID: ["TRA-1000"],
       name: "台北",
       estring: "taipeitaibei",
       sect: "taipei",
@@ -10019,12 +10315,14 @@ var pData = {
     }, {
       id: "tra_1009",
       v3id: "1010",
+      StationUID: ["TRA-1010"],
       name: "萬華",
       estring: "wanhua",
       sect: "taipei"
     }, {
       id: "tra_1011",
       v3id: "1020",
+      StationUID: ["TRA-1020"],
       name: "板橋",
       estring: "banqiao",
       sect: "taipei",
@@ -10033,12 +10331,14 @@ var pData = {
     }, {
       id: "tra_1032",
       v3id: "1030",
+      StationUID: ["TRA-1030"],
       name: "浮洲",
       estring: "fuzhou",
       sect: "taipei"
     }, {
       id: "tra_1012",
       v3id: "1040",
+      StationUID: ["TRA-1040"],
       name: "樹林",
       estring: "shulin",
       sect: "taipei",
@@ -10046,30 +10346,35 @@ var pData = {
     }, {
       id: "tra_1034",
       v3id: "1050",
+      StationUID: ["TRA-1050"],
       name: "南樹林",
       estring: "nanshulin",
       sect: "taipei"
     }, {
       id: "tra_1013",
       v3id: "1060",
+      StationUID: ["TRA-1060"],
       name: "山佳",
       estring: "shanjia",
       sect: "taipei"
     }, {
       id: "tra_1014",
       v3id: "1070",
+      StationUID: ["TRA-1070"],
       name: "鶯歌",
       estring: "yingge",
       sect: "taipei"
     }, {
       id: "tra_1075",
       v3id: "1075",
+      StationUID: ["TRA-1075"],
       name: "鳳鳴",
       estring: "fengming",
       sect: "taipei"
     }, {
       id: "tra_1015",
       v3id: "1080",
+      StationUID: ["TRA-1080"],
       name: "桃園",
       estring: "taoyuan",
       sect: "taoyuan",
@@ -10077,12 +10382,14 @@ var pData = {
     }, {
       id: "tra_1016",
       v3id: "1090",
+      StationUID: ["TRA-1090"],
       name: "內壢",
       estring: "neili",
       sect: "taoyuan"
     }, {
       id: "tra_1017",
       v3id: "1100",
+      StationUID: ["TRA-1100"],
       name: "中壢",
       estring: "zhongli",
       sect: "taoyuan",
@@ -10090,66 +10397,77 @@ var pData = {
     }, {
       id: "tra_1037",
       v3id: "1105",
+      StationUID: ["TRA-1105"],
       name: "平鎮",
       estring: "pingzhen",
       sect: "taoyuan"
     }, {
       id: "tra_1018",
       v3id: "1110",
+      StationUID: ["TRA-1110"],
       name: "埔心",
       estring: "puxin",
       sect: "taoyuan"
     }, {
       id: "tra_1019",
       v3id: "1120",
+      StationUID: ["TRA-1120"],
       name: "楊梅",
       estring: "yangmei",
       sect: "taoyuan"
     }, {
       id: "tra_1020",
       v3id: "1130",
+      StationUID: ["TRA-1130"],
       name: "富岡",
       estring: "fugan",
       sect: "taoyuan"
     }, {
       id: "tra_1036",
       v3id: "1140",
+      StationUID: ["TRA-1140"],
       name: "新富",
       estring: "xinfu",
       sect: "taoyuan"
     }, {
       id: "tra_1033",
       v3id: "1150",
+      StationUID: ["TRA-1150"],
       name: "北湖",
       estring: "beihu",
       sect: "hsinchu"
     }, {
       id: "tra_1021",
       v3id: "1160",
+      StationUID: ["TRA-1160"],
       name: "湖口",
       estring: "hukou",
       sect: "hsinchu"
     }, {
       id: "tra_1022",
       v3id: "1170",
+      StationUID: ["TRA-1170"],
       name: "新豐",
       estring: "xinfeng",
       sect: "hsinchu"
     }, {
       id: "tra_1023",
       v3id: "1180",
+      StationUID: ["TRA-1180"],
       name: "竹北",
       estring: "zhubei",
       sect: "hsinchu"
     }, {
       id: "tra_1024",
       v3id: "1190",
+      StationUID: ["TRA-1190"],
       name: "北新竹",
       estring: "northhsinchubeixinzhu",
       sect: "hsinchu"
     }, {
       id: "tra_1025",
       v3id: "1210",
+      StationUID: ["TRA-1210"],
       name: "新竹",
       estring: "hsinchuxinzhu",
       sect: "hsinchu",
@@ -10157,24 +10475,28 @@ var pData = {
     }, {
       id: "tra_1035",
       v3id: "1220",
+      StationUID: ["TRA-1220"],
       name: "三姓橋",
       estring: "sanxingqiao",
       sect: "hsinchu"
     }, {
       id: "tra_1026",
       v3id: "1230",
+      StationUID: ["TRA-1230"],
       name: "香山",
       estring: "xiangshan",
       sect: "hsinchu"
     }, {
       id: "tra_1027",
       v3id: "1240",
+      StationUID: ["TRA-1240"],
       name: "崎頂",
       estring: "jidingciding",
       sect: "hsinchu"
     }, {
       id: "tra_1028",
       v3id: "1250",
+      StationUID: ["TRA-1250"],
       name: "竹南",
       estring: "zhunan",
       sect: "hsinchu",
@@ -10182,18 +10504,21 @@ var pData = {
     }, {
       id: "tra_1302",
       v3id: "3140",
+      StationUID: ["TRA-3140"],
       name: "造橋",
       estring: "zaoqiao",
       sect: "miaoli"
     }, {
       id: "tra_1304",
       v3id: "3150",
+      StationUID: ["TRA-3150"],
       name: "豐富",
       estring: "fengfu",
       sect: "miaoli"
     }, {
       id: "tra_1305",
       v3id: "3160",
+      StationUID: ["TRA-3160"],
       name: "苗栗",
       estring: "miaoli",
       sect: "miaoli",
@@ -10201,36 +10526,42 @@ var pData = {
     }, {
       id: "tra_1307",
       v3id: "3170",
+      StationUID: ["TRA-3170"],
       name: "南勢",
       estring: "nanshi",
       sect: "miaoli"
     }, {
       id: "tra_1308",
       v3id: "3180",
+      StationUID: ["TRA-3180"],
       name: "銅鑼",
       estring: "tongluo",
       sect: "miaoli"
     }, {
       id: "tra_1310",
       v3id: "3190",
+      StationUID: ["TRA-3190"],
       name: "三義",
       estring: "sanyi",
       sect: "miaoli"
     }, {
       id: "tra_1314",
       v3id: "3210",
+      StationUID: ["TRA-3210"],
       name: "泰安",
       estring: "taian",
       sect: "miaoli"
     }, {
       id: "tra_1315",
       v3id: "3220",
+      StationUID: ["TRA-3220"],
       name: "后里",
       estring: "houli",
       sect: "taichung"
     }, {
       id: "tra_1317",
       v3id: "3230",
+      StationUID: ["TRA-3230"],
       name: "豐原",
       estring: "fengyuan",
       sect: "taichung",
@@ -10238,42 +10569,49 @@ var pData = {
     }, {
       id: "tra_1325",
       v3id: "3240",
+      StationUID: ["TRA-3240"],
       name: "栗林",
       estring: "lilin",
       sect: "taichung"
     }, {
       id: "tra_1318",
       v3id: "3250",
+      StationUID: ["TRA-3250"],
       name: "潭子",
       estring: "tanzi",
       sect: "taichung"
     }, {
       id: "tra_1326",
       v3id: "3260",
+      StationUID: ["TRA-3260"],
       name: "頭家厝",
       estring: "toujiacuo",
       sect: "taichung"
     }, {
       id: "tra_1327",
       v3id: "3270",
+      StationUID: ["TRA-3270"],
       name: "松竹",
       estring: "toujiacuo",
       sect: "songzhu"
     }, {
       id: "tra_1323",
       v3id: "3280",
+      StationUID: ["TRA-3280"],
       name: "太原",
       estring: "taiyuan",
       sect: "taichung"
     }, {
       id: "tra_1328",
       v3id: "3290",
+      StationUID: ["TRA-3290"],
       name: "精武",
       estring: "jingwu",
       sect: "taichung"
     }, {
       id: "tra_1319",
       v3id: "3300",
+      StationUID: ["TRA-3300"],
       name: "台中",
       estring: "taizhongtaichung",
       sect: "taichung",
@@ -10281,36 +10619,42 @@ var pData = {
     }, {
       id: "tra_1329",
       v3id: "3310",
+      StationUID: ["TRA-3310"],
       name: "五權",
       estring: "wuquan",
       sect: "taichung"
     }, {
       id: "tra_1322",
       v3id: "3320",
+      StationUID: ["TRA-3320"],
       name: "大慶",
       estring: "daqing",
       sect: "taichung"
     }, {
       id: "tra_1320",
       v3id: "3330",
+      StationUID: ["TRA-3330"],
       name: "烏日",
       estring: "wuri",
       sect: "taichung"
     }, {
       id: "tra_1324",
       v3id: "3340",
+      StationUID: ["TRA-3340"],
       name: "新烏日",
       estring: "xinwuri",
       sect: "taichung"
     }, {
       id: "tra_1321",
       v3id: "3350",
+      StationUID: ["TRA-3350"],
       name: "成功",
       estring: "chenggong",
       sect: "taichung"
     }, {
       id: "tra_1120",
       v3id: "3360",
+      StationUID: ["TRA-3360"],
       name: "彰化",
       estring: "zhanghuachanghua",
       sect: "changhua",
@@ -10318,18 +10662,21 @@ var pData = {
     }, {
       id: "tra_1202",
       v3id: "3370",
+      StationUID: ["TRA-3370"],
       name: "花壇",
       estring: "huatan",
       sect: "changhua"
     }, {
       id: "tra_1240",
       v3id: "3380",
+      StationUID: ["TRA-3380"],
       name: "大村",
       estring: "dacundatsun",
       sect: "changhua"
     }, {
       id: "tra_1203",
       v3id: "3390",
+      StationUID: ["TRA-3390"],
       name: "員林",
       estring: "yuanlin",
       sect: "changhua",
@@ -10337,42 +10684,49 @@ var pData = {
     }, {
       id: "tra_1204",
       v3id: "3400",
+      StationUID: ["TRA-3400"],
       name: "永靖",
       estring: "yongjing",
       sect: "changhua"
     }, {
       id: "tra_1205",
       v3id: "3410",
+      StationUID: ["TRA-3410"],
       name: "社頭",
       estring: "shetou",
       sect: "changhua"
     }, {
       id: "tra_1206",
       v3id: "3420",
+      StationUID: ["TRA-3420"],
       name: "田中",
       estring: "tianzhong",
       sect: "changhua"
     }, {
       id: "tra_1207",
       v3id: "3430",
+      StationUID: ["TRA-3430"],
       name: "二水",
       estring: "ershuei",
       sect: "changhua"
     }, {
       id: "tra_1208",
       v3id: "3450",
+      StationUID: ["TRA-3450"],
       name: "林內",
       estring: "linnei",
       sect: "yunlin"
     }, {
       id: "tra_1209",
       v3id: "3460",
+      StationUID: ["TRA-3460"],
       name: "石榴",
       estring: "shilioushihliou",
       sect: "yunlin"
     }, {
       id: "tra_1210",
       v3id: "3470",
+      StationUID: ["TRA-3470"],
       name: "斗六",
       estring: "douliou",
       sect: "yunlin",
@@ -10380,36 +10734,42 @@ var pData = {
     }, {
       id: "tra_1211",
       v3id: "3480",
+      StationUID: ["TRA-3480"],
       name: "斗南",
       estring: "dounan",
       sect: "yunlin"
     }, {
       id: "tra_1212",
       v3id: "3490",
+      StationUID: ["TRA-3490"],
       name: "石龜",
       estring: "shigueishihguei",
       sect: "yunlin"
     }, {
       id: "tra_1213",
       v3id: "4050",
+      StationUID: ["TRA-4050"],
       name: "大林",
       estring: "dalin",
       sect: "yunlin"
     }, {
       id: "tra_1214",
       v3id: "4060",
+      StationUID: ["TRA-4060"],
       name: "民雄",
       estring: "minxiong",
       sect: "chiayi"
     }, {
       id: "tra_1241",
       v3id: "4070",
+      StationUID: ["TRA-4070"],
       name: "嘉北",
       estring: "jiabei",
       sect: "chiayi"
     }, {
       id: "tra_1215",
       v3id: "4080",
+      StationUID: ["TRA-4080"],
       name: "嘉義",
       estring: "jiayichiayi",
       sect: "chiayi",
@@ -10417,24 +10777,28 @@ var pData = {
     }, {
       id: "tra_1217",
       v3id: "4090",
+      StationUID: ["TRA-4090"],
       name: "水上",
       estring: "shueishang",
       sect: "chiayi"
     }, {
       id: "tra_1218",
       v3id: "4100",
+      StationUID: ["TRA-4100"],
       name: "南靖",
       estring: "nanjing",
       sect: "chiayi"
     }, {
       id: "tra_1219",
       v3id: "4110",
+      StationUID: ["TRA-4110"],
       name: "後壁",
       estring: "houbi",
       sect: "tainan"
     }, {
       id: "tra_1220",
       v3id: "4120",
+      StationUID: ["TRA-4120"],
       name: "新營",
       estring: "xinyingsinying",
       sect: "tainan",
@@ -10442,60 +10806,70 @@ var pData = {
     }, {
       id: "tra_1221",
       v3id: "4130",
+      StationUID: ["TRA-4130"],
       name: "柳營",
       estring: "liouying",
       sect: "tainan"
     }, {
       id: "tra_1222",
       v3id: "4140",
+      StationUID: ["TRA-4140"],
       name: "林鳳營",
       estring: "linfengyinglinfongying",
       sect: "tainan"
     }, {
       id: "tra_1223",
       v3id: "4150",
+      StationUID: ["TRA-4150"],
       name: "隆田",
       estring: "longtian",
       sect: "tainan"
     }, {
       id: "tra_1224",
       v3id: "4160",
+      StationUID: ["TRA-4160"],
       name: "拔林",
       estring: "balin",
       sect: "tainan"
     }, {
       id: "tra_1225",
       v3id: "4170",
+      StationUID: ["TRA-4170"],
       name: "善化",
       estring: "shanghua",
       sect: "tainan"
     }, {
       id: "tra_1244",
       v3id: "4180",
+      StationUID: ["TRA-4180"],
       name: "南科",
       estring: "nanke",
       sect: "tainan"
     }, {
       id: "tra_1226",
       v3id: "4190",
+      StationUID: ["TRA-4190"],
       name: "新市",
       estring: "xinshisinshih",
       sect: "tainan"
     }, {
       id: "tra_1227",
       v3id: "4200",
+      StationUID: ["TRA-4200"],
       name: "永康",
       estring: "yungkangyongkang",
       sect: "tainan"
     }, {
       id: "tra_1239",
       v3id: "4210",
+      StationUID: ["TRA-4210"],
       name: "大橋",
       estring: "daqiaodaciao",
       sect: "tainan"
     }, {
       id: "tra_1228",
       v3id: "4220",
+      StationUID: ["TRA-4220"],
       name: "台南",
       estring: "tainan",
       sect: "tainan",
@@ -10503,36 +10877,42 @@ var pData = {
     }, {
       id: "tra_1229",
       v3id: "4250",
+      StationUID: ["TRA-4250"],
       name: "保安",
       estring: "baoan",
       sect: "tainan"
     }, {
       id: "tra_1243",
       v3id: "4260",
+      StationUID: ["TRA-4260"],
       name: "仁德",
       estring: "rende",
       sect: "tainan"
     }, {
       id: "tra_1230",
       v3id: "4270",
-      name: "中州",
+      StationUID: ["TRA-4270"],
+      name: "中洲",
       estring: "zhongzhoujhongjhou",
       sect: "tainan"
     }, {
       id: "tra_1231",
       v3id: "4290",
+      StationUID: ["TRA-4290"],
       name: "大湖",
       estring: "dahu",
       sect: "kaohsiung"
     }, {
       id: "tra_1232",
       v3id: "4300",
+      StationUID: ["TRA-4300"],
       name: "路竹",
       estring: "luzhulujhu",
       sect: "kaohsiung"
     }, {
       id: "tra_1233",
       v3id: "4310",
+      StationUID: ["TRA-4310"],
       name: "岡山",
       estring: "ganshan",
       sect: "kaohsiung",
@@ -10540,18 +10920,21 @@ var pData = {
     }, {
       id: "tra_1234",
       v3id: "4320",
+      StationUID: ["TRA-4320"],
       name: "橋頭",
       estring: "qiaotou",
       sect: "kaohsiung"
     }, {
       id: "tra_1235",
       v3id: "4330",
+      StationUID: ["TRA-4330"],
       name: "楠梓",
       estring: "nanzi",
       sect: "kaohsiung"
     }, {
       id: "tra_1242",
       v3id: "4340",
+      StationUID: ["TRA-4340"],
       name: "新左營",
       estring: "xingzouying",
       sect: "kaohsiung",
@@ -10559,36 +10942,42 @@ var pData = {
     }, {
       id: "tra_1236",
       v3id: "4350",
+      StationUID: ["TRA-4350"],
       name: "左營",
       estring: "zouying",
       sect: "kaohsiung"
     }, {
       id: "tra_1245",
       v3id: "4360",
+      StationUID: ["TRA-4360"],
       name: "內惟",
       estring: "neiwei",
       sect: "kaohsiung"
     }, {
       id: "tra_1246",
       v3id: "4370",
+      StationUID: ["TRA-4370"],
       name: "美術館",
       estring: "meishuguanmuseumoffinearts",
       sect: "kaohsiung"
     }, {
       id: "tra_1237",
       v3id: "4380",
+      StationUID: ["TRA-4380"],
       name: "鼓山",
       estring: "gushan",
       sect: "kaohsiung"
     }, {
       id: "tra_1247",
       v3id: "4390",
+      StationUID: ["TRA-4390"],
       name: "三塊厝",
       estring: "sankuaicuo",
       sect: "kaohsiung"
     }, {
       id: "tra_1238",
       v3id: "4400",
+      StationUID: ["TRA-4400"],
       name: "高雄",
       estring: "kaohsiunggaoxung",
       sect: "kaohsiung",
@@ -10596,45 +10985,53 @@ var pData = {
     }, {
       id: "tra_1419",
       v3id: "4410",
+      StationUID: ["TRA-4410"],
       name: "民族",
       estring: "mingzhu",
       sect: "kaohsiung"
     }, {
       id: "tra_1420",
       v3id: "4420",
+      StationUID: ["TRA-4420"],
       name: "科工館",
       estring: "kegongguanscienceandtecnologymuseum",
       sect: "kaohsiung"
     }, {
       id: "tra_1421",
       v3id: "4430",
+      StationUID: ["TRA-4430"],
       name: "正義",
       estring: "zhengyi",
       sect: "kaohsiung"
     }, {
       id: "tra_1402",
       v3id: "4440",
+      StationUID: ["TRA-4440"],
       name: "鳳山",
       estring: "fongshanfengshan",
       sect: "kaohsiung"
     }, {
       id: "tra_1403",
       v3id: "4450",
+      StationUID: ["TRA-4450"],
       name: "後庄",
       sect: "kaohsiung"
     }, {
       id: "tra_1404",
       v3id: "4460",
+      StationUID: ["TRA-4460"],
       name: "九曲堂",
       sect: "kaohsiung"
     }, {
       id: "tra_1405",
       v3id: "4470",
+      StationUID: ["TRA-4470"],
       name: "六塊厝",
       sect: "pingdong"
     }, {
       id: "tra_1406",
       v3id: "5000",
+      StationUID: ["TRA-5000"],
       name: "屏東",
       estring: "pingtungpingdong",
       sect: "pingdong",
@@ -10643,26 +11040,31 @@ var pData = {
     }, {
       id: "tra_1407",
       v3id: "5010",
+      StationUID: ["TRA-5010"],
       name: "歸來",
       sect: "pingdong"
     }, {
       id: "tra_1408",
       v3id: "5020",
+      StationUID: ["TRA-5020"],
       name: "麟洛",
       sect: "pingdong"
     }, {
       id: "tra_1409",
       v3id: "5030",
+      StationUID: ["TRA-5030"],
       name: "西勢",
       sect: "pingdong"
     }, {
       id: "tra_1410",
       v3id: "5040",
+      StationUID: ["TRA-5040"],
       name: "竹田",
       sect: "pingdong"
     }, {
       id: "tra_1411",
       v3id: "5050",
+      StationUID: ["TRA-5050"],
       name: "潮州",
       estring: "chaozhouchaojhou",
       sect: "pingdong",
@@ -10671,53 +11073,63 @@ var pData = {
     }, {
       id: "tra_1412",
       v3id: "5060",
+      StationUID: ["TRA-5060"],
       name: "崁頂",
       sect: "pingdong"
     }, {
       id: "tra_1413",
       v3id: "5070",
+      StationUID: ["TRA-5070"],
       name: "南州",
       sect: "pingdong"
     }, {
       id: "tra_1414",
       v3id: "5080",
+      StationUID: ["TRA-5080"],
       name: "鎮安",
       sect: "pingdong"
     }, {
       id: "tra_1415",
       v3id: "5090",
+      StationUID: ["TRA-5090"],
       name: "林邊",
       sect: "pingdong"
     }, {
       id: "tra_1416",
       v3id: "5100",
+      StationUID: ["TRA-5100"],
       name: "佳冬",
       sect: "pingdong"
     }, {
       id: "tra_1417",
       v3id: "5110",
+      StationUID: ["TRA-5110"],
       name: "東海",
       sect: "pingdong"
     }, {
       id: "tra_1418",
       v3id: "5120",
+      StationUID: ["TRA-5120"],
       name: "枋寮",
       sect: "pingdong"
     }, {
       id: "tra_1802",
       v3id: "7390",
+      StationUID: ["TRA-7390"],
       name: "暖暖",
       estring: "nuannuan",
       sect: "northeast"
     }, {
       id: "tra_1803",
       v3id: "7380",
+      StationUID: ["TRA-7380"],
       name: "四腳亭",
       estring: "sijiaoting",
       sect: "northeast"
     }, {
       id: "tra_1804",
       v3id: "7360",
+      StationUID: ["TRA-7360"],
       name: "瑞芳",
       estring: "ruifang",
       sect: "northeast",
@@ -10725,72 +11137,84 @@ var pData = {
     }, {
       id: "tra_1805",
       v3id: "7350",
+      StationUID: ["TRA-7350"],
       name: "猴硐",
       estring: "houdong",
       sect: "northeast"
     }, {
       id: "tra_1806",
       v3id: "7330",
+      StationUID: ["TRA-7330"],
       name: "三貂嶺",
       estring: "sandiaoling",
       sect: "northeast"
     }, {
       id: "tra_1807",
       v3id: "7320",
+      StationUID: ["TRA-7320"],
       name: "牡丹",
       estring: "mudan",
       sect: "northeast"
     }, {
       id: "tra_1808",
       v3id: "7310",
+      StationUID: ["TRA-7310"],
       name: "雙溪",
       estring: "shuangxi",
       sect: "northeast"
     }, {
       id: "tra_1809",
       v3id: "7300",
+      StationUID: ["TRA-7300"],
       name: "貢寮",
       estring: "gongliao",
       sect: "northeast"
     }, {
       id: "tra_1810",
       v3id: "7290",
+      StationUID: ["TRA-7290"],
       name: "福隆",
       estring: "fulong",
       sect: "northeast"
     }, {
       id: "tra_1811",
       v3id: "7280",
+      StationUID: ["TRA-7280"],
       name: "石城",
       estring: "shicheng",
       sect: "yilan"
     }, {
       id: "tra_1812",
       v3id: "7270",
+      StationUID: ["TRA-7270"],
       name: "大里",
       estring: "dali",
       sect: "yilan"
     }, {
       id: "tra_1813",
       v3id: "7260",
+      StationUID: ["TRA-7260"],
       name: "大溪",
       estring: "daxidasi",
       sect: "yilan"
     }, {
       id: "tra_1814",
       v3id: "7250",
+      StationUID: ["TRA-7250"],
       name: "龜山",
       estring: "gueishan",
       sect: "yilan"
     }, {
       id: "tra_1815",
       v3id: "7240",
+      StationUID: ["TRA-7240"],
       name: "外澳",
       estring: "waiao",
       sect: "yilan"
     }, {
       id: "tra_1816",
       v3id: "7230",
+      StationUID: ["TRA-7230"],
       name: "頭城",
       estring: "toucheng",
       sect: "yilan",
@@ -10798,24 +11222,28 @@ var pData = {
     }, {
       id: "tra_1817",
       v3id: "7220",
+      StationUID: ["TRA-7220"],
       name: "頂埔",
       estring: "dingpu",
       sect: "yilan"
     }, {
       id: "tra_1818",
       v3id: "7210",
+      StationUID: ["TRA-7210"],
       name: "礁溪",
       estring: "jiaoxijiaohsi",
       sect: "yilan"
     }, {
       id: "tra_1819",
       v3id: "7200",
+      StationUID: ["TRA-7200"],
       name: "四城",
       estring: "sicheng",
       sect: "yilan"
     }, {
       id: "tra_1820",
       v3id: "7190",
+      StationUID: ["TRA-7190"],
       name: "宜蘭",
       estring: "yilan",
       sect: "yilan",
@@ -10823,18 +11251,21 @@ var pData = {
     }, {
       id: "tra_1821",
       v3id: "7180",
+      StationUID: ["TRA-7180"],
       name: "二結",
       estring: "erjie",
       sect: "yilan"
     }, {
       id: "tra_1822",
       v3id: "7170",
+      StationUID: ["TRA-7170"],
       name: "中里",
       estring: "zhongli",
       sect: "yilan"
     }, {
       id: "tra_1823",
       v3id: "7160",
+      StationUID: ["TRA-7160"],
       name: "羅東",
       estring: "luodong",
       sect: "yilan",
@@ -10842,18 +11273,21 @@ var pData = {
     }, {
       id: "tra_1824",
       v3id: "7150",
+      StationUID: ["TRA-7150"],
       name: "冬山",
       estring: "dongshan",
       sect: "yilan"
     }, {
       id: "tra_1825",
       v3id: "7140",
+      StationUID: ["TRA-7140"],
       name: "新馬",
       estring: "xinmasinma",
       sect: "yilan"
     }, {
       id: "tra_1826",
       v3id: "7130",
+      StationUID: ["TRA-7130"],
       name: "蘇澳新",
       estring: "suaoxinsuaosin",
       sect: "yilan",
@@ -10861,24 +11295,28 @@ var pData = {
     }, {
       id: "tra_1827",
       v3id: "7120",
+      StationUID: ["TRA-7120"],
       name: "蘇澳",
       estring: "suao",
       sect: "yilan"
     }, {
       id: "tra_1703",
       v3id: "7110",
+      StationUID: ["TRA-7110"],
       name: "永樂",
       estring: "yongle",
       sect: "beihui"
     }, {
       id: "tra_1704",
       v3id: "7100",
+      StationUID: ["TRA-7100"],
       name: "東澳",
       estring: "dongao",
       sect: "beihui"
     }, {
       id: "tra_1705",
       v3id: "7090",
+      StationUID: ["TRA-7090"],
       name: "南澳",
       estring: "nanao",
       sect: "beihui",
@@ -10886,54 +11324,63 @@ var pData = {
     }, {
       id: "tra_1706",
       v3id: "7080",
+      StationUID: ["TRA-7080"],
       name: "武塔",
       estring: "wuta",
       sect: "beihui"
     }, {
       id: "tra_1708",
       v3id: "7070",
+      StationUID: ["TRA-7070"],
       name: "漢本",
       estring: "hanben",
       sect: "beihui"
     }, {
       id: "tra_1709",
       v3id: "7060",
+      StationUID: ["TRA-7060"],
       name: "和平",
       estring: "heping",
       sect: "beihui"
     }, {
       id: "tra_1710",
       v3id: "7050",
+      StationUID: ["TRA-7050"],
       name: "和仁",
       estring: "heren",
       sect: "beihui"
     }, {
       id: "tra_1711",
       v3id: "7040",
+      StationUID: ["TRA-7040"],
       name: "崇德",
       estring: "chongde",
       sect: "hualian"
     }, {
       id: "tra_1712",
       v3id: "7030",
+      StationUID: ["TRA-7030"],
       name: "新城",
       estring: "xinchengsincheng",
       sect: "hualian"
     }, {
       id: "tra_1713",
       v3id: "7020",
+      StationUID: ["TRA-7020"],
       name: "景美",
       estring: "jingmei",
       sect: "hualian"
     }, {
       id: "tra_1714",
       v3id: "7010",
+      StationUID: ["TRA-7010"],
       name: "北埔",
       estring: "beipu",
       sect: "hualian"
     }, {
       id: "tra_1715",
       v3id: "7000",
+      StationUID: ["TRA-7000"],
       name: "花蓮",
       estring: "hualienhualian",
       sect: "hualian",
@@ -10942,90 +11389,105 @@ var pData = {
     {
       id: "tra_1602",
       v3id: "6250",
+      StationUID: ["TRA-6250"],
       name: "吉安",
       estring: "jian",
       sect: "hualian"
     }, {
       id: "tra_1604",
       v3id: "6240",
+      StationUID: ["TRA-6240"],
       name: "志學",
       estring: "zhixue",
       sect: "hualian"
     }, {
       id: "tra_1605",
       v3id: "6230",
+      StationUID: ["TRA-6230"],
       name: "平和",
       estring: "pinghe",
       sect: "hualian"
     }, {
       id: "tra_1606",
       v3id: "6220",
+      StationUID: ["TRA-6220"],
       name: "壽豐",
       estring: "shoufeng",
       sect: "hualian"
     }, {
       id: "tra_1607",
       v3id: "6210",
+      StationUID: ["TRA-6210"],
       name: "豐田",
       estring: "fengtian",
       sect: "hualian"
     }, {
       id: "tra_1608",
       v3id: "6200",
+      StationUID: ["TRA-6200"],
       name: "林榮新光",
       estring: "lingrongzinguanglingrongshinkong",
       sect: "hualian"
     }, {
       id: "tra_1609",
       v3id: "6190",
+      StationUID: ["TRA-6190"],
       name: "南平",
       estring: "nanping",
       sect: "hualian"
     }, {
       id: "tra_1610",
       v3id: "6180",
+      StationUID: ["TRA-6180"],
       name: "鳳林",
       estring: "fenglinfonglin",
       sect: "hualian"
     }, {
       id: "tra_1611",
       v3id: "6170",
+      StationUID: ["TRA-6170"],
       name: "萬榮",
       estring: "wanrong",
       sect: "hualian"
     }, {
       id: "tra_1612",
       v3id: "6160",
+      StationUID: ["TRA-6160"],
       name: "光復",
       estring: "guangfu",
       sect: "hualian"
     }, {
       id: "tra_1613",
       v3id: "6150",
+      StationUID: ["TRA-6150"],
       name: "大富",
       estring: "dafu",
       sect: "hualian"
     }, {
       id: "tra_1614",
       v3id: "6140",
+      StationUID: ["TRA-6140"],
       name: "富源",
       estring: "fuyuan",
       sect: "hualian"
     }, {
       id: "tra_1616",
       v3id: "6130",
+      StationUID: ["TRA-6130"],
       name: "瑞穗",
       estring: "ruisui",
       sect: "hualian"
     }, {
       id: "tra_1617",
       v3id: "6120",
+      StationUID: ["TRA-6120"],
       name: "三民",
       estring: "sanmin",
       sect: "hualian"
     }, {
       id: "tra_1619",
       v3id: "6110",
+      StationUID: ["TRA-6110"],
       name: "玉里",
       estring: "yuli",
       sect: "hualian",
@@ -11033,66 +11495,77 @@ var pData = {
     }, {
       id: "tra_1621",
       v3id: "6100",
+      StationUID: ["TRA-6100"],
       name: "東里",
       estring: "dongli",
       sect: "hualian"
     }, {
       id: "tra_1622",
       v3id: "6090",
+      StationUID: ["TRA-6090"],
       name: "東竹",
       estring: "dongzhu",
       sect: "hualian"
     }, {
       id: "tra_1623",
       v3id: "6080",
+      StationUID: ["TRA-6080"],
       name: "富里",
       estring: "fuli",
       sect: "hualian"
     }, {
       id: "tra_1624",
       v3id: "6070",
+      StationUID: ["TRA-6070"],
       name: "池上",
       estring: "chishang",
       sect: "taidong"
     }, {
       id: "tra_1625",
       v3id: "6060",
+      StationUID: ["TRA-6060"],
       name: "海端",
       estring: "haiduan",
       sect: "taidong"
     }, {
       id: "tra_1626",
       v3id: "6050",
+      StationUID: ["TRA-6050"],
       name: "關山",
       estring: "guanshan",
       sect: "taidong"
     }, {
       id: "tra_1628",
       v3id: "6040",
+      StationUID: ["TRA-6040"],
       name: "瑞和",
       estring: "ruihe",
       sect: "taidong"
     }, {
       id: "tra_1629",
       v3id: "6030",
+      StationUID: ["TRA-6030"],
       name: "瑞源",
       estring: "ruiyuan",
       sect: "taidong"
     }, {
       id: "tra_1630",
       v3id: "6020",
+      StationUID: ["TRA-6020"],
       name: "鹿野",
       estring: "luye",
       sect: "taidong"
     }, {
       id: "tra_1631",
       v3id: "6010",
+      StationUID: ["TRA-6010"],
       name: "山里",
       estring: "shanli",
       sect: "taidong"
     }, {
       id: "tra_1632",
       v3id: "6000",
+      StationUID: ["TRA-6000"],
       name: "台東",
       estring: "taitungtaidong",
       sect: "taidong",
@@ -11101,299 +11574,353 @@ var pData = {
     {
       id: "tra_1102",
       v3id: "2110",
+      StationUID: ["TRA-2110"],
       name: "談文",
       sect: "miaoli"
     }, {
       id: "tra_1104",
       v3id: "2120",
+      StationUID: ["TRA-2120"],
       name: "大山",
       sect: "miaoli"
     }, {
       id: "tra_1105",
       v3id: "2130",
+      StationUID: ["TRA-2130"],
       name: "後龍",
       sect: "miaoli"
     }, {
       id: "tra_1106",
       v3id: "2140",
+      StationUID: ["TRA-2140"],
       name: "龍港",
       sect: "miaoli"
     }, {
       id: "tra_1107",
       v3id: "2150",
+      StationUID: ["TRA-2150"],
       name: "白沙屯",
       sect: "miaoli"
     }, {
       id: "tra_1108",
       v3id: "2160",
+      StationUID: ["TRA-2160"],
       name: "新埔",
       sect: "miaoli"
     }, {
       id: "tra_1109",
       v3id: "2170",
+      StationUID: ["TRA-2170"],
       name: "通霄",
       sect: "miaoli"
     }, {
       id: "tra_1110",
       v3id: "2180",
+      StationUID: ["TRA-2180"],
       name: "苑裡",
       sect: "miaoli"
     }, {
       id: "tra_1111",
       v3id: "2190",
+      StationUID: ["TRA-2190"],
       name: "日南",
       sect: "taichung"
     }, {
       id: "tra_1112",
       v3id: "2200",
+      StationUID: ["TRA-2200"],
       name: "大甲",
       sect: "taichung"
     }, {
       id: "tra_1113",
       v3id: "2210",
+      StationUID: ["TRA-2210"],
       name: "臺中港",
       sect: "taichung"
     }, {
       id: "tra_1114",
       v3id: "2220",
+      StationUID: ["TRA-2220"],
       name: "清水",
       sect: "taichung"
     }, {
       id: "tra_1115",
       v3id: "2230",
+      StationUID: ["TRA-2230"],
       name: "沙鹿",
       sect: "taichung"
     }, {
       id: "tra_1116",
       v3id: "2240",
+      StationUID: ["TRA-2240"],
       name: "龍井",
       sect: "taichung"
     }, {
       id: "tra_1117",
       v3id: "2250",
+      StationUID: ["TRA-2250"],
       name: "大肚",
       sect: "taichung"
     }, {
       id: "tra_1118",
       v3id: "2260",
+      StationUID: ["TRA-2260"],
       name: "追分",
       sect: "taichung"
     }, {
       id: "tra_1502",
       v3id: "5130",
+      StationUID: ["TRA-5130"],
       name: "加祿",
       sect: "pingdong"
     }, {
       id: "tra_1503",
       v3id: "5140",
+      StationUID: ["TRA-5140"],
       name: "內獅",
       sect: "pingdong"
     }, {
       id: "tra_1504",
       v3id: "5160",
+      StationUID: ["TRA-5160"],
       name: "枋山",
       sect: "pingdong"
     }, {
       id: "tra_1507",
       v3id: "5180",
+      StationUID: [],
       name: "古莊",
       sect: "taidong"
     }, {
       id: "tra_1508",
       v3id: "5190",
+      StationUID: ["TRA-5190"],
       name: "大武",
       sect: "taidong"
     }, {
       id: "tra_1510",
       v3id: "5200",
+      StationUID: ["TRA-5200"],
       name: "瀧溪",
       sect: "taidong"
     }, {
       id: "tra_1512",
       v3id: "5210",
+      StationUID: ["TRA-5210"],
       name: "金崙",
       sect: "taidong"
     }, {
       id: "tra_1514",
       v3id: "5220",
+      StationUID: ["TRA-5220"],
       name: "太麻里",
       sect: "taidong"
     }, {
       id: "tra_1516",
       v3id: "5230",
+      StationUID: ["TRA-5230"],
       name: "知本",
       sect: "taidong"
     }, {
       id: "tra_1517",
       v3id: "5240",
+      StationUID: ["TRA-5240"],
       name: "康樂",
       sect: "taidong"
     }, //海線及南迴線臨時資料
     {
       id: "tra_2003",
       v3id: "7362",
+      StationUID: ["TRA-7362"],
       name: "八斗子",
       estring: "badouzi",
       sect: "northeast"
     }, {
       id: "tra_6103",
       v3id: "7361",
+      StationUID: ["TRA-7361"],
       name: "海科館",
       estring: "haikeguan",
       sect: "northeast"
     }, {
       id: "tra_1903",
       v3id: "7331",
+      StationUID: ["TRA-7331"],
       name: "大華",
       estring: "dahua",
       sect: "northeast"
     }, {
       id: "tra_1904",
       v3id: "7332",
+      StationUID: ["TRA-7332"],
       name: "十分",
       estring: "shifenshihfen",
       sect: "northeast"
     }, {
       id: "tra_1905",
       v3id: "7333",
+      StationUID: ["TRA-7333"],
       name: "望古",
       estring: "wanggu",
       sect: "northeast"
     }, {
       id: "tra_1906",
       v3id: "7334",
+      StationUID: ["TRA-7334"],
       name: "嶺腳",
       estring: "lingjiao",
       sect: "northeast"
     }, {
       id: "tra_1907",
       v3id: "7335",
+      StationUID: ["TRA-7335"],
       name: "平溪",
       estring: "pingxipingsi",
       sect: "northeast"
     }, {
       id: "tra_1908",
       v3id: "7336",
+      StationUID: ["TRA-7336"],
       name: "菁桐",
       estring: "jingtong",
       sect: "northeast"
     }, {
       id: "tra_2212",
       v3id: "1191",
+      StationUID: ["TRA-1191"],
       name: "千甲",
       estring: "qianjia",
       sect: "hsinchu"
     }, {
       id: "tra_2213",
       v3id: "1192",
+      StationUID: ["TRA-1192"],
       name: "新莊",
       estring: "xinzhuang",
       sect: "hsinchu"
     }, {
       id: "tra_2203",
       v3id: "1193",
+      StationUID: ["TRA-1193"],
       name: "竹中",
       estring: "zhuzhong",
       sect: "hsinchu"
     }, {
       id: "tra_2214",
       v3id: "1194",
+      StationUID: ["TRA-1194"],
       name: "六家",
       estring: "liujia",
       sect: "hsinchu"
     }, {
       id: "tra_2204",
       v3id: "1201",
+      StationUID: ["TRA-1201"],
       name: "上員",
       estring: "shangyuan",
       sect: "hsinchu"
     }, {
       id: "tra_2211",
       v3id: "1202",
+      StationUID: ["TRA-1202"],
       name: "榮華",
       estring: "ronghua",
       sect: "hsinchu"
     }, {
       id: "tra_2205",
       v3id: "1203",
+      StationUID: ["TRA-1203"],
       name: "竹東",
       estring: "zhudong",
       sect: "hsinchu"
     }, {
       id: "tra_2206",
       v3id: "1204",
+      StationUID: ["TRA-1204"],
       name: "橫山",
       estring: "zhuzhong",
       sect: "hsinchu"
     }, {
       id: "tra_2207",
       v3id: "1205",
+      StationUID: ["TRA-1205"],
       name: "九讚頭",
       estring: "jiouzantou",
       sect: "hsinchu"
     }, {
       id: "tra_2208",
       v3id: "1206",
+      StationUID: ["TRA-1206"],
       name: "合興",
       estring: "hexinghesing",
       sect: "hsinchu"
     }, {
       id: "tra_2209",
       v3id: "1207",
+      StationUID: ["TRA-1207"],
       name: "富貴",
       estring: "fuguei",
       sect: "hsinchu"
     }, {
       id: "tra_2210",
       v3id: "1208",
+      StationUID: ["TRA-1208"],
       name: "內灣",
       estring: "neiwan",
       sect: "hsinchu"
     }, {
       id: "tra_2702",
       v3id: "3431",
+      StationUID: ["TRA-3431"],
       name: "源泉",
       estring: "yuanciyuanyuanquan",
       sect: "changhua"
     }, {
       id: "tra_2703",
       v3id: "3432",
+      StationUID: ["TRA-3432"],
       name: "濁水",
       estring: "zhuoshuijhoushuei",
       sect: "changhua"
     }, {
       id: "tra_2704",
       v3id: "3433",
+      StationUID: ["TRA-3433"],
       name: "龍泉",
       estring: "longquanlungcyuan",
       sect: "changhua"
     }, {
       id: "tra_2705",
       v3id: "3434",
+      StationUID: ["TRA-3434"],
       name: "集集",
       estring: "jiji",
       sect: "changhua"
     }, {
       id: "tra_2706",
       v3id: "3435",
+      StationUID: ["TRA-3435"],
       name: "水里",
       estring: "shuilishueili",
       sect: "changhua"
     }, {
       id: "tra_2707",
       v3id: "3436",
+      StationUID: ["TRA-3436"],
       name: "車埕",
       estring: "checheng",
       sect: "changhua"
     }, {
       id: "tra_5101",
       v3id: "4271",
+      StationUID: ["TRA-4271"],
       name: "長榮大學",
       estring: "changrongdaxuechangjungchristianuniversity",
       sect: "tainan"
     }, {
       id: "tra_5102",
       v3id: "4272",
+      StationUID: ["TRA-4272"],
       name: "沙崙",
       estring: "shalun",
       sect: "tainan"
@@ -17958,6 +18485,27 @@ function mrtLineTrans(objS) {
   }
 
   return rt;
+} //====================== StationUID 反查 ==============================
+//傳入 TDX StationUID（如 TRTC-BR01、TRA-1000、NTMCC-LB01），回傳 data.js 內 StationUID 含該值的車站物件，找不到回傳 undefined
+//同一 UID 可能同時出現在多家（如三鶯線 LB01 在 trtc_076 與 ntmc_lb01），先找 UID 前綴對應的公司（NTMCC- → ntmc），再找其他公司
+
+
+function getStationDataByStationUID(uid) {
+  if (typeof uid != 'string' || !uid) return undefined;
+  var companies = Object.keys(pData).filter(function (k) {
+    return pData[k] && pData[k].station_ary;
+  });
+  var uidLower = uid.toLowerCase();
+  companies.sort(function (a, b) {
+    return (uidLower.indexOf(b) == 0) - (uidLower.indexOf(a) == 0);
+  });
+
+  for (var i = 0; i < companies.length; i++) {
+    var stData = findData(pData[companies[i]].station_ary, 'StationUID', uid);
+    if (stData) return stData;
+  }
+
+  return undefined;
 }
 
 var thsr$1 = {
@@ -18173,6 +18721,7 @@ var ntmc = {
 var id$2 = {
   idTrans: idTrans,
   mrtLineTrans: mrtLineTrans,
+  getStationDataByStationUID: getStationDataByStationUID,
   thsr: thsr$1,
   tra: tra,
   trtc: trtc,
