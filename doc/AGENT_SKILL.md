@@ -29,6 +29,7 @@ Primary rule: **reuse the current `src/*.js` structure; do not invent a new arch
 
 ### Support layers
 - `src/id.js`: station / line / version ID conversion
+- TRA station IDs are TDX v3 codes everywhere: TDX v2 and v3 APIs only accept / return v3 codes (v2 codes return HTTP 200 with empty data), datax / out_data are v3, and the hand-written `src/data.js` rpIDs are `tra_` + v3 code (`tra_1000` = Taipei). `id.tra.*` / `tra.v2Sv3` / `tra.v3Sv2` keep their original lookup logic, so input and output are the same v3 code. Never add old v2 codes: some v2 codes are numerically equal to a different station's v3 code (`1020` was Fugang in v2, is Banqiao in v3).
 - `src/router.js`, `src/router.v2.js`, `src/router.bus.js`: routing / transfer logic
 - `src/data.js`, `src/datax.js`: static or enriched data (datax also exposes out_data loaders)
 

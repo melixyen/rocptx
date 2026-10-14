@@ -94,9 +94,9 @@ var ptx = rocptx;
 					</router-link>
 					<div v-show="sect=='station_ary'">
 						<table class="show1">
-							<tr><th>站名</th><th>rpStationID</th><th>PTX V2 StationID</th><th>PTX V3 StationID</th></tr>
+							<tr><th>站名</th><th>rpStationID</th><th>TDX StationID（v2 / v3 相同）</th></tr>
 							<tr v-for="st in info.station_ary">
-								<td>{{st.name}}</td><td>{{st.id}}</td><td>{{getPTXV2(st.id)}}</td><td>{{st.v3id}}</td>
+								<td>{{st.name}}</td><td>{{st.id}}</td><td>{{st.v3id}}</td>
 							</tr>
 						</table>
 					</div>
@@ -114,7 +114,6 @@ var ptx = rocptx;
 			info: pData.tra
 		}},
 		methods: {
-			getPTXV2: ptx.id.tra.getPTXV2
 		},
 		mounted: function(){
 			BB.tra = this;

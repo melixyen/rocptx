@@ -513,13 +513,13 @@ var ptx = {
         });
     },
     getStationLiveInfo: function(stid, cbFn){
-        stid = (stid) ? stid.replace('tra_','') : '1008';
+        stid = (stid) ? stid.replace('tra_','') : '1000';
         cbFn = cbFn || function(data){console.info(data);};
         var url = traURL + '/LiveBoard/Station/' + stid + '?$top=30&$format=JSON';
         this.getURL(url, cbFn);
     },
     getStationTodayTime: function(stid, cbFn){
-        stid = (stid) ? stid.replace('tra_','') : '1008';
+        stid = (stid) ? stid.replace('tra_','') : '1000';
         cbFn = cbFn || function(data){console.info(data);};
         var url = traURL + '/DailyTimetable/Station/' + stid + '/' + TT.goingData.today + '?$top=3000&$format=JSON';
         this.getURL(url, cbFn);

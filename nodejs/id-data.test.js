@@ -22,46 +22,53 @@ test('id 轉換工具', async (t) => {
         assert.equal(id.thsr.getRPIDbyPTXV2('0990'), 'thsr_0990');
     });
 
-    await t.test('id.tra v2/v3 互轉（以台北站 1008 <-> 1000 為例）', () => {
-        assert.equal(id.tra.getPTXV2('tra_1008'), '1008');
-        assert.equal(id.tra.getRPIDbyPTXV2('1008'), 'tra_1008');
-        assert.equal(id.tra.getPTXV3('1008'), '1000');
-        assert.equal(id.tra.getPTXV3byV2('1008'), '1000');
-        assert.equal(id.tra.getPTXV2byV3('1000'), '1008');
-        assert.equal(id.tra.getRPIDbyPTXV3('1000'), 'tra_1008');
+    await t.test('id.tra v2/v3 互轉：rpID 已改為 v3 站碼，互轉函式輸入輸出皆為同一筆 v3 ID（以台北站 1000 為例）', () => {
+        assert.equal(id.tra.getPTXV2('tra_1000'), '1000');
+        assert.equal(id.tra.getRPIDbyPTXV2('1000'), 'tra_1000');
+        assert.equal(id.tra.getPTXV3('1000'), '1000');
+        assert.equal(id.tra.getPTXV3('tra_1000'), '1000');
+        assert.equal(id.tra.getPTXV3byV2('1000'), '1000');
+        assert.equal(id.tra.getPTXV2byV3('1000'), '1000');
+        assert.equal(id.tra.getRPIDbyPTXV3('1000'), 'tra_1000');
+        assert.equal(ptx.tra.v2Sv3('1000'), '1000');
+        assert.equal(ptx.tra.v3Sv2('1000'), '1000');
+        // 舊 v2 站碼已不在資料中
+        assert.equal(id.tra.getPTXV3byV2('1008'), false);
     });
 
-    await t.test('id.tra 平鎮 tra_1037 <-> 1105，不影響後龍 tra_1105 <-> 2130 與鳳鳴', () => {
-        // 平鎮內部 ID 不能用 tra_1105（已是後龍），改用北段新站流水號 tra_1037
-        assert.equal(id.tra.getPTXV3byV2('1037'), '1105');
-        assert.equal(id.tra.getPTXV2byV3('1105'), '1037');
-        assert.equal(id.tra.getRPIDbyPTXV3('1105'), 'tra_1037');
-        assert.equal(ptx.tra.v3Sv2('1105'), '1037');
-        assert.equal(ptx.tra.v2Sv3('1037'), '1105');
-        // 後龍
-        assert.equal(id.tra.getPTXV2byV3('2130'), '1105');
-        assert.equal(id.tra.getPTXV3byV2('1105'), '2130');
-        // 鳳鳴
+    await t.test('id.tra 舊 v2 與 v3 數字重疊的站碼一律視為 v3（平鎮 1105、後龍 2130、板橋 1020、鳳鳴 1075）', () => {
+        assert.equal(id.tra.getRPIDbyPTXV3('1105'), 'tra_1105');
+        assert.equal(id.idTrans({ company: 'tra', value: 'tra_1105', returnType: 'data' }).name, '平鎮');
+        assert.equal(id.tra.getRPIDbyPTXV3('2130'), 'tra_2130');
+        assert.equal(id.idTrans({ company: 'tra', value: 'tra_2130', returnType: 'data' }).name, '後龍');
+        assert.equal(id.idTrans({ company: 'tra', value: 'tra_1020', returnType: 'data' }).name, '板橋');
+        assert.equal(ptx.tra.v3Sv2('1105'), '1105');
+        assert.equal(ptx.tra.v2Sv3('1105'), '1105');
         assert.equal(id.tra.getPTXV2byV3('1075'), '1075');
 
         const xibu = pData.tra.line.find((c) => c.id === 'tra_xibu').station;
-        assert.deepEqual(xibu.slice(xibu.indexOf('tra_1017'), xibu.indexOf('tra_1017') + 3), ['tra_1017', 'tra_1037', 'tra_1018']);
-        assert.equal(xibu[xibu.indexOf('tra_1014') + 1], 'tra_1075', '鳳鳴在鶯歌之後');
+        assert.deepEqual(xibu.slice(xibu.indexOf('tra_1100'), xibu.indexOf('tra_1100') + 3), ['tra_1100', 'tra_1105', 'tra_1110'], '平鎮位於中壢、埔心之間');
+        assert.equal(xibu[xibu.indexOf('tra_1070') + 1], 'tra_1075', '鳳鳴在鶯歌之後');
         const wl = datax.tra.line.find((c) => c.LineID === 'WL').station;
         const i = wl.findIndex((c) => c.ID === '1105');
         assert.ok(i > 0 && wl[i - 1].ID === '1100' && wl[i + 1].ID === '1110', 'WL 線平鎮位於中壢、埔心之間');
         assert.ok(datax.tra.station.find((c) => c.StationID === '1105'), 'datax tra.station 應有平鎮');
     });
 
-    await t.test('id.tra 全站 v2 <-> v3 roundtrip', () => {
+    await t.test('id.tra 全站 rpID 皆為 tra_ + v3id，互轉函式回傳同一筆 v3 ID', () => {
         const withV3 = pData.tra.station_ary.filter((c) => c.v3id);
-        assert.ok(withV3.length > 200, 'tra station 應有大量 v3id 資料');
+        assert.equal(withV3.length, pData.tra.station_ary.length, 'tra station 應全部有 v3id');
         for (const st of withV3) {
-            const v2 = st.id.replace('tra_', '');
-            const v3 = id.tra.getPTXV3byV2(v2);
-            assert.equal(v3, st.v3id, `${st.id} 的 v3id 轉換`);
-            assert.equal(id.tra.getPTXV2byV3(v3), v2, `${st.id} 的 v3 -> v2 反轉`);
+            assert.equal(st.id, 'tra_' + st.v3id, `${st.id} 應為 tra_ + v3id`);
+            const code = id.tra.getPTXV2(st.id);
+            assert.equal(id.tra.getPTXV3byV2(code), st.v3id, `${st.id} getPTXV3byV2`);
+            assert.equal(id.tra.getPTXV2byV3(st.v3id), st.v3id, `${st.id} getPTXV2byV3`);
+            assert.equal(id.tra.getRPIDbyPTXV3(st.v3id), st.id, `${st.id} getRPIDbyPTXV3`);
         }
+        // data.js 內所有 tra_ 四碼參照都必須是已定義的車站
+        const defined = new Set(pData.tra.station_ary.map((c) => c.id));
+        const refs = new Set(JSON.stringify(pData).match(/tra_[0-9]{4}/g));
+        assert.deepEqual([...refs].filter((r) => !defined.has(r)), []);
     });
 
     await t.test('id.trtc / id.tymc / id.ntmc StationID roundtrip', () => {
@@ -148,7 +155,7 @@ test('id 轉換工具', async (t) => {
     });
     await t.test('getStationDataByStationUID：StationUID 反查 data.js 車站', () => {
         assert.equal(id.getStationDataByStationUID('TRTC-BR01').id, 'trtc_br01');
-        assert.equal(id.getStationDataByStationUID('TRA-1000').id, 'tra_1008');
+        assert.equal(id.getStationDataByStationUID('TRA-1000').id, 'tra_1000');
         assert.equal(id.getStationDataByStationUID('THSR-0990').id, 'thsr_0990');
         assert.equal(id.getStationDataByStationUID('KRTC-O1').name, '哈瑪星');
         // 轉乘站第二組 UID 也找得到

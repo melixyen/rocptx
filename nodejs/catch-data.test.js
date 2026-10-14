@@ -219,16 +219,19 @@ test('thsr / tra catchData 靜態資料查找', async (t) => {
         assert.equal(ptx.thsr.v2.catchData.getDataXStationName('0990', true), 'Nangang');
     });
 
-    await t.test('tra.catchData：datax 為 v3 ID，v2 ID 查詢走相容層', () => {
-        // 2026-07 起 TDX 的 TRA v2 API 改回傳 v3 站 ID，datax 亦為 v3 ID
+    await t.test('tra.catchData：datax 與 data.js 皆為 v3 ID', () => {
+        // 2026-07 起 TDX 的 TRA v2 API 改回傳 v3 站 ID，datax 亦為 v3 ID；data.js 的 rpID 也已改為 tra_ + v3 站碼
         const stV3 = ptx.tra.catchData.getDataXStationData('1000');
         assert.ok(stV3 && stV3.name === '臺北', 'v3 ID 直接查詢');
-
-        const stV2 = ptx.tra.catchData.getDataXStationData('1008');
-        assert.ok(stV2 && stV2.name === '臺北', 'v2 ID 應經相容層轉換查到同一站');
-        assert.equal(stV2.v3id, '1000', '應合併 data 靜態資料的 v3id');
-        assert.equal(ptx.tra.catchData.getDataXStationName('1008'), '臺北');
+        assert.equal(stV3.id, 'tra_1000', '應合併 data 靜態資料的 rpID');
+        assert.equal(stV3.v3id, '1000', '應合併 data 靜態資料的 v3id');
         assert.equal(ptx.tra.catchData.getDataXStationName('1000'), '臺北');
+
+        // 與舊 v2 數字重疊的 v3 站碼要合併到同一站（舊版會把浮洲 1030 合併成百福）
+        const fz = ptx.tra.catchData.getDataXStationData('1030');
+        assert.equal(fz.name, '浮洲');
+        assert.equal(fz.id, 'tra_1030');
+        assert.equal(fz.data_name, '浮洲');
     });
 });
 

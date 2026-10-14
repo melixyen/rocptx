@@ -26,7 +26,7 @@
         "iife": "rollup -f iife --config rollup.config.js",
         "amd": "rollup -f amd --config rollup.config.js",
         "cjs": "rollup -f cjs --config rollup.config.js",
-        "linetime": "rollup -f umd --config rollup.config.js -i src/line_time_main.js -o dist/line_time.js -n $trainTaiwanLib.ptx.lineTime"
+        "linetime": "rollup -f umd --config rollup.config.js -i src/line_time_main.js -o dist/line_time.js --environment ROCPTX_LINETIME"
     },
     "author": "",
     "license": "MIT",

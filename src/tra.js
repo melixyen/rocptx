@@ -109,6 +109,10 @@ function useLineID2filterBy(LineID, cfg={}){
     cfg.filterBy += ptx.filterParam('LineID', '==', LineID);
     return cfg;
 }
+//台鐵 rpID（tra_1000）已是 tra_ + TDX v3 站碼，去掉前綴即為 TDX 站碼；傳入站碼則原樣回傳
+function toTDXStationID(id){
+    return (id === undefined || id === null) ? id : String(id).replace(/^tra_/, '');
+}
 function useStationID2filterBy(StationID, cfg={}){
     cfg.filterBy = cfg.filterBy || '';
     cfg.filterBy += ptx.filterParam('StationID', '==', StationID);
@@ -137,7 +141,7 @@ var tra = {
         let dateStr = date.getFullYear() + '-' + common.appendNumber0(date.getMonth()+1) + '-' + common.appendNumber0(date.getDate());
         return tra._DailyTimetable_Station_TrainDate(StationID, dateStr, cfg);
     },
-    //以下均使用 rpID 並轉換為 v3id 呼叫
+    //以下可傳入 rpID（tra_1000）或 TDX 站碼（1000），以 v3 API 呼叫
     getStationLiveBoard: function(StationID, cfg={}){
         if(!StationID){
             return tra.v3._StationLiveBoard(cfg).then((e)=>{
@@ -147,7 +151,7 @@ var tra = {
                 return e;
             })
         }else{
-            StationID = idFn.tra.getPTXV3(StationID) || StationID;
+            StationID = toTDXStationID(StationID);
             return tra.v3._StationLiveBoard_Station(StationID, cfg).then((e)=>{
                 e.data.StationLiveBoards.forEach((c)=>{
                     c.rpStationID = idFn.tra.getRPIDbyPTXV3(c.StationID);
@@ -171,8 +175,8 @@ var tra = {
         })
     },
     getFromToTimeTable: function(from, to, date, Inclusive=false, cfg={}){
-        from = idFn.tra.getPTXV3(from) || from;
-        to = idFn.tra.getPTXV3(to) || to;
+        from = toTDXStationID(from);
+        to = toTDXStationID(to);
         if(!date){
             date = common.transTime2Date(new Date());
         }else if(typeof(date)=='object' && typeof(date.toLocaleDateString)=='function'){
@@ -262,14 +266,10 @@ let catchData = {
         return rt;
     },
     getDataXStationData: function(StationID){
-        var findFn = function(sid){ return ptx.datax['tra'].station.find((c)=>{return !!(c.StationID==sid)}) };
-        var rt = findFn(StationID);
-        if(!rt){//2026-07 起 TDX 的 TRA v2 API 已改回傳 v3 站 ID，datax 亦為 v3 ID；傳入 v2 ID 查無時自動轉 v3 相容舊用法
-            var v3id = idFn.tra.getPTXV3byV2(StationID);
-            if(v3id) rt = findFn(v3id);
-        }
+        //datax 與 data.js 皆為 TDX v3 站碼（2026-07 起 TDX 的 TRA v2 API 也只用 v3 站碼）
+        var rt = ptx.datax['tra'].station.find((c)=>{return !!(c.StationID==StationID)});
         if(rt){
-            var dt = ptx.data.tra.station_ary.find(c=> !!(idFn.tra.getPTXV2(c.id)==StationID || c.v3id==rt.StationID))
+            var dt = ptx.data.tra.station_ary.find(c=> !!(c.v3id==rt.StationID))
             for(var k in dt){
                 if(k=='id'){
                     rt['id'] = dt[k];
@@ -501,6 +501,7 @@ tra.getFromToFare = tra._ODFareFromTo;//alias
 
 //====================== TRA V3 Function 產生至 tra.v3 之下 ==============================
 
+//TDX v2 / v3 站碼已相同，以下兩個函式保留供外部呼叫，輸入輸出為同一筆 v3 站碼
 tra.v2Sv3 = function(StationID){//輸入 v2 StationID 輸出 v3 id
     return idFn.tra.getPTXV3byV2(StationID);
 }
@@ -610,7 +611,7 @@ let catchV3Data = {
         return rt;
     },
     getDataXStationData: function(StationID){
-        return catchData.getDataXStationData(idFn.tra.getPTXV2byV3(StationID));
+        return catchData.getDataXStationData(StationID);
         // var rt = ptx.datax['trav3'].station.find((c)=>{return !!(c.StationID==StationID)})
         // if(rt){
         //     var dt = ptx.data.tra.station_ary.find(c=> !!(c.v3id==StationID))
@@ -676,7 +677,7 @@ let catchV3Data = {
             return res.data.Stations.map(function(c){
                 return {
                     StationID: c.StationID,
-                    v2id: tra.v3Sv2(c.StationID),
+                    v2id: c.StationID,//TDX v2 / v3 站碼已相同
                     lat: c.StationPosition.PositionLat,
                     lon: c.StationPosition.PositionLon,
                     name: c.StationName.Zh_tw,
@@ -725,7 +726,7 @@ let catchV3Data = {
                     return {
                         name: st.StationName,
                         ID: st.StationID,
-                        v2id: tra.v3Sv2(st.StationID),
+                        v2id: st.StationID,//TDX v2 / v3 站碼已相同
                         TD: st.CumulativeDistance
                     }
                 })
@@ -843,7 +844,7 @@ let catchV3Data = {
                         Arr: c.ArrivalTime,
                         Dep: c.DepartureTime,
                         ID: c.StationID,
-                        v2id: tra.v3Sv2(c.StationID),
+                        v2id: c.StationID,//TDX v2 / v3 站碼已相同
                         name: c.StationName.Zh_tw
                     }
                 })

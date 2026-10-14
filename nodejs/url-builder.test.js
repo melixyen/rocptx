@@ -346,20 +346,20 @@ test('convenience getter 參數映射', async (t) => {
     });
 
     await t.test('tra (v2) getter 映射', async () => {
-        await ptx.tra.getStation('1008');
+        await ptx.tra.getStation('1000');
         assert.equal(lastPath(), '/v2/Rail/TRA/Station');
-        assert.ok(/StationID eq '1008'/.test(decodedURL()));
+        assert.ok(/StationID eq '1000'/.test(decodedURL()));
 
         await ptx.tra.getStationOfLine('WL');
         assert.equal(lastPath(), '/v2/Rail/TRA/StationOfLine');
         assert.ok(/LineID eq 'WL'/.test(decodedURL()));
 
-        await ptx.tra.getStationFare('1008');
+        await ptx.tra.getStationFare('1000');
         assert.equal(lastPath(), '/v2/Rail/TRA/ODFare');
-        assert.ok(/OriginStationID eq '1008'/.test(decodedURL()));
+        assert.ok(/OriginStationID eq '1000'/.test(decodedURL()));
 
-        await ptx.tra.getFromToFare('1008', '1319');
-        assert.equal(lastPath(), '/v2/Rail/TRA/ODFare/1008/to/1319');
+        await ptx.tra.getFromToFare('1000', '4400');
+        assert.equal(lastPath(), '/v2/Rail/TRA/ODFare/1000/to/4400');
     });
 
     await t.test('tra.v3 getter 映射', async () => {

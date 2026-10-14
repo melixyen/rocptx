@@ -65,6 +65,12 @@ switch(format){
 }
 config.output.format = format;
 
+// *** line_time 以 $trainTaiwanLib.ptx.lineTime 為全域名稱 ***
+// 名稱含 $，寫在 npm script 的 -n 參數會被 shell 當成環境變數展開成空字串，故改由 --environment ROCPTX_LINETIME 在這裡設定
+if(process.env.ROCPTX_LINETIME == 'true' || process.env.ROCPTX_LINETIME == '1'){
+	config.output.name = '$trainTaiwanLib.ptx.lineTime';
+}
+
 // *** Add banner comment to export file ***
 let commentString = '';
 if(flagBanner){

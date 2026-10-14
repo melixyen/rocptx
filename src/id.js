@@ -215,6 +215,7 @@ let thsr = {
     }
 }
 
+//台鐵 rpID 已是 tra_ + TDX v3 站碼，TDX v2 / v3 API 也只用 v3 站碼；以下函式保留原查表邏輯供外部呼叫，v2 / v3 互轉的輸入輸出為同一筆 v3 站碼
 let tra = {
     getPTXV2: function (id) {
         if (id) id = id.replace(/^tra_/, '');

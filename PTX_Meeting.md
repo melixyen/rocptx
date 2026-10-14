@@ -30,9 +30,9 @@ rocptx.trtc.getStation('BL01').then(function(json){
 })
 //rocptx.捷運公司.getStation(車站代號).then(Promise resolve function);
 
-//操作台鐵 v2 及 v3 版 ID 轉換
-rocptx.tra.v2Sv3("1005"); //回應 "0960" 汐止
-rocptx.tra.v3Sv2("7000"); //回應 "1715" 花蓮
+//操作台鐵 v2 及 v3 版 ID 轉換（TDX 的 v2 / v3 API 皆已改用 v3 站碼，rocptx 資料也全面改為 v3，故輸入輸出為同一筆 v3 ID）
+rocptx.tra.v2Sv3("0960"); //回應 "0960" 汐止
+rocptx.tra.v3Sv2("7000"); //回應 "7000" 花蓮
 
 ```
 

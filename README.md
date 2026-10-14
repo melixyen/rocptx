@@ -83,7 +83,7 @@ rocptx.thsr.v2.getStationFare('0990').then(function(result){
 
 ```javascript
 rocptx.id.thsr.getRPIDbyPTXV2('0990');
-rocptx.id.tra.getPTXV3('1008');
+rocptx.id.tra.getPTXV3('tra_1000'); // '1000'：台鐵 rpID 已改用 v3 站碼，互轉函式輸入輸出皆為同一筆 v3 ID
 ```
 
 ### 6. 呼叫尚未封裝的 API（`rocptx.req`）
@@ -417,7 +417,7 @@ rocptx.datax.trtc.fare['BL12']['BL15']; // 20
 已知限制與注意事項：
 
 - **捷運站別時刻表（metro time 包）不在自動更新範圍**：TDX 的 `StationTimeTable` 需逐站呼叫、速度過慢且會無回應卡死；repo 內保留的 `src/datax/trtc/krtc/tymc.time.json` 為歷史資料，僅供 `dist/line_time.js` 相容使用（原有資料不動原則）
-- **TRA 站 ID 已為 v3 格式**：2026-07 起 TDX 的 TRA v2 API 改回傳 v3 站 ID（台北 = `1000`），datax 的 tra 各包一致採 v3 ID；`tra.catchData.getDataXStationData` 有相容層，傳 v2 ID（如 `1008`）會自動轉換
+- **TRA 站 ID 已為 v3 格式**：2026-07 起 TDX 的 TRA v2 / v3 API 都只接受並回傳 v3 站 ID（台北 = `1000`；送 v2 站碼會回 200 但資料為空），datax 的 tra 各包一致採 v3 ID；`data.js` 手動維護的台鐵 rpID 也已全面改為 `tra_` + v3 站碼（台北 = `tra_1000`），`id.tra` 與 `tra.v2Sv3` / `v3Sv2` 等互轉函式保留原邏輯，輸入輸出皆為同一筆 v3 ID。舊 v2 站碼與部分 v3 站碼數字重疊（例如 `1020` 在 v2 是富岡、在 v3 是板橋），請勿再傳入 v2 站碼
 - **TRA 票價為中文票種巢狀映射**：`{起站:{迄站:{成自:994, 成莒:767, ...}}}`（成人非折扣票種）
 
 ### 測試
